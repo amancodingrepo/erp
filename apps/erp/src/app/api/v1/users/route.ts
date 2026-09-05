@@ -1,6 +1,7 @@
 import { ActorType } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { notFound } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { issuePasswordReset, randomPasswordHash } from "@/lib/password-reset";
 import { requireApiPermission } from "@/lib/principal";
@@ -121,6 +122,17 @@ export async function POST(request: Request) {
       body.actorType ??
       (body.tab ? PORTAL_ACTOR[body.tab] : undefined) ??
       ActorType.STAFF;
+    let guardianId: string | null = null;
+    if (body.guardianId) {
+      const guardian = await prisma.guardian.findFirst({
+        where: {
+          id: body.guardianId,
+          links: { some: { student: { campusId: user.campusId } } },
+        },
+      });
+      if (!guardian) throw notFound("guardian");
+      guardianId = guardian.id;
+    }
     const passwordHash = await randomPasswordHash();
     const createdUser = await prisma.user.create({
       data: {
@@ -160,9 +172,9 @@ export async function POST(request: Request) {
         data: { userId: createdUser.id },
       });
     }
-    if (body.guardianId) {
-      await prisma.guardian.updateMany({
-        where: { id: body.guardianId },
+    if (guardianId) {
+      await prisma.guardian.update({
+        where: { id: guardianId },
         data: { userId: createdUser.id },
       });
     }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { requestIp, writeAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { notFound } from "@/lib/errors";
+import { forbidden, notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
@@ -25,6 +25,9 @@ export async function PUT(
       include: { grants: true },
     });
     if (!role) throw notFound("role");
+    if (role.name === "SuperAdmin") {
+      throw forbidden("cannot edit SuperAdmin grants");
+    }
     const body = bodySchema.parse(await readJson(request));
     let permissionIds = body.permissionIds ?? [];
     if (body.permissions?.length) {

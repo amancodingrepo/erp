@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { assertCanChangeSuperAdmin } from "@/lib/superadmin-guard";
 
 const patchSchema = z.object({
   isActive: z.boolean().optional(),
@@ -20,10 +21,30 @@ export async function PATCH(
     const { id } = await context.params;
     const existing = await prisma.user.findFirst({
       where: { id, campusId: user.campusId },
-      include: { roles: true },
+      include: { roles: { include: { role: true } } },
     });
     if (!existing) throw notFound("user");
     const body = patchSchema.parse(await readJson(request));
+    const currentNames = existing.roles.map((r) => r.role.name);
+    let nextRoleNames: string[] | null = null;
+    let nextRoles: { id: string; name: string }[] | null = null;
+    if (body.roleIds) {
+      nextRoles = await prisma.role.findMany({
+        where: {
+          id: { in: body.roleIds },
+          OR: [{ campusId: user.campusId }, { campusId: null }],
+        },
+      });
+      nextRoleNames = nextRoles.map((role) => role.name);
+    }
+    await assertCanChangeSuperAdmin({
+      campusId: user.campusId,
+      userId: existing.id,
+      currentlyActive: existing.isActive,
+      currentlySuperAdmin: currentNames.includes("SuperAdmin"),
+      nextIsActive: body.isActive,
+      nextRoleNames,
+    });
     const updated = await prisma.user.update({
       where: { id },
       data: {
@@ -33,19 +54,13 @@ export async function PATCH(
           : { email: body.email === "" ? null : body.email }),
       },
     });
-    if (body.roleIds) {
-      const roles = await prisma.role.findMany({
-        where: {
-          id: { in: body.roleIds },
-          OR: [{ campusId: user.campusId }, { campusId: null }],
-        },
-      });
+    if (nextRoles) {
       await prisma.$transaction([
         prisma.userRole.deleteMany({ where: { userId: id } }),
-        ...(roles.length
+        ...(nextRoles.length
           ? [
               prisma.userRole.createMany({
-                data: roles.map((role) => ({
+                data: nextRoles.map((role) => ({
                   userId: id,
                   roleId: role.id,
                 })),
