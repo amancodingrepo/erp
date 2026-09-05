@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { ScreenDef } from "@/lib/catalog/screens";
-import AcademicsPage from "@/app/(staff)/staff/academics/page";
+import AcademicsHub from "@/components/modules/academics-hub";
 import AttendancePage from "@/app/(staff)/staff/attendance/page";
 import DashboardPage from "@/app/(staff)/staff/dashboard/page";
 import ExamsPage from "@/app/(staff)/staff/exams/page";
@@ -24,12 +24,15 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/examgroup": () => <ExamsPage />,
   "/staff/examgroup/mark-entry-single-subject": () => <ExamsPage />,
   "/staff/examgroup/mark-entry-subjectwise": () => <ExamsPage />,
-  "/staff/classes": () => <AcademicsPage />,
-  "/staff/sections": () => <AcademicsPage />,
-  "/staff/subject": () => <AcademicsPage />,
-  "/staff/sessions": () => <AcademicsPage />,
-  "/staff/department": () => <AcademicsPage />,
-  "/staff/course-master": () => <AcademicsPage />,
+  "/staff/classes": () => <AcademicsHub tab="classes" />,
+  "/staff/sections": () => <AcademicsHub tab="sections" />,
+  "/staff/subject": () => <AcademicsHub tab="subjects" />,
+  "/staff/sessions": () => <AcademicsHub tab="sessions" />,
+  "/staff/department": () => <AcademicsHub tab="department" />,
+  "/staff/course-master": () => <AcademicsHub tab="programs" />,
+  "/staff/timetable/classreport": () => <AcademicsHub tab="timetable" />,
+  "/staff/stdtransfer": () => <AcademicsHub tab="promotion" />,
+  "/staff/holiday/set-working-days": () => <AcademicsHub tab="workingDays" />,
   "/staff/users": () => <UsersPage />,
   "/staff/roles": () => <RolesPage />,
 };

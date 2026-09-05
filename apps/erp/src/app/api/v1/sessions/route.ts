@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { currentSessionId } from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
@@ -23,7 +24,10 @@ export async function GET(request: Request) {
       where: { campusId: user.campusId },
       orderBy: { sequenceNo: "desc" },
     });
-    return ok({ data: sessions });
+    return ok({
+      data: sessions,
+      currentSessionId: await currentSessionId(user),
+    });
   } catch (error) {
     return fail(error);
   }

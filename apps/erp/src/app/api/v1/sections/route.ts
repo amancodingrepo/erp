@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { classInCampus } from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { conflict } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
@@ -36,8 +37,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireApiPermission(request, "academics", "section", "create");
+    const user = await requireApiPermission(
+      request,
+      "academics",
+      "section",
+      "create",
+    );
     const body = createSchema.parse(await readJson(request));
+    await classInCampus(user.campusId, body.classId);
+    const duplicate = await prisma.section.findFirst({
+      where: { classId: body.classId, name: body.name },
+    });
+    if (duplicate) throw conflict("section name already exists in this class");
     try {
       const row = await prisma.section.create({
         data: {
