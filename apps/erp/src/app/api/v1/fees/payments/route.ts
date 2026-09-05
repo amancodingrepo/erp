@@ -1,5 +1,6 @@
 import { InvoiceStatus, PaymentMethod } from "@prisma/client";
 import { z } from "zod";
+import { requestIp, writeAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { notFound, validationError } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
@@ -76,6 +77,20 @@ export async function POST(request: Request) {
           },
         });
         return { payment, invoice: updated };
+      });
+      await writeAudit({
+        userId: user.id,
+        campusId: user.campusId,
+        action: "fees.payment.create",
+        entity: "Payment",
+        entityId: result.payment.id,
+        after: {
+          receiptNo: result.payment.receiptNo,
+          invoiceId: invoice.id,
+          amount: body.amount,
+          method: body.method,
+        },
+        ip: requestIp(request),
       });
       return created({
         receiptNo: result.payment.receiptNo,

@@ -1,5 +1,6 @@
 import { StudentStatus } from "@prisma/client";
 import { z } from "zod";
+import { requestIp, writeAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
@@ -30,6 +31,16 @@ export async function POST(
         status: StudentStatus.DISABLED,
         disableReasonId: body.reasonId,
       },
+    });
+    await writeAudit({
+      userId: user.id,
+      campusId: user.campusId,
+      action: "students.disable",
+      entity: "Student",
+      entityId: id,
+      before: { status: existing.status },
+      after: { status: StudentStatus.DISABLED, reasonId: body.reasonId ?? null },
+      ip: requestIp(request),
     });
     return ok(student);
   } catch (error) {

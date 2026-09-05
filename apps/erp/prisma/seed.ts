@@ -1,5 +1,6 @@
 import { ActorType, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { OPTIONAL_MODULES } from "../src/lib/catalog/nav-permissions";
 import {
   PERMISSION_CATALOG,
   ROLE_GRANTS,
@@ -147,10 +148,56 @@ async function main() {
     data: { userId: adminUser.id, roleId: superAdmin.id },
   });
 
+  const teacherRole = roles.get("Teacher")!;
+  const teacherUser = await prisma.user.upsert({
+    where: {
+      campusId_username: { campusId: campus.id, username: "teacher" },
+    },
+    update: { passwordHash, isActive: true, actorType: ActorType.STAFF },
+    create: {
+      campusId: campus.id,
+      actorType: ActorType.STAFF,
+      username: "teacher",
+      email: "teacher@college.local",
+      passwordHash,
+      isActive: true,
+    },
+  });
+
+  await prisma.staff.upsert({
+    where: {
+      campusId_employeeId: { campusId: campus.id, employeeId: "EMP-T01" },
+    },
+    update: { userId: teacherUser.id },
+    create: {
+      campusId: campus.id,
+      userId: teacherUser.id,
+      employeeId: "EMP-T01",
+      firstName: "Demo",
+      lastName: "Teacher",
+      email: "teacher@college.local",
+    },
+  });
+
+  await prisma.userRole.deleteMany({ where: { userId: teacherUser.id } });
+  await prisma.userRole.create({
+    data: { userId: teacherUser.id, roleId: teacherRole.id },
+  });
+
+  for (const id of OPTIONAL_MODULES) {
+    const key = `module.${id}.enabled`;
+    await prisma.setting.upsert({
+      where: { campusId_key: { campusId: campus.id, key } },
+      update: { value: false },
+      create: { campusId: campus.id, key, value: false },
+    });
+  }
+
   console.log("Seed complete.");
   console.log("  campus:", campus.name);
   console.log("  session: 2025-26 (current)");
   console.log("  login: admin / (SEED_ADMIN_PASSWORD or Admin@12345)");
+  console.log("  login: teacher / (same password, Teacher grants only)");
 }
 
 main()

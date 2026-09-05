@@ -7,8 +7,10 @@ import AttendancePage from "@/app/(staff)/staff/attendance/page";
 import DashboardPage from "@/app/(staff)/staff/dashboard/page";
 import ExamsPage from "@/app/(staff)/staff/exams/page";
 import CollectFeesPage from "@/app/(staff)/staff/fees/collect/page";
+import RolesPage from "@/app/(staff)/staff/roles/page";
 import CreateStudentPage from "@/app/(staff)/staff/students/create/page";
 import StudentsPage from "@/app/(staff)/staff/students/page";
+import UsersPage from "@/app/(staff)/staff/users/page";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -28,6 +30,8 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/sessions": () => <AcademicsPage />,
   "/staff/department": () => <AcademicsPage />,
   "/staff/course-master": () => <AcademicsPage />,
+  "/staff/users": () => <UsersPage />,
+  "/staff/roles": () => <RolesPage />,
 };
 
 export function SpecialScreen({

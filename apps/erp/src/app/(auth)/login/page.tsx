@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -93,6 +94,11 @@ function LoginForm() {
           <Button type="submit" className="w-full" disabled={pending}>
             {pending ? "Checking…" : "Enter desk"}
           </Button>
+          <p className="text-center text-sm">
+            <Link href="/forgot-password" className="underline-offset-4 hover:underline">
+              Forgot password
+            </Link>
+          </p>
         </form>
       </div>
     </div>

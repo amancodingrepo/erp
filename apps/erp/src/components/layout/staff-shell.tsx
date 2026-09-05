@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { NAV } from "@/lib/catalog/nav";
+import { filterNav, screenIsVisible } from "@/lib/catalog/nav-permissions";
 import { SCREEN_COUNT, SCREENS } from "@/lib/catalog/screens";
 import { cn } from "@/lib/cn";
 import type { AuthPrincipal } from "@/lib/permissions";
@@ -11,6 +12,7 @@ import type { AuthPrincipal } from "@/lib/permissions";
 type Me = {
   user: AuthPrincipal;
   campus: { name: string; session: { name: string } | null };
+  modules: Record<string, boolean>;
 };
 
 export function StaffShell({ children }: { children: React.ReactNode }) {
@@ -48,28 +50,36 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const groups = useMemo(() => {
+    const gated = filterNav(NAV, me?.user, me?.modules ?? {});
     const needle = q.trim().toLowerCase();
-    if (!needle) return NAV;
-    return NAV.map((g) => ({
-      ...g,
-      items: g.items.filter(
-        (item) =>
-          item.label.toLowerCase().includes(needle) ||
-          item.href.toLowerCase().includes(needle),
-      ),
-    })).filter((g) => g.items.length);
-  }, [q]);
+    if (!needle) return gated;
+    return gated
+      .map((g) => ({
+        ...g,
+        items: g.items.filter(
+          (item) =>
+            item.label.toLowerCase().includes(needle) ||
+            item.href.toLowerCase().includes(needle),
+        ),
+      }))
+      .filter((g) => g.items.length);
+  }, [q, me]);
 
   const hits = useMemo(() => {
+    const visible = SCREENS.filter((s) =>
+      screenIsVisible(s, me?.user, me?.modules ?? {}),
+    );
     const needle = q.trim().toLowerCase();
-    if (!needle) return SCREENS.slice(0, 12);
-    return SCREENS.filter(
-      (s) =>
-        s.title.toLowerCase().includes(needle) ||
-        s.module.includes(needle) ||
-        s.route.includes(needle),
-    ).slice(0, 20);
-  }, [q]);
+    if (!needle) return visible.slice(0, 12);
+    return visible
+      .filter(
+        (s) =>
+          s.title.toLowerCase().includes(needle) ||
+          s.module.includes(needle) ||
+          s.route.includes(needle),
+      )
+      .slice(0, 20);
+  }, [q, me]);
 
   async function logout() {
     await fetch("/api/v1/auth/logout", { method: "POST" });

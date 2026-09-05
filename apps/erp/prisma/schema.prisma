@@ -47,6 +47,7 @@ model Campus {
   students     Student[]
   staff        Staff[]
   settings     Setting[]
+  auditLogs    AuditLog[]
 }
 
 model AcademicSession {
@@ -99,10 +100,12 @@ model User {
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 
-  staff    Staff?
-  student  Student?
-  roles    UserRole[]
-  audit    AuditLog[]
+  staff          Staff?
+  student        Student?
+  guardian       Guardian?
+  roles          UserRole[]
+  audit          AuditLog[]
+  passwordResets PasswordReset[]
 
   @@unique([campusId, username])
   @@index([campusId, email])
@@ -145,6 +148,8 @@ model RolePermission {
 
 model AuditLog {
   id        String   @id @default(cuid())
+  campusId  String?
+  campus    Campus?  @relation(fields: [campusId], references: [id])
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
   action    String
@@ -156,6 +161,18 @@ model AuditLog {
   createdAt DateTime @default(now())
   @@index([entity, entityId])
   @@index([createdAt])
+  @@index([campusId])
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  @@index([userId])
 }
 
 // ─── Academics ─────────────────────────────────────────────
@@ -440,6 +457,8 @@ model StudentBank {
 
 model Guardian {
   id          String  @id @default(cuid())
+  userId      String? @unique
+  user        User?   @relation(fields: [userId], references: [id])
   name        String
   phone       String?
   email       String?

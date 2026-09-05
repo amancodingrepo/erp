@@ -43,6 +43,12 @@ export const PERMISSION_CATALOG: Array<{
   { module: "communicate", feature: "notice", action: "create" },
   { module: "settings", feature: "roles", action: "view" },
   { module: "settings", feature: "roles", action: "edit" },
+  { module: "settings", feature: "users", action: "view" },
+  { module: "settings", feature: "users", action: "edit" },
+  { module: "settings", feature: "modules", action: "view" },
+  { module: "settings", feature: "modules", action: "edit" },
+  { module: "settings", feature: "campus", action: "view" },
+  { module: "settings", feature: "campus", action: "edit" },
   { module: "settings", feature: "backup", action: "edit" },
 ];
 

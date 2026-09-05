@@ -13,6 +13,9 @@ export async function signAuthToken(principal: AuthPrincipal) {
     actorType: principal.actorType,
     roles: principal.roles,
     permissions: principal.permissions,
+    studentId: principal.studentId ?? null,
+    guardianId: principal.guardianId ?? null,
+    childIds: principal.childIds ?? [],
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(principal.id)
@@ -34,6 +37,11 @@ export async function verifyAuthToken(
       roles: Array.isArray(payload.roles) ? payload.roles.map(String) : [],
       permissions: Array.isArray(payload.permissions)
         ? payload.permissions.map(String)
+        : [],
+      studentId: payload.studentId ? String(payload.studentId) : null,
+      guardianId: payload.guardianId ? String(payload.guardianId) : null,
+      childIds: Array.isArray(payload.childIds)
+        ? payload.childIds.map(String)
         : [],
     };
   } catch {

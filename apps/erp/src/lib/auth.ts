@@ -1,9 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { authenticateCredentials } from "./principal";
+import { requireAuthSecret } from "./secrets";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  secret: requireAuthSecret(),
   trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
@@ -32,6 +33,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             actorType: principal.actorType,
             roles: principal.roles,
             permissions: principal.permissions,
+            studentId: principal.studentId,
+            guardianId: principal.guardianId,
+            childIds: principal.childIds,
           };
         } catch {
           return null;
@@ -47,6 +51,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.actorType = user.actorType;
         token.roles = user.roles;
         token.permissions = user.permissions;
+        token.studentId = user.studentId;
+        token.guardianId = user.guardianId;
+        token.childIds = user.childIds;
       }
       return token;
     },
@@ -58,6 +65,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         actorType: token.actorType,
         roles: token.roles,
         permissions: token.permissions,
+        studentId: token.studentId,
+        guardianId: token.guardianId,
+        childIds: token.childIds,
       };
       return session;
     },

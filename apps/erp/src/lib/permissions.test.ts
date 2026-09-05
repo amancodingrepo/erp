@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  filterNav,
+  navPermissionFor,
+} from "./catalog/nav-permissions";
+import { NAV } from "./catalog/nav";
+import {
   hasPermission,
   permKey,
   requirePermission,
@@ -15,7 +20,9 @@ function principal(
     actorType: "STAFF",
     roles: ["Teacher"],
     permissions: [
+      "dashboard.home.view",
       "students.profile.view",
+      "attendance.student.view",
       "attendance.student.edit",
       "exams.marks.edit",
     ],
@@ -78,5 +85,40 @@ describe("requirePermission", () => {
     expect(() =>
       requirePermission(principal(), "attendance", "student", "edit"),
     ).not.toThrow();
+  });
+});
+
+describe("nav gating", () => {
+  it("maps collect fees to fees.collect.view", () => {
+    expect(
+      navPermissionFor({ href: "/staff/studentfee", module: "fees" }),
+    ).toBe("fees.collect.view");
+  });
+
+  it("hides fee collect from a Teacher", () => {
+    const groups = filterNav(NAV, principal(), {
+      hostel: false,
+      canteen: false,
+      gmeet: false,
+      lms: false,
+      naac: false,
+      copo: false,
+      alumni: false,
+      booking: false,
+      railway: false,
+      "live-classes": false,
+    });
+    const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).not.toContain("/staff/studentfee");
+    expect(hrefs).not.toContain("/staff/hostel");
+    expect(hrefs).toContain("/staff/dashboard");
+  });
+
+  it("lets SuperAdmin see enabled modules only", () => {
+    const admin = principal({ roles: ["SuperAdmin"], permissions: [] });
+    const groups = filterNav(NAV, admin, { hostel: false, fees: true });
+    const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).toContain("/staff/studentfee");
+    expect(hrefs).not.toContain("/staff/hostel");
   });
 });

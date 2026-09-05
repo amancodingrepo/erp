@@ -6,6 +6,9 @@ export type AuthPrincipal = {
   actorType: string;
   roles: string[];
   permissions: string[];
+  studentId?: string | null;
+  guardianId?: string | null;
+  childIds?: string[];
 };
 
 export function permKey(module: string, feature: string, action: string) {

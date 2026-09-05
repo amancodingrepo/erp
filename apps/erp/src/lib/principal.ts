@@ -15,6 +15,8 @@ export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
+      student: true,
+      guardian: { include: { links: true } },
       roles: {
         include: {
           role: {
@@ -44,6 +46,9 @@ export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
     actorType: user.actorType,
     roles,
     permissions,
+    studentId: user.student?.id ?? null,
+    guardianId: user.guardian?.id ?? null,
+    childIds: user.guardian?.links.map((link) => link.studentId) ?? [],
   };
 }
 

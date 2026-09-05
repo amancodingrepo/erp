@@ -8,6 +8,9 @@ declare module "next-auth" {
     actorType: string;
     roles: string[];
     permissions: string[];
+    studentId?: string | null;
+    guardianId?: string | null;
+    childIds?: string[];
   }
   interface Session {
     user: {
@@ -18,6 +21,9 @@ declare module "next-auth" {
       actorType: string;
       roles: string[];
       permissions: string[];
+      studentId?: string | null;
+      guardianId?: string | null;
+      childIds?: string[];
     };
   }
 }
@@ -29,5 +35,8 @@ declare module "next-auth/jwt" {
     actorType: string;
     roles: string[];
     permissions: string[];
+    studentId?: string | null;
+    guardianId?: string | null;
+    childIds?: string[];
   }
 }
