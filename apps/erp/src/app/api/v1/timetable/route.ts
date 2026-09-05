@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { currentSessionId, sectionInCampus, sessionInCampus } from "@/lib/campus";
+import {
+  currentSessionId,
+  sectionInCampus,
+  sessionInCampus,
+  staffInCampus,
+  subjectInCampus,
+} from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { conflict, validationError } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
@@ -111,6 +117,18 @@ export async function PUT(request: Request) {
       if (periods.length !== periodIds.length) {
         throw validationError({ periodId: "unknown period" });
       }
+    }
+    for (const staffId of new Set(
+      body.slots.map((s) => s.staffId).filter((id): id is string => Boolean(id)),
+    )) {
+      await staffInCampus(user.campusId, staffId);
+    }
+    for (const subjectId of new Set(
+      body.slots
+        .map((s) => s.subjectId)
+        .filter((id): id is string => Boolean(id)),
+    )) {
+      await subjectInCampus(user.campusId, subjectId);
     }
 
     const others = await prisma.timetableSlot.findMany({

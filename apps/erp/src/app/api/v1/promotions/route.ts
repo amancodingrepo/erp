@@ -7,7 +7,7 @@ const bodySchema = z.object({
   fromSectionId: z.string().min(1),
   toSectionId: z.string().min(1),
   toSessionId: z.string().min(1),
-  studentIds: z.array(z.string()).optional(),
+  studentIds: z.array(z.string().min(1)).min(1),
 });
 
 export async function POST(request: Request) {

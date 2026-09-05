@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { classInCampus, currentSessionId, sectionInCampus } from "@/lib/campus";
+import {
+  classInCampus,
+  currentSessionId,
+  sectionInCampus,
+  sessionInCampus,
+} from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
@@ -64,6 +69,7 @@ export async function POST(request: Request) {
       if (!staff) throw notFound("staff");
     }
     const sessionId = body.sessionId ?? (await currentSessionId(user));
+    if (sessionId) await sessionInCampus(user.campusId, sessionId);
     const existing = await prisma.classSubject.findFirst({
       where: {
         classId: body.classId,

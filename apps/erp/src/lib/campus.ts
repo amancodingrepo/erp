@@ -40,6 +40,22 @@ export async function sectionInCampus(campusId: string, sectionId: string) {
   return row;
 }
 
+export async function staffInCampus(campusId: string, staffId: string) {
+  const row = await prisma.staff.findFirst({
+    where: { id: staffId, campusId },
+  });
+  if (!row) throw notFound("staff");
+  return row;
+}
+
+export async function subjectInCampus(campusId: string, subjectId: string) {
+  const row = await prisma.subject.findFirst({
+    where: { id: subjectId, campusId },
+  });
+  if (!row) throw notFound("subject");
+  return row;
+}
+
 export function parseDateOnly(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   if (!match) return new Date(`${value}T00:00:00.000Z`);

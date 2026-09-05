@@ -560,4 +560,108 @@ describe("Task 2 academics", () => {
     });
     expect(marksAfter).toBe(1);
   });
+
+  it("rejects empty studentIds with 422", async () => {
+    const viaApi = await json(
+      await promotionsPost(
+        req("POST", "/api/v1/promotions", token, {
+          fromSectionId: fyA,
+          toSectionId: syA,
+          toSessionId,
+          studentIds: [],
+        }),
+      ),
+    );
+    expect(viaApi.status).toBe(422);
+    expect(viaApi.body.error).toBe("validation_error");
+
+    await expect(
+      promote({
+        campusId,
+        fromSectionId: fyA,
+        toSectionId: syA,
+        toSessionId,
+        studentIds: [],
+      }),
+    ).rejects.toMatchObject({ status: 422, code: "validation_error" });
+  });
+
+  it("promotes a second student into a section that already has someone", async () => {
+    const second = await json(
+      await studentsPost(
+        req("POST", "/api/v1/students", token, {
+          admissionNo: `ADM2-${suffix}`,
+          firstName: "Rahul",
+          lastName: "Joshi",
+          classId: fyClassId,
+          sectionId: fyA,
+          sessionId: fromSessionId,
+          rollNo: "102",
+        }),
+      ),
+    );
+    expect(second.status).toBe(201);
+    const student2 = (second.body as { id: string }).id;
+
+    const intoOccupied = await promote({
+      campusId,
+      fromSectionId: fyA,
+      toSectionId: syA,
+      toSessionId,
+      studentIds: [student2],
+    });
+    expect(intoOccupied.promoted).toBe(1);
+
+    const third = await json(
+      await studentsPost(
+        req("POST", "/api/v1/students", token, {
+          admissionNo: `ADM3-${suffix}`,
+          firstName: "Neha",
+          lastName: "Khan",
+          classId: fyClassId,
+          sectionId: fyA,
+          sessionId: fromSessionId,
+          rollNo: "103",
+        }),
+      ),
+    );
+    const fourth = await json(
+      await studentsPost(
+        req("POST", "/api/v1/students", token, {
+          admissionNo: `ADM4-${suffix}`,
+          firstName: "Amit",
+          lastName: "Desai",
+          classId: fyClassId,
+          sectionId: fyA,
+          sessionId: fromSessionId,
+          rollNo: "104",
+        }),
+      ),
+    );
+    const student3 = (third.body as { id: string }).id;
+    const student4 = (fourth.body as { id: string }).id;
+
+    const sameSectionFirst = await promote({
+      campusId,
+      fromSectionId: fyA,
+      toSectionId: fyA,
+      toSessionId,
+      studentIds: [student3],
+    });
+    expect(sameSectionFirst.promoted).toBe(1);
+
+    const sameSectionSecond = await promote({
+      campusId,
+      fromSectionId: fyA,
+      toSectionId: fyA,
+      toSessionId,
+      studentIds: [student4],
+    });
+    expect(sameSectionSecond.promoted).toBe(1);
+
+    const inTarget = await prisma.studentEnrollment.count({
+      where: { sessionId: toSessionId, sectionId: fyA, isCurrent: true },
+    });
+    expect(inTarget).toBeGreaterThanOrEqual(2);
+  });
 });
