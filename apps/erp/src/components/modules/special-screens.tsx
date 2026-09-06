@@ -13,6 +13,7 @@ import StudentsPage from "@/app/(staff)/staff/students/page";
 import UsersPage from "@/app/(staff)/staff/users/page";
 import StudentsOps from "@/components/modules/students-ops";
 import FeesOps from "@/components/modules/fees-ops";
+import AttendanceOps from "@/components/modules/attendance-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -37,6 +38,11 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/fine-rules": () => <FeesOps mode="fines" />,
   "/staff/stuattendence": () => <AttendancePage />,
   "/staff/stuattendence/attendencereport": () => <AttendancePage />,
+  "/staff/approve-leave": () => <AttendanceOps mode="approve" />,
+  "/staff/staffattendance": () => <AttendanceOps mode="staff" />,
+  "/staff/leavetypes": () => <AttendanceOps mode="leaves" />,
+  "/staff/leaverequest": () => <AttendanceOps mode="approve" />,
+  "/staff/staff/leaverequest": () => <AttendanceOps mode="approve" />,
   "/staff/examgroup": () => <ExamsPage />,
   "/staff/examgroup/mark-entry-single-subject": () => <ExamsPage />,
   "/staff/examgroup/mark-entry-subjectwise": () => <ExamsPage />,

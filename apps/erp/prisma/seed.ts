@@ -211,6 +211,12 @@ async function main() {
     }
   }
 
+  await prisma.setting.upsert({
+    where: { campusId_key: { campusId: campus.id, key: "attendance.lockDays" } },
+    update: {},
+    create: { campusId: campus.id, key: "attendance.lockDays", value: 7 },
+  });
+
   for (const id of OPTIONAL_MODULES) {
     const key = `module.${id}.enabled`;
     await prisma.setting.upsert({

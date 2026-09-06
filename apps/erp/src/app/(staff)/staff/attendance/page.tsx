@@ -17,6 +17,7 @@ export default function AttendancePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [report, setReport] = useState<Array<{ studentId: string; name: string; percent: number }>>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [override, setOverride] = useState(false);
 
   useEffect(() => {
     fetch("/api/v1/classes")
@@ -42,13 +43,21 @@ export default function AttendancePage() {
       body: JSON.stringify({
         date,
         sectionId,
+        override,
         entries: rows.map((r) => ({
           studentId: r.studentId,
           status: r.status ?? "PRESENT",
         })),
       }),
     });
-    setMessage(res.ok ? "Attendance saved" : "Save failed");
+    const json = await res.json().catch(() => ({}));
+    setMessage(
+      res.ok
+        ? "Attendance saved"
+        : json.fields?.date === "holiday"
+          ? "Holiday — enable override to mark"
+          : json.message ?? "Save failed",
+    );
   }
 
   async function loadReport() {
@@ -106,6 +115,14 @@ export default function AttendancePage() {
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
+        <label className="flex items-end gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={override}
+            onChange={(e) => setOverride(e.target.checked)}
+          />
+          Override holiday
+        </label>
         <Button type="submit" className="self-end">
           Load
         </Button>

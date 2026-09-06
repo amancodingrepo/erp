@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 4 Fees implemented 2026-09-06. **Resume at Task 5 (Attendance).** Branch `main`.
+**Execution:** Subagent-driven. Task 5 Attendance implemented 2026-09-06. **Resume at Task 6 (Exams).** Branch `main`.
 
 ### Progress
 
@@ -18,9 +18,10 @@
 | 1 RBAC, audit, users/roles, password reset | **Done** | `a58c9e8` + `e2839d3` (SuperAdmin lockout 409, guardian campus IDOR) |
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
 | 3 Students SIS | **Done** | `cb08823` |
-| 4 Fees production | **Done** | — |
-| 5 Attendance + leave | **Next** | — |
-| 6–13 Exams through acceptance | Pending | — |
+| 4 Fees production | **Done** | `19ace1e` |
+| 5 Attendance + leave | **Done** | — |
+| 6 Examinations production | **Next** | — |
+| 7–13 Staff/portals through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -45,7 +46,7 @@
 | Screens | 335 catch-all routes; academics + users/roles wired; rest generic registers | v1 wired set only (not every CSV `core` row) |
 | Students | Full create, 360, CSV import (all-or-nothing), rolls, documents, category/disable-reason masters | Same (Task 3 done). Seed still needs student1/parent1 roster (Task 8) |
 | Fees | Assign master, line collect, idempotent pay, contra cancel, ledger, due search, PDF receipt | Same (Task 4 done). Razorpay still Phase B |
-| Attendance | Bulk mark; working-days API exists, not yet enforced on mark | Working calendar, leave codes LEAVE, % ignores holidays, lock after N days |
+| Attendance | Working-day check, holiday override, lock after N days, LEAVE on approve, staff attendance | Same (Task 5 done) |
 | Exams | Group/exam/subject/marks/finalize; promotion does not delete marks | Cascade filters, roster, draft/finalize, result block → withheld, PDF |
 | RBAC | Nav gated by permission + module flags; optional modules seeded off; SuperAdmin last-admin 409 | Same + student/parent IDOR tests (Task 8) |
 | Auth | Strong local `AUTH_SECRET`; health; forgot/set-password; JWT `studentId`/`guardianId`/`childIds` | Portals using those claims; Argon2id (Task 12) |
@@ -307,7 +308,7 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 
 ---
 
-### Task 5: Attendance + leave
+### Task 5: Attendance + leave — DONE
 
 **Spec:** `08-attendance-leave.md`, acceptance Attendance
 
@@ -318,15 +319,15 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Create: `src/app/api/v1/leave-types/route.ts`, `src/app/api/v1/leave-requests/route.ts`
 - Wire: `/staff/stuattendence`, `/staff/stuattendence/attendencereport`, `/staff/approve-leave`, `/staff/staffattendance`, `/staff/leavetypes`
 
-- [ ] **Step 1:** Tests: holiday date 422 unless override; monthly % ignores HOLIDAY; approved student leave codes LEAVE not ABSENT.
+- [x] **Step 1:** Tests: holiday date 422 unless override; monthly % ignores HOLIDAY; approved student leave codes LEAVE not ABSENT.
 
-- [ ] **Step 2:** PUT attendance checks `WorkingDay`; lock edits older than `settings.attendanceLockDays` except Principal/SuperAdmin.
+- [x] **Step 2:** PUT attendance checks `WorkingDay`; lock edits older than `settings.attendanceLockDays` except Principal/SuperAdmin.
 
-- [ ] **Step 3:** Student leave approve writes attendance LEAVE for date range.
+- [x] **Step 3:** Student leave approve writes attendance LEAVE for date range.
 
-- [ ] **Step 4:** Staff attendance + leave types + apply/approve (single-level first; multi-level HOD→Principal in Phase B).
+- [x] **Step 4:** Staff attendance + leave types + apply/approve (single-level first; multi-level HOD→Principal in Phase B).
 
-- [ ] **Step 5:** Commit `feat: attendance calendar leave coding`
+- [x] **Step 5:** Commit `feat: attendance calendar leave coding`
 
 ---
 

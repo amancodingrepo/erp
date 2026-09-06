@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 4 Fees implemented 2026-09-06. **Resume at Task 5 (Attendance).** Branch `main`.
+**Execution:** Subagent-driven. Task 5 Attendance implemented 2026-09-06. **Resume at Task 6 (Exams).** Branch `main`.
 
 ### Progress
 
@@ -18,9 +18,10 @@
 | 1 RBAC, audit, users/roles, password reset | **Done** | `a58c9e8` + `e2839d3` (SuperAdmin lockout 409, guardian campus IDOR) |
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
 | 3 Students SIS | **Done** | `cb08823` |
-| 4 Fees production | **Done** | — |
-| 5 Attendance + leave | **Next** | — |
-| 6–13 Exams through acceptance | Pending | — |
+| 4 Fees production | **Done** | `19ace1e` |
+| 5 Attendance + leave | **Done** | — |
+| 6 Examinations production | **Next** | — |
+| 7–13 Staff/portals through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
