@@ -13,6 +13,28 @@ export const OPTIONAL_MODULES = [
   "booking",
   "railway",
   "live-classes",
+  "admission",
+  "payroll",
+  "mentoring",
+  "recruitment",
+  "atkt",
+  "seating",
+  "onlineexam",
+  "updater",
+  "library",
+  "inventory",
+  "transport",
+  "certificates",
+  "front-office",
+  "cms",
+  "finance",
+  "placements",
+  "activities",
+  "feedback",
+  "lesson-plan",
+  "assignments",
+  "downloads",
+  "multi-campus",
 ] as const;
 
 export type OptionalModuleId = (typeof OPTIONAL_MODULES)[number];
@@ -58,6 +80,15 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/notification": "communicate.notice.view",
   "/staff/schsettings": "settings.campus.view",
   "/staff/print-headerfooter": "settings.campus.view",
+  "/staff/classes": "academics.class.view",
+  "/staff/sections": "academics.class.view",
+  "/staff/subject": "academics.class.view",
+  "/staff/sessions": "academics.class.view",
+  "/staff/department": "academics.class.view",
+  "/staff/course-master": "academics.class.view",
+  "/staff/timetable/classreport": "academics.class.view",
+  "/staff/stdtransfer": "academics.class.view",
+  "/staff/holiday/set-working-days": "academics.class.view",
   "/staff/report/studentinformation": "students.profile.view",
   "/staff/financereports/finance": "fees.collect.view",
   "/staff/attendencereports/attendance": "attendance.student.view",
@@ -67,7 +98,6 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/audit": "settings.campus.view",
   "/staff/report/human-resource": "hr.staff.view",
   "/staff/module": "settings.modules.view",
-  "/staff/admin/backup": "settings.backup.edit",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
@@ -89,11 +119,21 @@ export function navPermissionFor(item: Pick<NavItem, "href" | "module">): string
   return `${item.module}.profile.view`;
 }
 
+export const V1_WIRED_HREFS = new Set(Object.keys(NAV_PERMISSIONS));
+
+export function isV1WiredHref(href: string) {
+  return V1_WIRED_HREFS.has(href);
+}
+
 export function optionalModuleForItem(item: {
   href: string;
   module: string;
 }): string | null {
+  if (item.href.includes("updater")) return "updater";
   if (item.href.includes("railway")) return "railway";
+  if (item.href.includes("atkt")) return "atkt";
+  if (item.href.includes("seating-arrangement")) return "seating";
+  if (item.href.includes("onlineexam")) return "onlineexam";
   if (item.href.startsWith("/staff/gmeet") || item.href.includes("/gmeet")) {
     return "gmeet";
   }
@@ -101,18 +141,37 @@ export function optionalModuleForItem(item: {
     return "copo";
   }
   if (item.module === "room-booking") return "booking";
+  if (item.href.includes("hr-recruitment")) return "recruitment";
   if ((OPTIONAL_MODULES as readonly string[]).includes(item.module)) {
     return item.module;
   }
   return null;
 }
 
+export function isForeverOff(moduleId: string) {
+  return moduleId === "updater";
+}
+
 export function isModuleEnabled(
   flags: Record<string, boolean>,
   moduleId: string,
 ): boolean {
-  if (!(moduleId in flags)) return true;
-  return flags[moduleId] !== false;
+  if (isForeverOff(moduleId)) return false;
+  if (!(OPTIONAL_MODULES as readonly string[]).includes(moduleId)) return true;
+  return flags[moduleId] === true;
+}
+
+function itemVisible(
+  item: { href: string; module: string },
+  user: AuthPrincipal | null | undefined,
+  flags: Record<string, boolean>,
+): boolean {
+  const optional = optionalModuleForItem(item);
+  if (optional && !isModuleEnabled(flags, optional)) return false;
+  if (!isV1WiredHref(item.href)) {
+    if (!optional || !isModuleEnabled(flags, optional)) return false;
+  }
+  return hasPermission(user, navPermissionFor(item));
 }
 
 export function filterNav(
@@ -123,11 +182,7 @@ export function filterNav(
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => {
-        const optional = optionalModuleForItem(item);
-        if (optional && !isModuleEnabled(flags, optional)) return false;
-        return hasPermission(user, navPermissionFor(item));
-      }),
+      items: group.items.filter((item) => itemVisible(item, user, flags)),
     }))
     .filter((group) => group.items.length > 0);
 }
@@ -137,7 +192,5 @@ export function screenIsVisible(
   user: AuthPrincipal | null | undefined,
   flags: Record<string, boolean>,
 ): boolean {
-  const optional = optionalModuleForItem(screen);
-  if (optional && !isModuleEnabled(flags, optional)) return false;
-  return hasPermission(user, navPermissionFor(screen));
+  return itemVisible(screen, user, flags);
 }

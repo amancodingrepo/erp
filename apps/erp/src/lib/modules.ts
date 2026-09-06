@@ -1,5 +1,9 @@
 import { prisma } from "./db";
-import { OPTIONAL_MODULES } from "./catalog/nav-permissions";
+import {
+  isForeverOff,
+  OPTIONAL_MODULES,
+} from "./catalog/nav-permissions";
+import { forbidden } from "./errors";
 
 export { OPTIONAL_MODULES };
 
@@ -32,6 +36,9 @@ export async function setModuleFlag(
   id: string,
   enabled: boolean,
 ) {
+  if (isForeverOff(id) && enabled) {
+    throw forbidden("System Update stays disabled");
+  }
   const key = moduleSettingKey(id);
   return prisma.setting.upsert({
     where: { campusId_key: { campusId, key } },

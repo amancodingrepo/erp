@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 10 reports implemented 2026-09-06. **Resume at Task 11 (hide unwired screens).** Branch `main`.
+**Execution:** Subagent-driven. Task 11 hide-unwired implemented 2026-09-06. **Resume at Task 12 (security and ops hardening).** Branch `main`.
 
 ### Progress
 
@@ -485,17 +485,17 @@ it("student cannot collect fees", async () => {
 
 ---
 
-### Task 11: Hide unwired screens; only v1 routes are real
+### Task 11: Hide unwired screens; only v1 routes are real — DONE
 
 **v1 wired set** (must not use `GenericScreen`): every href listed in Tasks 2–10 (students, fees, attendance, exams, academics, staff, notices, settings, roles, users, reports, portals).
 
 **Everything else** (including CSV `priority=core` extras: railway, ATKT, seating, online exam, System Update, merit): hidden via `Setting module.*.enabled=false` **or** shown with a non-editable “Not in production v1” empty state. No `ScreenRecord` writes in production seed.
 
-- [ ] **Step 1:** Seed optional + out-of-v1 modules disabled. SuperAdmin can enable for demo, but workbench is read-only.
+- [x] **Step 1:** Seed optional + out-of-v1 modules disabled. SuperAdmin can enable for demo, but workbench is read-only.
 
-- [ ] **Step 2:** Grep `GenericScreen` / `ScreenRecord` — zero writes from v1 wired pages.
+- [x] **Step 2:** Grep `GenericScreen` / `ScreenRecord` — zero writes from v1 wired pages.
 
-- [ ] **Step 3:** Commit `feat: hide unwired screens for v1`
+- [x] **Step 3:** Commit `feat: hide unwired screens for v1`
 
 ---
 

@@ -69,6 +69,7 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/notification": () => <CampusOps mode="notices" />,
   "/staff/schsettings": () => <CampusOps mode="settings" />,
   "/staff/print-headerfooter": () => <CampusOps mode="letterhead" />,
+  "/staff/module": () => <CampusOps mode="modules" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

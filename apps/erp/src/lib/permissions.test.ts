@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   filterNav,
+  isForeverOff,
+  isModuleEnabled,
   navPermissionFor,
 } from "./catalog/nav-permissions";
 import { NAV } from "./catalog/nav";
@@ -120,5 +122,40 @@ describe("nav gating", () => {
     const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
     expect(hrefs).toContain("/staff/studentfee");
     expect(hrefs).not.toContain("/staff/hostel");
+  });
+
+  it("hides unwired screens when optional modules are off", () => {
+    const admin = principal({ roles: ["SuperAdmin"], permissions: [] });
+    const groups = filterNav(NAV, admin, {});
+    const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).toContain("/staff/dashboard");
+    expect(hrefs).toContain("/staff/student/search");
+    expect(hrefs).toContain("/staff/studentfee");
+    expect(hrefs).toContain("/staff/module");
+    expect(hrefs).not.toContain("/staff/student/bulkdelete");
+    expect(hrefs).not.toContain("/staff/hostel");
+    expect(hrefs).not.toContain("/staff/atkt-form/atkt-form-student");
+    expect(hrefs).not.toContain("/staff/seating-arrangement");
+    expect(hrefs).not.toContain("/staff/onlineexam");
+    expect(hrefs).not.toContain("/staff/admission/generatemeritlist");
+    expect(hrefs).not.toContain("/staff/updater");
+    expect(hrefs).not.toContain("/staff/staffpayroll/staff-payroll");
+    expect(hrefs).not.toContain("/staff/railway-concession");
+  });
+
+  it("lets SuperAdmin demo an enabled optional module as empty-state nav", () => {
+    const admin = principal({ roles: ["SuperAdmin"], permissions: [] });
+    const groups = filterNav(NAV, admin, { hostel: true });
+    const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).toContain("/staff/hostel");
+    expect(hrefs).not.toContain("/staff/updater");
+    expect(hrefs).not.toContain("/staff/atkt-form/atkt-form-student");
+  });
+
+  it("treats optional modules as off unless explicitly enabled", () => {
+    expect(isModuleEnabled({}, "hostel")).toBe(false);
+    expect(isModuleEnabled({ hostel: true }, "hostel")).toBe(true);
+    expect(isForeverOff("updater")).toBe(true);
+    expect(isModuleEnabled({ updater: true }, "updater")).toBe(false);
   });
 });

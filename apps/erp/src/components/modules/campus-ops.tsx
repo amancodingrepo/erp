@@ -4,7 +4,13 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
-type Mode = "staff" | "designations" | "notices" | "settings" | "letterhead";
+type Mode =
+  | "staff"
+  | "designations"
+  | "notices"
+  | "settings"
+  | "letterhead"
+  | "modules";
 const SELECT =
   "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
 
@@ -13,6 +19,7 @@ export default function CampusOps({ mode }: { mode: Mode }) {
   if (mode === "designations") return <NamedMaster path="/api/v1/designations" title="Designations" />;
   if (mode === "notices") return <NoticesPanel />;
   if (mode === "letterhead") return <LetterheadPanel />;
+  if (mode === "modules") return <ModulesPanel />;
   return <SettingsPanel />;
 }
 
@@ -319,6 +326,67 @@ function LetterheadPanel() {
         </div>
         <Button type="submit">Save letterhead</Button>
       </form>
+    </div>
+  );
+}
+
+function ModulesPanel() {
+  const [rows, setRows] = useState<Array<{ id: string; enabled: boolean }>>([]);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function load() {
+    const json = (await (await fetch("/api/v1/modules")).json()) as {
+      data?: Array<{ id: string; enabled: boolean }>;
+    };
+    setRows(json.data ?? []);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function toggle(id: string, enabled: boolean) {
+    const res = await fetch("/api/v1/modules", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ key: id, enabled }),
+    });
+    const json = (await res.json().catch(() => ({}))) as { message?: string };
+    setMessage(res.ok ? "Saved" : (json.message ?? "Could not save"));
+    load();
+  }
+
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Modules</h1>
+      <p className="text-sm text-[var(--muted)]">
+        Optional modules are off in production v1. SuperAdmin can enable them
+        for a demo; those screens stay read-only empty states. System Update
+        cannot be turned on.
+      </p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <ul className="divide-y divide-[var(--rule)] border border-[var(--rule)]">
+        {rows.map((row) => {
+          const locked = row.id === "updater";
+          return (
+            <li
+              key={row.id}
+              className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+            >
+              <span className="capitalize">{row.id.replaceAll("-", " ")}</span>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={row.enabled}
+                  disabled={locked}
+                  onChange={(event) => toggle(row.id, event.target.checked)}
+                />
+                {locked ? "Locked off" : row.enabled ? "On" : "Off"}
+              </label>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

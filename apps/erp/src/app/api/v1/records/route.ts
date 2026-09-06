@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { created, fail, ok, readJson } from "@/lib/http";
+import { forbidden } from "@/lib/errors";
+import { fail, ok, readJson } from "@/lib/http";
 import { assertStaff, principalFromRequest } from "@/lib/principal";
 
 const createSchema = z.object({
@@ -31,16 +31,8 @@ export async function POST(request: Request) {
   try {
     const user = await principalFromRequest(request);
     assertStaff(user);
-    const body = createSchema.parse(await readJson(request));
-    const row = await prisma.screenRecord.create({
-      data: {
-        campusId: user.campusId,
-        screenKey: body.screenKey,
-        title: body.title,
-        payload: body.payload as Prisma.InputJsonValue,
-      },
-    });
-    return created(row);
+    createSchema.parse(await readJson(request));
+    throw forbidden("Screen records are read-only in production v1");
   } catch (error) {
     return fail(error);
   }
