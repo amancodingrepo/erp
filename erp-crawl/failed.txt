@@ -1,0 +1,9 @@
+/admin/multibranch/branch	401	https://demoerp.mponline.gov.in/admin/multibranch/branch	401	https://demoerp.mponline.gov.in/admin/multibranch/branch	381
+/attendencereports/attendance	200	https://demoerp.mponline.gov.in/site/login	200	https://demoerp.mponline.gov.in/site/login	11146
+/category	200	https://demoerp.mponline.gov.in/site/login	200	https://demoerp.mponline.gov.in/site/login	11146
+/classes	200	https://demoerp.mponline.gov.in/site/login	200	https://demoerp.mponline.gov.in/site/login	11146
+/homework/dailyassignment	404	https://demoerp.mponline.gov.in/homework/dailyassignment	404	https://demoerp.mponline.gov.in/homework/dailyassignment	1820
+/homework/homeworkordailyassignmentreport	404	https://demoerp.mponline.gov.in/homework/homeworkordailyassignmentreport	404	https://demoerp.mponline.gov.in/homework/homeworkordailyassignmentreport	1820
+/roombooking/roombook/roombookrequestlist	200	https://demoerp.mponline.gov.in/site/login	200	https://demoerp.mponline.gov.in/site/login	11146
+/schsettings	200	https://demoerp.mponline.gov.in/site/login	200	https://demoerp.mponline.gov.in/site/login	11146
+/seating_arrangement/assign_block	200	https://demoerp.mponline.gov.in/site/login	200	https://demoerp.mponline.gov.in/site/login	11146

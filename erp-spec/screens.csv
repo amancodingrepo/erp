@@ -1,0 +1,336 @@
+module,priority,title,route,source,httpStatus
+dashboard,core,Dashboard,/dashboard,/admin/dashboard,200
+admission,core,Transfer & Cancellation,/admission-transfer-cancellation/transfer-cancellation-list,/admin/admission_transfer_cancellation/transfer_cancellation_list,200
+admission,core,Cutoff Setup,/admission/cutofflist,/admin/admission/cutofflist,200
+admission,core,Dashboard,/admission/dashboard,/admin/admission/admission_dashboard,200
+admission,core,Generate Merit List,/admission/generatemeritlist,/admin/admission/generatemeritlist,200
+admission,core,Import Applicants,/admission/importapplication,/admin/admission/importapplication,200
+admission,core,Manage Admission,/admission/manageadmission,/admin/admission/manageadmission,200
+admission,core,Admission Report,/admission/report,/admin/admission/report,200
+admission,core,Selection Status Report,/admission/selection-status-report,/admin/admission/selection_status_report,200
+admission,core,Summarized Report,/admission/summary-report,/admin/admission/summary_report,200
+admission,core,Online Admission Setting,/onlineadmission/admissionsetting,/admin/onlineadmission/admissionsetting,200
+admission,core,International Application,/onlineinternatinaladmission/admissionsetting,/admin/onlineinternatinaladmission/admissionsetting,200
+admission,core,Online Application,/onlinestudent,/admin/onlinestudent,200
+students,core,Railway Concession,/railway-concession,/railway_concession/index,200
+students,core,Railway Concession Report,/report/railway-concession-report,/report/railway_concession_report,200
+students,core,Student Information,/report/studentinformation,/report/studentinformation,200
+students,core,Scholarship,/stdscholarship,/stdscholarship,200
+students,core,Promote Students,/stdtransfer,/admin/stdtransfer,200
+students,core,Student Log Update,/student-log-update,/admin/student_log_update,200
+students,core,Approve Optional Subject,/student/approve-optional-course,/student/approve_optional_course,200
+students,core,Assign Optional Subject,/student/assign-optional-course,/student/assign_optional_course,200
+students,core,Assign Seat Number,/student/assign-seat-number,/student/assign_seat_number,200
+students,core,Bulk Delete,/student/bulkdelete,/student/bulkdelete,200
+students,core,Login Credentials Send,/student/bulkmail,/student/bulkmail,200
+students,core,Bulk Update,/student/bulkupdate,/student/bulkupdate,200
+students,core,Student Admission,/student/create,/student/create,200
+students,core,Student Dashboard,/student/dashboard,/student/student_dashboard,200
+students,core,Disabled Students,/student/disablestudentslist,/student/disablestudentslist,200
+students,core,Generate Roll Number,/student/generaterollnumber,/student/generaterollnumber,200
+students,core,Multi Class Student,/student/multiclass,/student/multiclass,200
+students,core,Student Profile Update,/student/profilesetting,/student/profilesetting,200
+students,core,Student 168,/student/search,/student/search,200
+students,core,Semester Allocation,/student/semester-allocation,/student/semester_allocation,200
+students,core,Student Bulk Upload,/student/student-bulk-upload,/student/student_bulk_upload,200
+students,core,Upload Student Documents,/student/upload-student-documents,/student/upload_student_documents,200
+students,core,Upload Student Photo,/student/upload-student-photo,/student/upload_student_photo,200
+fees,core,Assign Variable Fees,/assign-variable-fees,/admin/assign_variable_fees,200
+fees,core,Fee Receipt Import,/fee-receipt-import,/admin/fee_receipt_import,200
+fees,core,Fees Discount,/feediscount,/admin/feediscount,200
+fees,core,Fees Group,/feegroup,/admin/feegroup,200
+fees,core,Fees Master,/feemaster,/admin/feemaster,200
+fees,core,Assign Fee Master,/feemastercoursewise,/admin/feemastercoursewise,200
+fees,core,Fees Reminder,/feereminder/setting,/admin/feereminder/setting,200
+fees,core,Fees Installment,/fees-installment,/admin/fees_installment,200
+fees,core,Fees Type Group,/fees-type-group,/admin/fees_type_group,200
+fees,core,Fees Carry Forward,/feesforward,/admin/feesforward,200
+fees,core,Fees Type,/feetype,/admin/feetype,200
+fees,core,Fees Fine Rules,/fine-rules,/admin/fine_rules,200
+fees,core,Offline Bank Payments,/offlinepayment,/admin/offlinepayment,200
+fees,core,Verify Others Fees,/others-fees-verification,/admin/others_fees_verification,200
+fees,core,Payment Category,/paymentcategory,/admin/paymentcategory,200
+fees,core,Assign Payment Category,/paymentcategory/assign-payment-category,/admin/paymentcategory/assignPaymentCategory,200
+fees,core,College Other Fees,/paymentcategory/collegeotherfees,/admin/paymentcategory/collegeotherfees,200
+fees,core,Multi Merchant,/paymentcategory/multimerchant,/admin/paymentcategory/multimerchant,200
+fees,core,Payment Methods,/paymentsettings,/admin/paymentsettings,200
+fees,core,Collect Fees,/studentfee,/studentfee,200
+fees,core,Fee Summary Dashboard,/studentfee/fee-summary-dashboard,/studentfee/fee_summary_dashboard,200
+fees,core,Fee Receipt List,/studentfee/feereceipt,/studentfee/feereceipt,200
+fees,core,Search Due Fees,/studentfee/feesearch,/studentfee/feesearch,200
+fees,core,Search Fees Payment,/studentfee/searchpayment,/studentfee/searchpayment,200
+attendance,core,Attendance,/attendencereports/attendance,/attendencereports/attendance,200
+attendance,core,Staff Attendance,/staffattendance,/admin/staffattendance,200
+attendance,core,Student Attendance,/stuattendence,/admin/stuattendence,200
+attendance,core,Attendance By Date,/stuattendence/attendencereport,/admin/stuattendence/attendencereport,200
+attendance,core,Period Attendance,/subjectattendence,/admin/subjectattendence/index,200
+attendance,core,Period Attendance By Date,/subjectattendence/reportbydate,/admin/subjectattendence/reportbydate,200
+examinations,core,Design Admit Card,/admitcard,/admin/admitcard,200
+examinations,core,ATKT/Regular Exam Form,/atkt-form/admissionsetting,/admin/atkt_form/admissionsetting,200
+examinations,core,ATKT Form,/atkt-form/atkt-form-report,/admin/atkt_form/atkt_form_report,200
+examinations,core,ATKT Form,/atkt-form/atkt-form-student,/admin/atkt_form/atkt_form_student,200
+examinations,core,Edit ATKT Form,/atkt-form/edit-atkt-form-student,/admin/atkt_form/edit_atkt_form_student,200
+examinations,core,Exam Schedule,/exam-schedule,/admin/exam_schedule,200
+examinations,core,Exam Group,/examgroup,/admin/examgroup,200
+examinations,core,Mark Entry Multi Subjectwise,/examgroup/displaymarksexamsubjwise,/admin/examgroup/displaymarksexamsubjwise,200
+examinations,core,Exam Form,/examgroup/exam-form,/admin/examgroup/exam_form,200
+examinations,core,Exam Remuneration Bill,/examgroup/exam-remuneration-bill,/admin/examgroup/exam_remuneration_bill,200
+examinations,core,Exam Type,/examgroup/exam-type,/admin/examgroup/exam_type,200
+examinations,core,Mark Entry Single Subject,/examgroup/mark-entry-single-subject,/admin/examgroup/markEntrySingleSubject,200
+examinations,core,Mark Entry Subjectwise,/examgroup/mark-entry-subjectwise,/admin/examgroup/markEntrySubjectwise,200
+examinations,core,Remuneration Hour Setup,/examgroup/remuneration-hoursetup,/admin/examgroup/remuneration_hoursetup,200
+examinations,core,Remuneration Setup,/examgroup/remuneration-setup,/admin/examgroup/remuneration_setup,200
+examinations,core,Revaluation Form,/examgroup/revaluation-form,/admin/examgroup/revaluation_form,200
+examinations,core,Design Marksheet Format,/exammarksheet,/admin/exammarksheet,200
+examinations,core,Print Marksheet Format,/exammarksheet/marksheet,/admin/exammarksheet/marksheet,200
+examinations,core,Exam Result,/examresult,/admin/examresult,200
+examinations,core,Print Admit Card,/examresult/admitcard,/admin/examresult/admitcard,200
+examinations,core,Backlog,/examresult/backlog,/admin/examresult/backlog,200
+examinations,core,Result Block/Unblock,/examresult/exam-result-block-unblock,/admin/examresult/exam_result_block_unblock,200
+examinations,core,Examinations,/examresult/examinations,/admin/examresult/examinations,200
+examinations,core,Print Marksheet,/examresult/marksheet,/admin/examresult/marksheet,200
+examinations,core,Marks Grade,/grade,/admin/grade,200
+examinations,core,Relative Grade,/grade/relative-grade,/admin/grade/relative_Grade,200
+examinations,core,Marks Division,/marksdivision,/admin/marksdivision,200
+examinations,core,Design Marksheet,/marksheet,/admin/marksheet,200
+examinations,core,Online Exam,/onlineexam,/admin/onlineexam,200
+examinations,core,Online Examinations,/onlineexam/report,/admin/onlineexam/report,200
+examinations,core,Questions Paper Creation,/paper-creation,/admin/paper_creation,200
+examinations,core,Assign Staff,/paper-creation/assign-paper-creation,/admin/paper_creation/assign_paper_creation,200
+examinations,core,Questions Paper Approve List,/paper-creation/que-paper-approval-list,/admin/paper_creation/que_paper_approval_list,200
+examinations,core,Paper Setting,/papersetting,/admin/papersetting,200
+examinations,core,Question Bank,/question,/admin/question,200
+examinations,core,Result Remark,/result-remark,/admin/result_remark,200
+examinations,core,Revaluation Form,/revaluation-form/revaluationformsetting,/admin/revaluation_form/revaluationformsetting,200
+examinations,core,Subject Details,/seating-arrangement,/seating_arrangement/index,200
+examinations,core,Assign Block,/seating-arrangement/assign-block,/seating_arrangement/assign_block,200
+examinations,core,Report,/seating-arrangement/report,/seating_arrangement/report,200
+academics,core,Batch Setting,/batch-settings,/admin/batch_settings,200
+academics,core,Class,/classes,/classes,200
+academics,core,Classroom Allotment,/classroom/classroom-allotment,/admin/classroom/classroom_allotment,200
+academics,core,Classroom Setup,/classroom/classroom-setup,/admin/classroom/classroom_setup,200
+academics,core,Program,/course-master,/course_master,200
+academics,core,Other Course Form,/liberal-art/admissionsetting,/admin/liberal_art/admissionsetting,200
+academics,core,Other Course Form,/liberal-art/liberal-art-report,/admin/liberal_art/liberal_art_report,200
+academics,core,Other Course Form,/liberal-art/liberal-art-student,/admin/liberal_art/liberal_art_student,200
+academics,core,Program Intake,/programintake,/Programintake,200
+academics,core,Student House,/schoolhouse,/admin/schoolhouse,200
+academics,core,Sections,/sections,/sections,200
+academics,core,Specialization,/sectionwise-specialization,/sectionwise_specialization,200
+academics,core,Assign Major/Minor,/sectionwise-specialization/assign-program,/sectionwise_specialization/assign_program,200
+academics,core,Subjects,/subject,/admin/subject,200
+academics,core,Semester,/subjectgroup,/admin/subjectgroup,200
+academics,core,Assign Class Teacher,/teacher/assign-class-teacher,/admin/teacher/assign_class_teacher,200
+academics,core,Assign Subject Teacher,/teacher/assign-subject-teacher,/admin/teacher/assign_subject_teacher,200
+academics,core,Class Timetable,/timetable/classreport,/admin/timetable/classreport,200
+academics,core,Teachers Timetable,/timetable/mytimetable,/admin/timetable/mytimetable,200
+hr,core,Approve Leave,/approve-leave,/admin/approve_leave,200
+hr,core,Department,/department,/admin/department/department,200
+hr,core,Designation,/designation,/admin/designation/designation,200
+hr,core,Disable Reason,/disable-reason,/admin/disable_reason,200
+hr,core,Generate Staff ID Card,/generatestaffidcard,/admin/generatestaffidcard,200
+hr,core,Set Working Days,/holiday/set-working-days,/admin/holiday/set_working_days,200
+hr,core,Set Staff Week Off,/holiday/staff-week-off,/admin/holiday/staff_week_off,200
+hr,core,Recruitment,/hr-recruitment,/admin/hr_recruitment,200
+hr,core,Staff Leave Batches,/leave-batch-years,/admin/leave_batch_years,200
+hr,core,Approve Leave Request 3,/leaverequest,/admin/leaverequest/leaverequest,200
+hr,core,Leave Type,/leavetypes,/admin/leavetypes,200
+hr,core,Human Resource,/report/human-resource,/report/human_resource,200
+hr,core,Teacher Achievement,/report/teacherachievement-report,/report/teacherachievement_report,200
+hr,core,Teacher's Research Publication & Awards,/report/teacheraward-report,/report/teacheraward_report,200
+hr,core,Staff Directory,/staff,/admin/staff,200
+hr,core,Staff Certificate,/staff-certificate,/admin/staff_certificate,200
+hr,core,Generate Certificate,/staff-certificate/staff-generate-certificate,/admin/staff_certificate/staff_generate_certificate,200
+hr,core,Leave Approval Setup,/staff-leave-assign,/admin/staff_leave_assign,200
+hr,core,Disabled Staff,/staff/disablestafflist,/admin/staff/disablestafflist,200
+hr,core,Apply Leave,/staff/leaverequest,/admin/staff/leaverequest,200
+hr,core,Profile,/staff/profile/:id,/admin/staff/profile/395,200
+hr,core,Teachers Rating,/staff/rating,/admin/staff/rating,200
+hr,core,Bulk Update,/staff/staff-bulk-update,/admin/staff/staff_bulk_update,200
+hr,core,Staff ID Card,/staffidcard,/admin/staffidcard,200
+hr,core,Task Management,/teacherlog,/teacherlog,200
+hr,core,Teachers Research,/teachers-research,/admin/teachers_research,200
+payroll,extended,Payroll,/payroll,/admin/payroll,200
+payroll,extended,Add Pay Element,/staffpayroll/add-element,/admin/staffpayroll/add_element,200
+payroll,extended,Add Income Tax Element,/staffpayroll/add-income-tax-element,/admin/staffpayroll/add_income_tax_element,200
+payroll,extended,Generate Income Tax,/staffpayroll/generate-income-tax,/admin/staffpayroll/generate_income_tax,200
+payroll,extended,Manage Staff Payroll,/staffpayroll/manage-staff-payroll,/admin/staffpayroll/manage_staff_payroll,200
+payroll,extended,Select Pay Element,/staffpayroll/select-pay-element,/admin/staffpayroll/select_pay_element,200
+payroll,extended,Setup Tax Slab,/staffpayroll/setup-tax-slab,/admin/staffpayroll/setup_tax_slab,200
+payroll,extended,Generate Staff Payroll,/staffpayroll/staff-payroll,/admin/staffpayroll/staff_payroll,200
+payroll,extended,Visiting Staff Payroll,/staffpayroll/visiting-staff-payroll,/admin/staffpayroll/visiting_staff_payroll,200
+payroll,extended,Staff Payroll,/staffpayrollreports/staff-payroll,/staffpayrollreports/staff_payroll,200
+finance,extended,Add Expense,/expense,/admin/expense,200
+finance,extended,Search Expense,/expense/expensesearch,/admin/expense/expensesearch,200
+finance,extended,Expense Head,/expensehead,/admin/expensehead,200
+finance,extended,Finance,/financereports/finance,/financereports/finance,200
+finance,extended,Add Income,/income,/admin/income,200
+finance,extended,Search Income,/income/incomesearch,/admin/income/incomesearch,200
+finance,extended,Income Head,/incomehead,/admin/incomehead,200
+lesson-plan,extended,Copy Old Lessons,/lessonplan/copylesson,/admin/lessonplan/copylesson,200
+lesson-plan,extended,Instruction Plan,/lessonplan/instruction-plan,/admin/lessonplan/instruction_plan,200
+lesson-plan,extended,Create Lesson,/lessonplan/lesson,/admin/lessonplan/lesson,200
+lesson-plan,extended,Topic,/lessonplan/topic,/admin/lessonplan/topic,200
+lesson-plan,extended,Lesson Plan,/report/lesson-plan,/report/lesson_plan,200
+lesson-plan,extended,Manage Lesson Plan,/syllabus,/admin/syllabus,200
+lesson-plan,extended,Manage Syllabus Status,/syllabus/status,/admin/syllabus/status,200
+outcomes,extended,CO-PO Mapping,/copo/co-po-mapping,/admin/copo/co_po_mapping,200
+outcomes,extended,Course Outcomes,/copo/course-outcomes,/admin/copo/course_outcomes,200
+outcomes,extended,Indirect PO Mapping,/copo/indirect-po-mapping,/admin/copo/indirect_po_mapping,200
+outcomes,extended,Create Lesson,/copo/lesson,/admin/copo/lesson,200
+outcomes,extended,Plan,/copo/plan,/admin/copo/plan,200
+outcomes,extended,Program Outcomes,/copo/program-outcomes,/admin/copo/program_outcomes,200
+outcomes,extended,TLP Approve List,/copo/tlp-approve-list,/admin/copo/tlp_approve_list,200
+outcomes,extended,Outcome Basis Education,/outcome-basis-education,/outcome_basis_education/index,200
+assignments,extended,Add Assignment,/homework,/homework,200
+assignments,extended,Assignment Report,/homework/evaluation-report,/homework/evaluation_report,200
+library,extended,Book List,/book/getall,/admin/book/getall,200
+library,extended,Issue - Return,/member,/admin/member,200
+library,extended,Add Student,/member/student,/admin/member/student,200
+library,extended,Add Staff Member,/member/teacher,/admin/member/teacher,200
+library,extended,Library,/report/library,/report/library,200
+hostel,extended,Add Hostel,/hostel,/admin/hostel,200
+hostel,extended,Assign Room,/hostel/assign-room,/admin/hostel/assign_room,200
+hostel,extended,Change Room,/hostel/change-room,/admin/hostel/change_room,200
+hostel,extended,Gatepass List,/hostel/gatepass-list,/admin/hostel/gatepass_list,200
+hostel,extended,Scan qrcode,/hostel/scan-qrcode,/admin/hostel/scan_qrcode,200
+hostel,extended,Vacancy Status,/hostel/vacancy-status,/admin/hostel/vacancy_status,200
+hostel,extended,Hostel Rooms,/hostelroom,/admin/hostelroom,200
+hostel,extended,Hostel,/hostelroom/studenthosteldetails,/admin/hostelroom/studenthosteldetails,200
+hostel,extended,Room Type,/roomtype,/admin/roomtype,200
+transport,extended,Pickup Point,/pickuppoint,/admin/pickuppoint,200
+transport,extended,Route Pickup Point,/pickuppoint/assign,/admin/pickuppoint/assign,200
+transport,extended,Student Transport Fees,/pickuppoint/student-fees,/admin/pickuppoint/student_fees,200
+transport,extended,Routes,/route,/admin/route,200
+transport,extended,Transport,/route/studenttransportdetails,/admin/route/studenttransportdetails,200
+transport,extended,Transpot Fee Master,/transport/feemaster,/admin/transport/feemaster,200
+transport,extended,Vehicles,/vehicle,/admin/vehicle,200
+transport,extended,Assign Vehicle,/vehroute,/admin/vehroute,200
+inventory,extended,Issue Item,/issueitem,/admin/issueitem,200
+inventory,extended,Add Item,/item,/admin/item,200
+inventory,extended,Item Category,/itemcategory,/admin/itemcategory,200
+inventory,extended,Add Item Stock,/itemstock,/admin/itemstock,200
+inventory,extended,Item Store,/itemstore,/admin/itemstore,200
+inventory,extended,Item Supplier,/itemsupplier,/admin/itemsupplier,200
+inventory,extended,Inventory,/report/inventory,/report/inventory,200
+inventory,extended,Student Support Topics,/requisitions,/admin/requisitions,200
+inventory,extended,Student Support List,/requisitions/load-requisition-list,/admin/requisitions/load_requisition_list,200
+communicate,extended,Chat,/chat,/admin/chat,200
+communicate,extended,Email Setting,/emailconfig,/emailconfig,200
+communicate,extended,Email / SMS Log,/mailsms,/admin/mailsms/index,200
+communicate,extended,Send Email,/mailsms/compose,/admin/mailsms/compose,200
+communicate,extended,Send SMS,/mailsms/compose-sms,/admin/mailsms/compose_sms,200
+communicate,extended,Email Template,/mailsms/email-template,/admin/mailsms/email_template,200
+communicate,extended,Schedule Email SMS Log,/mailsms/schedule,/admin/mailsms/schedule,200
+communicate,extended,SMS Template,/mailsms/sms-template,/admin/mailsms/sms_template,200
+communicate,extended,Assignment Submission,/notification,/admin/notification,200
+communicate,extended,SMS Setting,/smsconfig,/smsconfig,200
+front-office,extended,Complaint,/complaint,/admin/complaint,200
+front-office,extended,Postal Dispatch,/dispatch,/admin/dispatch,200
+front-office,extended,Admission Enquiry,/enquiry,/admin/enquiry,200
+front-office,extended,Phone Call Log,/generalcall,/admin/generalcall,200
+front-office,extended,Inward,/inward/inward-list,/admin/inward/inward_list,200
+front-office,extended,Outward,/outward/outward-list,/admin/outward/outward_list,200
+front-office,extended,Postal Receive,/receive,/admin/receive,200
+front-office,extended,Inward,/report/inward-report,/report/inward_report,200
+front-office,extended,Outward,/report/outward-report,/report/outward_report,200
+front-office,extended,Front Office,/report/set-front-office-report,/report/setFrontOfficeReport,200
+front-office,extended,Visitor Book,/visitors,/admin/visitors,200
+front-office,extended,Setup Front Office,/visitorspurpose,/admin/visitorspurpose,200
+certificates,extended,Student Certificate,/certificate,/admin/certificate,200
+certificates,extended,Certificate Report,/certificate-report,/admin/certificate_report,200
+certificates,extended,Generate Certificate,/generatecertificate,/admin/generatecertificate,200
+certificates,extended,Generate ID Card,/generateidcard/search,/admin/generateidcard/search,200
+certificates,extended,Student ID Card,/studentidcard,/admin/studentidcard,200
+downloads,extended,Content Share List,/content/list,/admin/content/list,200
+downloads,extended,Upload /Share Content,/content/upload,/admin/content/upload,200
+downloads,extended,Content Type,/contenttype,/admin/contenttype,200
+downloads,extended,Video Tutorial,/video-tutorial,/admin/video_tutorial,200
+lms,optional,Online Course,/onlinecourse/course,/onlinecourse/course/index,200
+lms,optional,Setting,/onlinecourse/course/setting,/onlinecourse/course/setting,200
+lms,optional,Course Category,/onlinecourse/coursecategory/categoryadd,/onlinecourse/coursecategory/categoryadd,200
+lms,optional,Question Bank,/onlinecourse/courseexamquestion,/onlinecourse/courseexamquestion/index,200
+lms,optional,Online Course Report,/onlinecourse/coursereport/report,/onlinecourse/coursereport/report,200
+lms,optional,Offline Payment,/onlinecourse/offlinepayment/payment,/onlinecourse/offlinepayment/payment,200
+feedback,optional,Field Master,/feedback,/feedback/index,200
+feedback,optional,Assign Form,/feedback/assign-feedback-form,/feedback/assign_feedback_form,200
+feedback,optional,Add Form,/feedback/feedback-formname-master,/feedback/feedback_formname_master,200
+feedback,optional,Fill Feedback Form,/feedback/fill-feedback-form,/feedback/fill_feedback_form,200
+feedback,optional,Feedback Form,/feedback/showview-feedback-form,/feedback/showview_feedback_form,200
+feedback,optional,Submitted Form,/feedback/submitted-forms,/feedback/submitted_forms,200
+feedback,optional,Feedback,/feedbackreport,/feedbackreport/index,200
+naac,optional,Task Master,/naac,/admin/naac/index,200
+naac,optional,NAAC Dashborad,/naac/dashboard,/admin/naac/naac_dashboard,200
+naac,optional,View All,/naac/events,/admin/naac/events,200
+naac,optional,NAAC,/naac/naac-report,/admin/naac/naac_report,200
+naac,optional,NAAC Report,/naac/naac-report-master,/admin/naac/naac_report_master,200
+naac,optional,Student Feedback Form,/naac/student-feedback-list,/admin/naac/student_feedback_list,200
+naac,optional,Student Rating Form,/naac/student-rating-form,/admin/naac/student_rating_form,200
+naac,optional,Task Allocation,/naac/task-allocation,/admin/naac/task_allocation,200
+alumni,optional,Manage Alumni,/alumni/alumnilist,/admin/alumni/alumnilist,200
+alumni,optional,Events,/alumni/events,/admin/alumni/events,200
+alumni,optional,Alumni,/report/alumnireport,/report/alumnireport,200
+canteen,optional,Assign Menu,/canteen/assign-menu,/admin/canteen/assign_menu,200
+canteen,optional,Canteen Auditor,/canteen/canteen-auditor,/admin/canteen/canteen_auditor,200
+canteen,optional,Create Coupon,/canteen/create-coupon,/admin/canteen/create_coupon,200
+canteen,optional,Menu Type Master,/canteen/getall-breaktype,/admin/canteen/getall_breaktype,200
+canteen,optional,Canteen Master,/canteen/getall-canteen,/admin/canteen/getall_canteen,200
+canteen,optional,Food Item Master,/canteen/getall-food-item,/admin/canteen/getall_foodItem,200
+canteen,optional,Menu List,/canteen/menu-list,/admin/canteen/menu_list,200
+room-booking,optional,Booking System,/roombooking/roombook,/roombooking/roombook,200
+room-booking,optional,Booking System Request,/roombooking/roombook/roombookrequest,/roombooking/roombook/roombookrequest,200
+room-booking,optional,Booking Request List,/roombooking/roombook/roombookrequestlist,/roombooking/roombook/roombookrequestlist,200
+live-classes,optional,Setting,/conference,/admin/conference,200
+live-classes,optional,Live Class Report,/conference/class-report,/admin/conference/class_report,200
+live-classes,optional,Live Meeting,/conference/meeting,/admin/conference/meeting,200
+live-classes,optional,Live Meeting Report,/conference/meeting-report,/admin/conference/meeting_report,200
+live-classes,optional,Live Classes,/conference/timetable,/admin/conference/timetable,200
+live-classes,optional,Setting,/gmeet,/admin/gmeet/index,200
+live-classes,optional,Live Class Report,/gmeet/class-report,/admin/gmeet/class_report,200
+live-classes,optional,Live Meeting,/gmeet/meeting,/admin/gmeet/meeting,200
+live-classes,optional,Live Meeting Report,/gmeet/meeting-report,/admin/gmeet/meeting_report,200
+live-classes,optional,Live Classes,/gmeet/timetable,/admin/gmeet/timetable,200
+placements,optional,Build CV,/resume,/admin/resume/index,200
+placements,optional,Download CV,/resume/download,/admin/resume/download,200
+placements,optional,Training & Placements List,/tnp,/admin/tnp,200
+placements,optional,Placements Company List,/tnp/tnp-company-list,/admin/tnp/tnp_company_list,200
+mentoring,optional,Assign Mentor,/assign-mentor,/admin/assign_mentor,200
+mentoring,optional,OJT / SIP Approval List,/assign-mentor/ojt-approval-list,/admin/assign_mentor/ojt_approval_list,200
+mentoring,optional,OJT Details,/assign-mentor/ojt-details,/admin/assign_mentor/ojt_details,200
+mentoring,optional,Project Approval List,/assign-mentor/project-approval-list,/admin/assign_mentor/project_approval_list,200
+mentoring,optional,Project Chapter List,/assign-mentor/project-chapter-list,/admin/assign_mentor/project_chapter_list,200
+activities,optional,Add Activity,/flowmaster/add-event,/admin/flowmaster/add_event,200
+activities,optional,Activity List,/flowmaster/event-list,/admin/flowmaster/event_list,200
+activities,optional,Activity Management,/report/flowmaster-report,/report/flowmaster_report,200
+calendar,optional,View All,/calendar/events,/admin/calendar/events,200
+cms,optional,Banner Images,/front/banner,/admin/front/banner,200
+cms,optional,Event,/front/events,/admin/front/events,200
+cms,optional,Gallery,/front/gallery,/admin/front/gallery,200
+cms,optional,Media Manager,/front/media,/admin/front/media,200
+cms,optional,Menus,/front/menus,/admin/front/menus,200
+cms,optional,News,/front/notice,/admin/front/notice,200
+cms,optional,Pages,/front/page,/admin/front/page,200
+cms,optional,Front CMS Setting,/frontcms,/admin/frontcms,200
+multi-campus,optional,Overview,/multibranch/branch/overview,/admin/multibranch/branch/overview,200
+multi-campus,optional,Report,/multibranch/finance,/admin/multibranch/finance/index,200
+system,core,Dashboard,/admin/dashboard,/admin/admin/dashboard,200
+system,core,File Types,/admin/filetype,/admin/admin/filetype,200
+system,core,Manage Attributes,/attributes,/admin/attributes/index,200
+system,core,Audit Trail Report,/audit,/admin/audit,200
+system,core,Captcha Setting,/captcha,/admin/captcha,200
+system,core,Student Categories,/category,/category,200
+system,core,Currency,/currency,/admin/currency,200
+system,core,Custom Fields,/customfield,/admin/customfield,200
+system,core,Languages,/language,/admin/language,200
+system,core,Modules,/module,/admin/module,200
+system,core,Notification Setting,/notification/setting,/admin/notification/setting,200
+system,core,Print Header Footer,/print-headerfooter,/admin/print_headerfooter,200
+system,core,Roles Permissions,/roles,/admin/roles,200
+system,core,General Setting,/schsettings,/schsettings,200
+system,core,Session Setting,/sessions,/sessions,200
+system,core,Sidebar Menu,/sidemenu,/admin/sidemenu,200
+system,core,System Fields,/systemfield,/admin/systemfield,200
+system,core,System Update,/updater,/admin/updater,200
+system,core,User Log,/userlog,/admin/userlog,200
+system,core,Payment Log,/userlog/payment-log,/admin/userlog/paymentLog,200
+system,core,Users,/users,/admin/users,200

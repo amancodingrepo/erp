@@ -1,0 +1,831 @@
+module,priority,title,kind,method,route,source,usedBy
+admission,core,Approve Event,command,POST,/admission-transfer-cancellation/approve-event,/admin/admission_transfer_cancellation/approve_event,/admission-transfer-cancellation/transfer-cancellation-list
+admission,core,Event Reject,command,POST,/admission-transfer-cancellation/event-reject,/admin/admission_transfer_cancellation/event_reject,/admission-transfer-cancellation/transfer-cancellation-list
+admission,core,Fetch Role Staff,query,GET,/admission-transfer-cancellation/fetch-role-staff,/admin/admission_transfer_cancellation/fetch_role_staff,/admission-transfer-cancellation/transfer-cancellation-list
+admission,core,Request Approve Reject,command,POST,/admission-transfer-cancellation/request-approve-reject,/admin/admission_transfer_cancellation/request_approve_reject,/admission-transfer-cancellation/transfer-cancellation-list
+admission,core,Request Event Details,query,POST,/admission-transfer-cancellation/request-event-details,/admin/admission_transfer_cancellation/request_event_details,/admission-transfer-cancellation/transfer-cancellation-list
+admission,core,Track Request,query,POST,/admission-transfer-cancellation/track-request,/admin/admission_transfer_cancellation/track_request,/admission-transfer-cancellation/transfer-cancellation-list
+admission,core,Generate Pdf,query,GET,/admission/generate-pdf,/admin/admission/generatePdf,/admission/report
+admission,core,Importapplication,command,POST,/admission/importapplication,/admin/admission/importapplication,/admission/importapplication
+admission,core,Save Fees Off Reason,command,POST,/admission/save-fees-off-reason,/admin/admission/save_fees_off_reason,/admission/manageadmission
+admission,core,Selection Status Report,query,GET,/admission/selection-status-report,/admin/admission/selection_status_report,/admission/selection-status-report
+admission,core,Add Admission Validation,command,POST,/onlineadmission/add-admission-validation,/admin/onlineadmission/addAdmissionValidation,/onlineadmission/admissionsetting
+admission,core,Add Program,command,POST,/onlineadmission/add-program,/admin/onlineadmission/addProgram,/onlineadmission/admissionsetting
+admission,core,Add Section,command,POST,/onlineadmission/add-section,/admin/onlineadmission/add_section,/onlineadmission/admissionsetting
+admission,core,Add Validation,command,POST,/onlineadmission/add-validation,/admin/onlineadmission/addValidation,/onlineadmission/admissionsetting
+admission,core,Admission Add Section,command,POST,/onlineadmission/admission-add-section,/admin/onlineadmission/admission_add_section,/onlineadmission/admissionsetting
+admission,core,Changeadmissionformfieldsetting,query,POST,/onlineadmission/changeadmissionformfieldsetting,/admin/onlineadmission/changeadmissionformfieldsetting,/onlineadmission/admissionsetting
+admission,core,Changefinalizedformfieldsetting,query,POST,/onlineadmission/changefinalizedformfieldsetting,/admin/onlineadmission/changefinalizedformfieldsetting,/onlineadmission/admissionsetting
+admission,core,Changeformfieldsetting,query,POST,/onlineadmission/changeformfieldsetting,/admin/onlineadmission/changeformfieldsetting,/onlineadmission/admissionsetting
+admission,core,Changeformfieldsetting 2year,query,POST,/onlineadmission/changeformfieldsetting-2year,/admin/onlineadmission/changeformfieldsetting_2year,/onlineadmission/admissionsetting
+admission,core,Changeformfieldsetting 3year,query,POST,/onlineadmission/changeformfieldsetting-3year,/admin/onlineadmission/changeformfieldsetting_3year,/onlineadmission/admissionsetting
+admission,core,Delete Admission Section,command,DELETE,/onlineadmission/delete-admission-section,/admin/onlineadmission/delete_admission_section,/onlineadmission/admissionsetting
+admission,core,Delete Program,command,DELETE,/onlineadmission/delete-program,/admin/onlineadmission/deleteProgram,/onlineadmission/admissionsetting
+admission,core,Delete Section,command,DELETE,/onlineadmission/delete-section,/admin/onlineadmission/delete_section,/onlineadmission/admissionsetting
+admission,core,Get Program,query,GET,/onlineadmission/get-program,/admin/onlineadmission/getProgram,/onlineadmission/admissionsetting
+admission,core,Get Specialization By Program,query,GET,/onlineadmission/get-specialization-by-program,/admin/onlineadmission/getSpecializationByProgram,/onlineadmission/admissionsetting /programintake
+admission,core,Global Apply Program,query,POST,/onlineadmission/global-apply-program,/admin/onlineadmission/global_apply_program,/onlineadmission/admissionsetting
+admission,core,Global Apply Program Admission,query,POST,/onlineadmission/global-apply-program-admission,/admin/onlineadmission/global_apply_program_admission,/onlineadmission/admissionsetting
+admission,core,Global Apply Year,query,POST,/onlineadmission/global-apply-year,/admin/onlineadmission/global_apply_year,/onlineadmission/admissionsetting
+admission,core,Global Apply Year Admission,query,POST,/onlineadmission/global-apply-year-admission,/admin/onlineadmission/global_apply_year_admission,/onlineadmission/admissionsetting
+admission,core,Save Admission Field Data,command,POST,/onlineadmission/save-admission-field-data,/admin/onlineadmission/save_admission_field_data,/onlineadmission/admissionsetting
+admission,core,Save Admission Field Settings,command,POST,/onlineadmission/save-admission-field-settings,/admin/Onlineadmission/save_admission_field_settings,/onlineadmission/admissionsetting
+admission,core,Save Admission Field Type,command,POST,/onlineadmission/save-admission-field-type,/admin/onlineadmission/save_admission_field_type,/onlineadmission/admissionsetting
+admission,core,Save Admission Order,command,POST,/onlineadmission/save-admission-order,/admin/onlineadmission/save_admission_order,/onlineadmission/admissionsetting
+admission,core,Save Field Settings,command,POST,/onlineadmission/save-field-settings,/admin/Onlineadmission/save_field_settings,/onlineadmission/admissionsetting
+admission,core,Save Field Type,command,POST,/onlineadmission/save-field-type,/admin/onlineadmission/save_field_type,/onlineadmission/admissionsetting
+admission,core,Save Order,command,POST,/onlineadmission/save-order,/admin/onlineadmission/save_order,/onlineadmission/admissionsetting
+admission,core,Save Row Data,command,POST,/onlineadmission/save-row-data,/admin/onlineadmission/save_row_data,/onlineadmission/admissionsetting
+admission,core,Update Admission Display In Previous Section,command,POST,/onlineadmission/update-admission-display-in-previous-section,/admin/onlineadmission/update_admission_display_in_previous_section,/onlineadmission/admissionsetting
+admission,core,Update Admission Section,command,POST,/onlineadmission/update-admission-section,/admin/onlineadmission/update_admission_section,/onlineadmission/admissionsetting
+admission,core,Update Display In Previous Section,command,POST,/onlineadmission/update-display-in-previous-section,/admin/onlineadmission/update_display_in_previous_section,/onlineadmission/admissionsetting
+admission,core,Update Section,command,POST,/onlineadmission/update-section,/admin/onlineadmission/update_section,/onlineadmission/admissionsetting
+admission,core,Checkpaymentstatus,query,POST,/onlinestudent/checkpaymentstatus,/admin/onlinestudent/checkpaymentstatus,/onlinestudent
+admission,core,Getstudentlist,query,GET,/onlinestudent/getstudentlist,/admin/onlinestudent/getstudentlist,/onlinestudent
+students,core,Add Concession,command,POST,/railway-concession/add-concession,/railway_concession/add_concession,/railway-concession
+students,core,Delete Concession,command,DELETE,/railway-concession/delete-concession,/railway_concession/delete_concession,/railway-concession
+students,core,Fetch Student Details,query,GET,/railway-concession/fetch-student-details,/railway_concession/fetch_student_details,/railway-concession
+students,core,Get Concession,query,GET,/railway-concession/get-concession,/railway_concession/get_concession,/railway-concession
+students,core,Get Concession List,query,GET,/railway-concession/get-concession-list,/railway_concession/getConcessionList,/railway-concession
+students,core,Ajax Updatescholrno,command,POST,/stdscholarship/ajax-updatescholrno,/stdscholarship/ajax_updatescholrno,/stdscholarship
+students,core,Markstd Scholarshipflaged,query,POST,/stdscholarship/markstd-scholarshipflaged,/stdscholarship/markstd_scholarshipflaged,/stdscholarship
+students,core,Search,query,GET,/stdscholarship/search,/stdscholarship/search,/stdscholarship
+students,core,Stdajax Search,query,POST,/stdscholarship/stdajax-search,/stdscholarship/stdajaxSearch,/stdscholarship
+students,core,Promote,query,POST,/stdtransfer/promote,/admin/stdtransfer/promote,/stdtransfer
+students,core,Student Log Update,command,POST,/student-log-update,/admin/student_log_update,/student-log-update
+students,core,Ajax Delete,command,DELETE,/student/ajax-delete,/student/ajax_delete,/student/bulkdelete
+students,core,Ajax Update,command,POST,/student/ajax-update,/student/ajax_update,/student/bulkupdate
+students,core,Approve Optional Course,command,POST,/student/approve-optional-course,/student/approve_optional_course,/student/approve-optional-course
+students,core,Assign Optional Course,command,POST,/student/assign-optional-course,/student/assign_optional_course,/student/assign-optional-course
+students,core,Assign Seat Number,command,POST,/student/assign-seat-number,/student/assign_seat_number,/student/assign-seat-number
+students,core,Assign Seat Studentlist,command,POST,/student/assign-seat-studentlist,/student/assign_seat_studentlist,/student/assign-seat-number
+students,core,Bulkapprove Selected Students,command,POST,/student/bulkapprove-selected-students,/student/bulkapprove_selected_students,/student/approve-optional-course
+students,core,Bulkdelete,command,DELETE,/student/bulkdelete,/student/bulkdelete,/student/bulkdelete
+students,core,Bulkupdate,command,POST,/student/bulkupdate,/student/bulkupdate,/student/bulkupdate
+students,core,Changeprofilesetting,query,POST,/student/changeprofilesetting,/student/changeprofilesetting,/student/profilesetting
+students,core,Check Subject Exam Assignment,command,POST,/student/check-subject-exam-assignment,/student/check_subject_exam_assignment,/student/assign-optional-course
+students,core,Disablestudentslist,query,GET,/student/disablestudentslist,/student/disablestudentslist,/student/disablestudentslist
+students,core,Dtstudentlist,query,GET,/student/dtstudentlist,/student/dtstudentlist,/report/inward-report
+students,core,Get By Class And Section,query,GET,/student/get-by-class-and-section,/student/getByClassAndSection,/others-fees-verification /student/create
+students,core,Get Bycategory,query,GET,/student/get-bycategory,/student/getBycategory,/student/bulkupdate
+students,core,Get Groupsubjects,query,GET,/student/get-groupsubjects,/student/getGroupsubjects,/student/semester-allocation
+students,core,Get Max Roll Number,query,GET,/student/get-max-roll-number,/student/getMaxRollNumber,/student/generaterollnumber
+students,core,Get Student Record By ID,query,GET,/student/get-student-record-by-id,/student/getStudentRecordByID,/student/create
+students,core,Get Updated Data,command,POST,/student/get-updated-data,/student/get_updatedData,/student/bulkupdate
+students,core,Getexamseatnocount,query,GET,/student/getexamseatnocount,/student/getexamseatnocount,/student/assign-seat-number
+students,core,Save Approve Subject Request,command,POST,/student/save-approve-subject-request,/student/save_approveSubject_request,/student/approve-optional-course
+students,core,Save Row Data,command,POST,/student/save-row-data,/student/save_row_data,/student/bulkupdate
+students,core,Save Row Data Student,command,POST,/student/save-row-data-student,/student/save_row_data_student,/student/bulkupdate
+students,core,Save Updated Data,command,POST,/student/save-updated-data,/student/save_updatedData,/student/bulkupdate
+students,core,Searchvalidation,query,GET,/student/searchvalidation,/student/searchvalidation,/student/search
+students,core,Sendbulkmail,query,POST,/student/sendbulkmail,/student/sendbulkmail,/student/bulkmail
+students,core,Student Document Verify,query,POST,/student/student-document-verify,/student/student_document_verify,/student/search
+fees,core,Assign Variable Fees,command,POST,/assign-variable-fees,/admin/assign_variable_fees,/assign-variable-fees
+fees,core,Addfeegroup Classwise,command,POST,/assign-variable-fees/addfeegroup-classwise,/admin/assign_variable_fees/addfeegroupClasswise,/assign-variable-fees
+fees,core,Upload,command,POST,/fee-receipt-import/upload,/admin/fee_receipt_import/upload,/fee-receipt-import
+fees,core,Get By Feecategory,query,GET,/feemaster/get-by-feecategory,/feemaster/getByFeecategory,/paymentcategory/assign-payment-category /stdtransfer /teacher/assign-class-teacher
+fees,core,Get Specialization,query,GET,/feemaster/get-specialization,/admin/feemaster/getSpecialization,/feemaster
+fees,core,Get Fee Details,query,GET,/feemastercoursewise/get-fee-details,/admin/feemastercoursewise/getFeeDetails,/feemastercoursewise
+fees,core,Get Specialization By Class Sections,query,GET,/feemastercoursewise/get-specialization-by-class-sections,/admin/feemastercoursewise/getSpecializationByClassSections,/feemastercoursewise
+fees,core,Getclasssectionwisesubjects,query,GET,/feemastercoursewise/getclasssectionwisesubjects,/admin/feemastercoursewise/getclasssectionwisesubjects,/feemastercoursewise
+fees,core,Save,command,POST,/feemastercoursewise/save,/admin/feemastercoursewise/save,/feemastercoursewise
+fees,core,Create,command,POST,/fine-rules/create,/admin/fine_rules/create,/fine-rules
+fees,core,Getlist,query,GET,/offlinepayment/getlist,/admin/offlinepayment/getlist,/offlinepayment
+fees,core,Getpayment,query,GET,/offlinepayment/getpayment,/admin/offlinepayment/getpayment,/offlinepayment
+fees,core,Assign Payment Category,command,POST,/paymentcategory/assign-payment-category,/admin/paymentcategory/assignPaymentCategory,/paymentcategory/assign-payment-category
+fees,core,Billdesk,query,POST,/paymentsettings/billdesk,/admin/paymentsettings/billdesk,/paymentsettings
+fees,core,Billplz,query,POST,/paymentsettings/billplz,/admin/paymentsettings/billplz,/paymentsettings
+fees,core,Cashfree,query,POST,/paymentsettings/cashfree,/admin/paymentsettings/cashfree,/paymentsettings
+fees,core,Ccavenue,query,POST,/paymentsettings/ccavenue,/admin/paymentsettings/ccavenue,/paymentsettings
+fees,core,Easebuzz,query,POST,/paymentsettings/easebuzz,/admin/paymentsettings/easebuzz,/paymentsettings
+fees,core,Flutterwave,query,POST,/paymentsettings/flutterwave,/admin/paymentsettings/flutterwave,/paymentsettings
+fees,core,Instamojo,query,POST,/paymentsettings/instamojo,/admin/paymentsettings/instamojo,/paymentsettings
+fees,core,Ipayafrica,query,POST,/paymentsettings/ipayafrica,/admin/paymentsettings/ipayafrica,/paymentsettings
+fees,core,Jazzcash,query,POST,/paymentsettings/jazzcash,/admin/paymentsettings/jazzcash,/paymentsettings
+fees,core,Midtrans,query,POST,/paymentsettings/midtrans,/admin/paymentsettings/midtrans,/paymentsettings
+fees,core,Mollie,query,POST,/paymentsettings/mollie,/admin/paymentsettings/mollie,/paymentsettings
+fees,core,Mponline,query,POST,/paymentsettings/mponline,/admin/paymentsettings/mponline,/paymentsettings
+fees,core,Onepay,query,POST,/paymentsettings/onepay,/admin/paymentsettings/onepay,/paymentsettings
+fees,core,Payfast,query,POST,/paymentsettings/payfast,/admin/paymentsettings/payfast,/paymentsettings
+fees,core,Payhere,query,POST,/paymentsettings/payhere,/admin/paymentsettings/payhere,/paymentsettings
+fees,core,Paypal,query,POST,/paymentsettings/paypal,/admin/paymentsettings/paypal,/paymentsettings
+fees,core,Paystack,query,POST,/paymentsettings/paystack,/admin/paymentsettings/paystack,/paymentsettings
+fees,core,Paytm,query,POST,/paymentsettings/paytm,/admin/paymentsettings/paytm,/paymentsettings
+fees,core,Payu,query,POST,/paymentsettings/payu,/admin/paymentsettings/payu,/paymentsettings
+fees,core,Pesapal,query,POST,/paymentsettings/pesapal,/admin/paymentsettings/pesapal,/paymentsettings
+fees,core,Razorpay,query,POST,/paymentsettings/razorpay,/admin/paymentsettings/razorpay,/paymentsettings
+fees,core,Setting,query,POST,/paymentsettings/setting,/admin/paymentsettings/setting,/paymentsettings
+fees,core,Skrill,query,POST,/paymentsettings/skrill,/admin/paymentsettings/skrill,/paymentsettings
+fees,core,Sslcommerz,query,POST,/paymentsettings/sslcommerz,/admin/paymentsettings/sslcommerz,/paymentsettings
+fees,core,Stripe,query,POST,/paymentsettings/stripe,/admin/paymentsettings/stripe,/paymentsettings
+fees,core,Toyyib Pay,query,POST,/paymentsettings/toyyib-pay,/admin/paymentsettings/toyyibPay,/paymentsettings
+fees,core,Twocheckout,query,POST,/paymentsettings/twocheckout,/admin/paymentsettings/twocheckout,/paymentsettings
+fees,core,Walkingm,query,POST,/paymentsettings/walkingm,/admin/paymentsettings/walkingm,/paymentsettings
+fees,core,Ajax Search,query,POST,/studentfee/ajax-search,/studentfee/ajaxSearch,/studentfee
+fees,core,Feesearch,query,GET,/studentfee/feesearch,/studentfee/feesearch,/studentfee/feesearch
+fees,core,Get Student List By Type,query,GET,/studentfee/get-student-list-by-type,/studentfee/getStudentListByType,/studentfee/fee-summary-dashboard
+fees,core,Print Fees By Name,query,GET,/studentfee/print-fees-by-name,/studentfee/printFeesByName,/studentfee/feereceipt
+fees,core,Search,query,GET,/studentfee/search,/studentfee/search,/studentfee
+fees,core,Searchpayment,query,GET,/studentfee/searchpayment,/studentfee/searchpayment,/studentfee/searchpayment
+attendance,core,Attendence List Pdf,query,GET,/subjectattendence/attendence-list-pdf,/admin/subjectattendence/attendenceList_pdf,/subjectattendence
+attendance,core,Get Roll Wise Student,query,GET,/subjectattendence/get-roll-wise-student,/admin/subjectattendence/get_roll_wise_student,/subjectattendence
+attendance,core,Month Attendance View,query,GET,/subjectattendence/month-attendance-view,/admin/subjectattendence/month_attendance_view,/subjectattendence
+examinations,core,View,query,GET,/admitcard/view,/admin/admitcard/view,/admitcard
+examinations,core,Add Program,command,POST,/atkt-form/add-program,/admin/atkt_form/addProgram,/atkt-form/admissionsetting
+examinations,core,Changeformfieldsetting,query,POST,/atkt-form/changeformfieldsetting,/admin/atkt_form/changeformfieldsetting,/atkt-form/admissionsetting
+examinations,core,Checkpaymentstatus,query,POST,/atkt-form/checkpaymentstatus,/admin/atkt_form/checkpaymentstatus,/atkt-form/atkt-form-student
+examinations,core,Closehomeworklist,query,GET,/atkt-form/closehomeworklist,/atkt_form/closehomeworklist,/atkt-form/atkt-form-report /atkt-form/edit-atkt-form-student
+examinations,core,Delete Selected Students,command,DELETE,/atkt-form/delete-selected-students,/admin/atkt_form/delete_selected_students,/atkt-form/atkt-form-student
+examinations,core,Delete Selected Subjects,command,DELETE,/atkt-form/delete-selected-subjects,/admin/atkt_form/delete_selected_subjects,/atkt-form/atkt-form-student
+examinations,core,Delete Student Subject,command,DELETE,/atkt-form/delete-student-subject,/admin/atkt_form/delete_student_subject,/atkt-form/atkt-form-student
+examinations,core,Dthomeworklist,query,GET,/atkt-form/dthomeworklist,/atkt_form/dthomeworklist,/atkt-form/atkt-form-report /atkt-form/edit-atkt-form-student
+examinations,core,Get Current Class Marks,query,GET,/atkt-form/get-current-class-marks,/admin/atkt_form/get_current_class_marks,/atkt-form/edit-atkt-form-student
+examinations,core,Get Program,query,GET,/atkt-form/get-program,/admin/atkt_form/getProgram,/atkt-form/admissionsetting
+examinations,core,Getstudentlist,query,GET,/atkt-form/getstudentlist,/admin/atkt_form/getstudentlist,/atkt-form/atkt-form-student
+examinations,core,Import ATKT File,command,POST,/atkt-form/import-atkt-file,/admin/atkt_form/importAtktFile,/atkt-form/atkt-form-student
+examinations,core,Partly Payment Modal,query,POST,/atkt-form/partly-payment-modal,/admin/atkt_form/partly_payment_modal,/atkt-form/atkt-form-student
+examinations,core,Update Result Generate Status,command,POST,/atkt-form/update-result-generate-status,/admin/atkt_form/update_result_generate_status,/atkt-form/atkt-form-student
+examinations,core,Update Student Marks,command,POST,/atkt-form/update-student-marks,/admin/atkt_form/update_student_marks,/atkt-form/edit-atkt-form-student
+examinations,core,Update ATKT Form Status,command,POST,/atkt/update-atkt-form-status,/atkt/updateAtktFormStatus,/atkt-form/atkt-form-student
+examinations,core,Get Class And Department,query,GET,/exam-schedule/get-class-and-department,/admin/exam_schedule/getClassAndDepartment,/exam-schedule
+examinations,core,Addfeegrp,command,POST,/examgroup/addfeegrp,/admin/examgroup/addfeegrp,/examgroup/exam-form
+examinations,core,Addrevaluationfeegrp,command,POST,/examgroup/addrevaluationfeegrp,/admin/examgroup/addrevaluationfeegrp,/examgroup/revaluation-form
+examinations,core,Check Entries,query,POST,/examgroup/check-entries,/admin/examgroup/checkEntries,/examgroup/exam-remuneration-bill
+examinations,core,Copy Subject CO Fromoldtocurrent Session,query,POST,/examgroup/copy-subject-co-fromoldtocurrent-session,/admin/examgroup/copy_subject_co_fromoldtocurrent_session,/copo/course-outcomes
+examinations,core,Create Remuneration,command,POST,/examgroup/create-remuneration,/admin/examgroup/create_remuneration,/examgroup/exam-remuneration-bill
+examinations,core,Delete Exam Form,command,DELETE,/examgroup/delete-exam-form,/admin/examgroup/delete_exam_form,/examgroup/exam-form
+examinations,core,Delete Revaluation Form,command,DELETE,/examgroup/delete-revaluation-form,/admin/examgroup/delete_revaluation_form,/examgroup/revaluation-form
+examinations,core,Generate Exam Form Pdf,command,POST,/examgroup/generate-exam-form-pdf,/admin/examgroup/generate_exam_form_pdf,/examgroup/exam-form
+examinations,core,Generate Revaluation Exam Form Pdf,command,POST,/examgroup/generate-revaluation-exam-form-pdf,/admin/examgroup/generate_revaluation_exam_form_pdf,/examgroup/revaluation-form
+examinations,core,Get By Class And Semester,query,GET,/examgroup/get-by-class-and-semester,/admin/examgroup/getByClassAndSemester,/examgroup/exam-remuneration-bill
+examinations,core,Get Class By Exam And Exam Group,query,GET,/examgroup/get-class-by-exam-and-exam-group,/admin/examgroup/getClassByExamAndExamGroup,/examresult/admitcard
+examinations,core,Get Class By Examgroup,query,GET,/examgroup/get-class-by-examgroup,/admin/examgroup/getClassByExamgroup,/examgroup/displaymarksexamsubjwise /examgroup/mark-entry-single-subject /examgroup/mark-entry-subjectwise /outcome-basis-education
+examinations,core,Get Exam By Exam Group Class Section,query,GET,/examgroup/get-exam-by-exam-group-class-section,/admin/examgroup/getExamByExamGroupClassSection,/examresult/admitcard
+examinations,core,Get Exam By Exam Group Current Session,query,GET,/examgroup/get-exam-by-exam-group-current-session,/admin/examgroup/getExamByExamGroupCurrentSession,/student/assign-seat-number
+examinations,core,Get Exam By Examgroup,query,GET,/examgroup/get-exam-by-examgroup,/admin/examgroup/getExamByExamgroup,/exam-schedule /examgroup/displaymarksexamsubjwise /examgroup/mark-entry-single-subject /exammarksheet/marksheet /examresult /examresult/admitcard /examresult/marksheet /paper-creation /seating-arrangement /seating-arrangement/assign-block
+examinations,core,Get Exam Subject,query,GET,/examgroup/get-exam-subject,/admin/examgroup/getExamSubject,/examgroup/mark-entry-single-subject
+examinations,core,Get Hours By Supervision,query,GET,/examgroup/get-hours-by-supervision,/admin/examgroup/getHoursBySupervision,/examgroup/exam-remuneration-bill
+examinations,core,Get Rate By Marks,query,GET,/examgroup/get-rate-by-marks,/admin/examgroup/get_rate_by_marks,/examgroup/exam-remuneration-bill
+examinations,core,Get Rate By Supervision And Hours,query,GET,/examgroup/get-rate-by-supervision-and-hours,/admin/examgroup/getRateBySupervisionAndHours,/examgroup/exam-remuneration-bill
+examinations,core,Get Vertix By Subject,query,GET,/examgroup/get-vertix-by-subject,/admin/examgroup/get_vertix_by_subject,/examgroup/exam-remuneration-bill
+examinations,core,Getcollectfee,query,GET,/examgroup/getcollectfee,/admin/examgroup/getcollectfee,/examgroup/exam-form /examgroup/revaluation-form
+examinations,core,Getsubject By Examgroup,query,GET,/examgroup/getsubject-by-examgroup,/admin/examgroup/getsubjectByExamgroup,/examgroup/displaymarksexamsubjwise /examgroup/mark-entry-subjectwise
+examinations,core,Markentrysubjectwise,query,POST,/examgroup/markentrysubjectwise,/admin/examgroup/markentrysubjectwise,/examgroup/mark-entry-subjectwise
+examinations,core,Print Remuneration,query,GET,/examgroup/print-remuneration,/admin/examgroup/print_remuneration,/examgroup/exam-remuneration-bill
+examinations,core,Sgpi Student List,query,GET,/examgroup/sgpi-student-list,/admin/examgroup/sgpi_student_list,/examgroup
+examinations,core,Subject Marks Exportformat,query,GET,/examgroup/subject-marks-exportformat,/admin/examgroup/subject_marks_exportformat,/examgroup/mark-entry-single-subject
+examinations,core,Subjectwise Uploadfile,command,POST,/examgroup/subjectwise-uploadfile,/admin/examgroup/subjectwise_uploadfile,/examgroup/mark-entry-subjectwise /outcome-basis-education
+examinations,core,Upload Legacy Results,command,POST,/examgroup/upload-legacy-results,/admin/examgroup/uploadLegacyResults,/examgroup
+examinations,core,Uploadfile,command,POST,/examgroup/uploadfile,/admin/examgroup/uploadfile,/examgroup/displaymarksexamsubjwise
+examinations,core,Uploadfile Spgi,command,POST,/examgroup/uploadfile-spgi,/admin/examgroup/uploadfileSpgi,/examgroup
+examinations,core,Uploadfilecsv,command,POST,/examgroup/uploadfilecsv,/admin/examgroup/uploadfilecsv,/examgroup/mark-entry-single-subject
+examinations,core,Print Certificate,query,GET,/exammarksheet/print-certificate,/admin/exammarksheet/print_certificate,/exammarksheet/marksheet
+examinations,core,Share Marksheet,query,POST,/exammarksheet/share-marksheet,/admin/exammarksheet/shareMarksheet,/exammarksheet/marksheet
+examinations,core,View,query,GET,/exammarksheet/view,/admin/exammarksheet/view,/exammarksheet
+examinations,core,Viewmarksheet,query,GET,/exammarksheet/viewmarksheet,/admin/exammarksheet/viewmarksheet,/exammarksheet/marksheet
+examinations,core,Pdftmarksheet,query,GET,/examresult/pdftmarksheet,/admin/examresult/pdftmarksheet,/examresult/marksheet
+examinations,core,Print Certificate,query,GET,/examresult/print-certificate,/admin/examresult/print_certificate,/examresult/marksheet
+examinations,core,Save Exam Result Block Unblock,command,POST,/examresult/save-exam-result-block-unblock,/admin/examresult/save_exam_result_block_unblock,/examresult/exam-result-block-unblock
+examinations,core,Share Marksheet,query,POST,/examresult/share-marksheet,/admin/examresult/shareMarksheet,/examresult/marksheet
+examinations,core,Share Print Card,query,POST,/examresult/share-print-card,/admin/examresult/sharePrintCard,/examresult/admitcard
+examinations,core,Viewmarksheet,query,GET,/examresult/viewmarksheet,/admin/examresult/viewmarksheet,/examresult/marksheet
+examinations,core,View,query,GET,/marksheet/view,/admin/marksheet/view,/marksheet
+examinations,core,Add,command,POST,/onlineexam/add,/admin/onlineexam/add,/onlineexam
+examinations,core,Ajax Delete,command,DELETE,/onlineexam/ajax-delete,/admin/onlineexam/ajax_delete,/onlineexam
+examinations,core,Delete Exam Questions,command,DELETE,/onlineexam/delete-exam-questions,/admin/onlineexam/deleteExamQuestions,/onlineexam
+examinations,core,Download Exam,query,GET,/onlineexam/download-exam,/admin/onlineexam/download_exam,/onlineexam
+examinations,core,Dtreportlist,query,GET,/onlineexam/dtreportlist,/admin/onlineexam/dtreportlist,/onlineexam/report
+examinations,core,Get Exam Questions,query,GET,/onlineexam/get-exam-questions,/admin/onlineexam/getExamQuestions,/onlineexam
+examinations,core,Get Online Exam By ID,query,GET,/onlineexam/get-online-exam-by-id,/admin/onlineexam/getOnlineExamByID,/onlineexam
+examinations,core,Getclosedexamlist,query,GET,/onlineexam/getclosedexamlist,/admin/onlineexam/getclosedexamlist,/onlineexam
+examinations,core,Getexamlist,query,GET,/onlineexam/getexamlist,/admin/onlineexam/getexamlist,/onlineexam
+examinations,core,Getselectedexamsubjectname,query,GET,/onlineexam/getselectedexamsubjectname,/admin/onlineexam/getselectedexamsubjectname,/onlineexam
+examinations,core,Getstudentresult,query,GET,/onlineexam/getstudentresult,/admin/onlineexam/getstudentresult,/onlineexam/report
+examinations,core,Rankgenerate,query,POST,/onlineexam/rankgenerate,/admin/onlineexam/rankgenerate,/onlineexam
+examinations,core,Search Question By Exam ID,query,GET,/onlineexam/search-question-by-exam-id,/admin/onlineexam/searchQuestionByExamID,/onlineexam
+examinations,core,Searchloginvalidation,query,GET,/onlineexam/searchloginvalidation,/admin/onlineexam/searchloginvalidation,/onlineexam/report
+examinations,core,Singlequestion Addupdate,command,POST,/onlineexam/singlequestion-addupdate,/admin/onlineexam/singlequestionAddupdate,/onlineexam
+examinations,core,Add Subjectwise Question Paper,command,POST,/paper-creation/add-subjectwise-question-paper,/admin/paper_creation/addSubjectwiseQuestionPaper,/paper-creation
+examinations,core,Assign Paper Creation,command,POST,/paper-creation/assign-paper-creation,/admin/paper_creation/assign_paper_creation,/paper-creation/assign-paper-creation
+examinations,core,Edit Subjectwise Question Paper,command,POST,/paper-creation/edit-subjectwise-question-paper,/admin/paper_creation/editSubjectwiseQuestionPaper,/paper-creation
+examinations,core,Generate Pdf Subjectwise Question Paper,query,GET,/paper-creation/generate-pdf-subjectwise-question-paper,/admin/paper_creation/generatePdfSubjectwiseQuestionPaper,/paper-creation /paper-creation/que-paper-approval-list
+examinations,core,Get Question Paper Reviewer Staff List,query,GET,/paper-creation/get-question-paper-reviewer-staff-list,/admin/paper_creation/getQuestionPaperReviewerStaffList,/paper-creation/assign-paper-creation
+examinations,core,Getassign Staff,command,POST,/paper-creation/getassign-staff,/admin/paper_creation/getassignStaff,/paper-creation/assign-paper-creation
+examinations,core,Save Assign Staff,command,POST,/paper-creation/save-assign-staff,/admin/paper_creation/save_assign_staff,/paper-creation/assign-paper-creation
+examinations,core,Save Question Paper Review Staff,command,POST,/paper-creation/save-question-paper-review-staff,/admin/paper_creation/saveQuestionPaperReviewStaff,/paper-creation/assign-paper-creation
+examinations,core,Submit Questions,query,POST,/paper-creation/submit-questions,/admin/paper_creation/submit_questions,/paper-creation
+examinations,core,Update Approval Status,command,POST,/paper-creation/update-approval-status,/admin/paper_creation/update_approval_status,/paper-creation
+examinations,core,Update Paper Request,command,POST,/paper-creation/update-paper-request,/admin/paper_creation/update_paper_request,/paper-creation/que-paper-approval-list
+examinations,core,Add,command,POST,/papersetting/add,/admin/papersetting/add,/papersetting
+examinations,core,Addform,command,POST,/papersetting/addform,/admin/papersetting/addform,/papersetting
+examinations,core,Bulkdelete,command,DELETE,/papersetting/bulkdelete,/admin/papersetting/bulkdelete,/papersetting
+examinations,core,Editform,command,POST,/papersetting/editform,/admin/papersetting/editform,/papersetting
+examinations,core,Get Datatable,query,POST,/papersetting/get-datatable,/admin/papersetting/getDatatable,/papersetting
+examinations,core,Get Subjects Bysubjectgroupid,query,GET,/papersetting/get-subjects-bysubjectgroupid,/admin/papersetting/getSubjectsBysubjectgroupid,/papersetting
+examinations,core,Getimages,query,GET,/papersetting/getimages,/admin/papersetting/getimages,/papersetting
+examinations,core,Getinactive Datatable,query,POST,/papersetting/getinactive-datatable,/admin/papersetting/getinactiveDatatable,/papersetting
+examinations,core,Getsubject Byselected Class,query,GET,/papersetting/getsubject-byselected-class,/admin/papersetting/getsubjectByselectedClass,/papersetting
+examinations,core,Questionsearchvalidation,query,GET,/papersetting/questionsearchvalidation,/admin/papersetting/questionsearchvalidation,/papersetting
+examinations,core,Uploadfile,command,POST,/papersetting/uploadfile,/admin/papersetting/uploadfile,/papersetting
+examinations,core,Add,command,POST,/question/add,/admin/question/add,/question
+examinations,core,Addform,command,POST,/question/addform,/admin/question/addform,/question
+examinations,core,Bulkdelete,command,DELETE,/question/bulkdelete,/admin/question/bulkdelete,/question
+examinations,core,Editform,command,POST,/question/editform,/admin/question/editform,/question
+examinations,core,Get Datatable,query,POST,/question/get-datatable,/admin/question/getDatatable,/question
+examinations,core,Getimages,query,GET,/question/getimages,/admin/question/getimages,/question /syllabus
+examinations,core,Getinactive Datatable,query,POST,/question/getinactive-datatable,/admin/question/getinactiveDatatable,/question
+examinations,core,Questionsearchvalidation,query,GET,/question/questionsearchvalidation,/admin/question/questionsearchvalidation,/question
+examinations,core,Uploadfile,command,POST,/question/uploadfile,/admin/question/uploadfile,/question
+examinations,core,Add Exam Fees Program,command,POST,/revaluation-form/add-exam-fees-program,/admin/revaluation_form/addExamFeesProgram,/revaluation-form/revaluationformsetting
+examinations,core,Delete Revaluation Fees,command,DELETE,/revaluation-form/delete-revaluation-fees,/admin/revaluation_form/delete_revaluation_fees,/revaluation-form/revaluationformsetting
+examinations,core,Getrevaluation Program,query,GET,/revaluation-form/getrevaluation-program,/admin/revaluation_form/getrevaluationProgram,/revaluation-form/revaluationformsetting
+examinations,core,Save Form Fields,command,POST,/revaluation-form/save-form-fields,/admin/revaluation_form/saveFormFields,/revaluation-form/revaluationformsetting
+examinations,core,Assign Block,command,POST,/seating-arrangement/assign-block,/seating_arrangement/assign_block,/seating-arrangement/assign-block
+examinations,core,Assign Block Save,command,POST,/seating-arrangement/assign-block-save,/seating_arrangement/assign_block_save,/seating-arrangement/assign-block
+examinations,core,Create Block Number,command,POST,/seating-arrangement/create-block-number,/seating_arrangement/create_block_number,/seating-arrangement/assign-block
+examinations,core,Delete Seatarrangement,command,DELETE,/seating-arrangement/delete-seatarrangement,/seating_arrangement/delete_seatarrangement,/seating-arrangement/assign-block
+examinations,core,Get Subjects From Exam,query,GET,/seating-arrangement/get-subjects-from-exam,/seating_arrangement/getSubjectsFromExam,/seating-arrangement/assign-block
+examinations,core,Searchexamseatnumbers,query,GET,/seating-arrangement/searchexamseatnumbers,/seating_arrangement/searchexamseatnumbers,/seating-arrangement
+examinations,core,Subjectexamsave,command,POST,/seating-arrangement/subjectexamsave,/seating_arrangement/subjectexamsave,/seating-arrangement
+examinations,core,Semester Wise Subject,query,POST,/user/exam/semester-wise-subject,/user/exam/semesterWiseSubject,/examgroup/exam-form /examgroup/revaluation-form
+examinations,core,Getexamscheduledetail,query,GET,/user/examschedule/getexamscheduledetail,/user/examschedule/getexamscheduledetail,/examresult/backlog
+academics,core,Get By Program,query,GET,/classes/get-by-program,/classes/getByProgram,/dashboard /examgroup/exam-remuneration-bill /generateidcard/search /programintake /result-remark /student/dashboard /student/disablestudentslist /student/search /student/semester-allocation /studentfee/fee-summary-dashboard
+academics,core,Get Specialization By Class,query,GET,/classes/get-specialization-by-class,/classes/getSpecializationByClass,/examgroup/exam-form /examgroup/revaluation-form /student/disablestudentslist /student/generaterollnumber /student/search
+academics,core,Classroomsetupsave,command,POST,/classroom/classroomsetupsave,/admin/classroom/classroomsetupsave,/classroom/classroom-setup
+academics,core,Delete Classroom Allotment,command,DELETE,/classroom/delete-classroom-allotment,/admin/classroom/deleteClassroomAllotment,/classroom/classroom-allotment
+academics,core,Exam Approval,query,POST,/course-master/exam-approval,/course_master/exam_approval,/course-master
+academics,core,Get Result Approvers,command,POST,/course-master/get-result-approvers,/course_master/get_result_approvers,/course-master
+academics,core,Get Courses By Department,query,GET,/department/get-courses-by-department,/department/getCoursesByDepartment,/dashboard /generateidcard/search /programintake /student/dashboard /student/disablestudentslist /student/search /student/semester-allocation /studentfee/fee-summary-dashboard
+academics,core,Changeformfieldsetting,query,POST,/liberal-art/changeformfieldsetting,/admin/liberal_art/changeformfieldsetting,/liberal-art/admissionsetting
+academics,core,Checkpaymentstatus,query,POST,/liberal-art/checkpaymentstatus,/admin/liberal_art/checkpaymentstatus,/liberal-art/liberal-art-report /liberal-art/liberal-art-student
+academics,core,Getstudentlist,query,GET,/liberal-art/getstudentlist,/admin/liberal_art/getstudentlist,/liberal-art/liberal-art-report /liberal-art/liberal-art-student
+academics,core,Insert Partly Payment,command,POST,/liberal-art/insert-partly-payment,/admin/liberal_art/insert_partly_payment,/liberal-art/liberal-art-report /liberal-art/liberal-art-student
+academics,core,Partly Payment Modal,query,POST,/liberal-art/partly-payment-modal,/admin/liberal_art/partly_payment_modal,/liberal-art/liberal-art-report /liberal-art/liberal-art-student
+academics,core,Create,command,POST,/schoolhouse/create,/admin/schoolhouse/create,/schoolhouse
+academics,core,Get By Class,query,GET,/sections/get-by-class,/sections/getByClass,/alumni/alumnilist /alumni/events /approve-leave /assign-mentor /assign-variable-fees /atkt-form/atkt-form-report /atkt-form/edit-atkt-form-student /certificate-report /conference/class-report /conference/meeting /conference/timetable /content/upload /copo/co-po-mapping /copo/course-outcomes /copo/indirect-po-mapping /copo/lesson /copo/plan /exam-schedule /examgroup /examgroup/displaymarksexamsubjwise /examgroup/exam-form /examgroup/mark-entry-single-subject /examgroup/mark-entry-subjectwise /examgroup/revaluation-form /exammarksheet/marksheet /examresult /examresult/admitcard /examresult/exam-result-block-unblock /examresult/marksheet /feemastercoursewise /feesforward /generatecertificate /generateidcard/search /gmeet/class-report /gmeet/meeting /gmeet/timetable /homework /homework/evaluation-report /hostel/assign-room /hostel/change-room /hostelroom/studenthosteldetails /lessonplan/copylesson /lessonplan/instruction-plan /lessonplan/lesson /lessonplan/topic /mailsms/compose /mailsms/compose-sms /member/student /onlinecourse/course /onlinecourse/offlinepayment/payment /onlineexam /onlineexam/report /others-fees-verification /outcome-basis-education /paper-creation/assign-paper-creation /papersetting /paymentcategory/assign-payment-category /payroll /pickuppoint/student-fees /programintake /question /report/alumnireport /report/lesson-plan /resume /resume/download /roombooking/roombook /roombooking/roombook/roombookrequest /route/studenttransportdetails /staff /stdscholarship /stdtransfer /stuattendence /stuattendence/attendencereport /student-log-update /student/approve-optional-course /student/assign-optional-course /student/assign-seat-number /student/bulkdelete /student/bulkmail /student/bulkupdate /student/create /student/disablestudentslist /student/generaterollnumber /student/multiclass /student/search /studentfee /studentfee/feereceipt /studentfee/feesearch /subjectattendence /subjectattendence/reportbydate /subjectgroup /syllabus/status /teacher/assign-class-teacher /timetable/classreport /video-tutorial /visitors
+academics,core,Assign Program,command,POST,/sectionwise-specialization/assign-program,/sectionwise_specialization/assign_program,/sectionwise-specialization/assign-program
+academics,core,Getspecialization Bysectionid,query,GET,/sectionwise-specialization/getspecialization-bysectionid,/sectionwise_specialization/getspecializationBysectionid,/student/create
+academics,core,Importfile,command,POST,/subject/importfile,/admin/subject/importfile,/subject
+academics,core,Get Group By Class ID,query,GET,/subjectgroup/get-group-by-class-id,/admin/subjectgroup/getGroupByClassId,/copo/co-po-mapping /copo/course-outcomes /copo/indirect-po-mapping /copo/lesson /copo/plan /lessonplan/lesson /lessonplan/topic /paper-creation/assign-paper-creation /syllabus/status
+academics,core,Get Group By Classand Section,query,GET,/subjectgroup/get-group-by-classand-section,/admin/subjectgroup/getGroupByClassandSection,/atkt-form/atkt-form-report /atkt-form/edit-atkt-form-student /copo/course-outcomes /examgroup/displaymarksexamsubjwise /homework /homework/evaluation-report /lessonplan/copylesson /lessonplan/instruction-plan /paper-creation/assign-paper-creation /report/lesson-plan /timetable/classreport
+academics,core,Get Groupsubjects,query,GET,/subjectgroup/get-groupsubjects,/admin/subjectgroup/getGroupsubjects,/atkt-form/atkt-form-report /atkt-form/edit-atkt-form-student /feedback/assign-feedback-form /homework /homework/evaluation-report /lessonplan/copylesson /lessonplan/instruction-plan /report/lesson-plan
+academics,core,Get Groupsubjects By Semester Type,query,GET,/subjectgroup/get-groupsubjects-by-semester-type,/admin/subjectgroup/getGroupsubjectsBySemesterType,/copo/co-po-mapping /copo/indirect-po-mapping /copo/lesson /copo/plan /lessonplan/lesson /lessonplan/topic /syllabus/status
+academics,core,Get Groupsubjects By Semester Type Feedback,query,GET,/subjectgroup/get-groupsubjects-by-semester-type-feedback,/admin/subjectgroup/getGroupsubjectsBySemesterTypeFeedback,/feedback/assign-feedback-form
+academics,core,Get Sem By Classand Section,query,GET,/subjectgroup/get-sem-by-classand-section,/admin/subjectgroup/getSemByClassandSection,/student/approve-optional-course /student/assign-optional-course
+academics,core,Get Sem By Examgroup,query,GET,/subjectgroup/get-sem-by-examgroup,/admin/subjectgroup/getSemByExamgroup,/examresult/admitcard
+academics,core,Get Semester By Class,query,GET,/subjectgroup/get-semester-by-class,/admin/subjectgroup/getSemesterByClass,/examgroup/exam-form /feemastercoursewise /subjectgroup
+academics,core,Get Subject By Classand Section Date,query,GET,/subjectgroup/get-subject-by-classand-section-date,/admin/subjectgroup/getSubjectByClassandSectionDate,/subjectattendence
+academics,core,Importfile,command,POST,/subjectgroup/importfile,/admin/subjectgroup/importfile,/subjectgroup
+academics,core,Assign Class Teacher,command,POST,/teacher/assign-class-teacher,/admin/teacher/assign_class_teacher,/teacher/assign-class-teacher
+academics,core,Save Subject Teacher Setup,command,POST,/teacher/save-subject-teacher-setup,/admin/teacher/saveSubjectTeacherSetup,/teacher/assign-subject-teacher
+academics,core,Get Bydategroupclasssection,query,GET,/timetable/get-bydategroupclasssection,/admin/timetable/getBydategroupclasssection,/timetable/classreport
+academics,core,Getteachertimetable,query,GET,/timetable/getteachertimetable,/admin/timetable/getteachertimetable,/timetable/mytimetable
+hr,core,Approve Leave,command,POST,/approve-leave,/admin/approve_leave,/approve-leave
+hr,core,Add,command,POST,/approve-leave/add,/admin/approve_leave/add,/approve-leave
+hr,core,Get Details,query,GET,/approve-leave/get-details,/admin/approve_leave/get_details,/approve-leave
+hr,core,Remove Leave,command,DELETE,/approve-leave/remove-leave,/admin/approve_leave/remove_leave,/approve-leave
+hr,core,Search By Class Section,query,GET,/approve-leave/search-by-class-section,/admin/approve_leave/searchByClassSection,/approve-leave
+hr,core,Status,command,POST,/approve-leave/status,/admin/approve_leave/status,/approve-leave
+hr,core,Downloadstdimagesfolderzip,query,GET,/generatestaffidcard/downloadstdimagesfolderzip,/admin/generatestaffidcard/downloadstdimagesfolderzip,/generatestaffidcard
+hr,core,Generatemultiple,query,POST,/generatestaffidcard/generatemultiple,/admin/generatestaffidcard/generatemultiple,/generatestaffidcard
+hr,core,Search,query,GET,/generatestaffidcard/search,/admin/generatestaffidcard/search,/generatestaffidcard
+hr,core,Delete Weekly Off,command,DELETE,/holiday/delete-weekly-off,/admin/holiday/deleteWeeklyOff,/holiday/set-working-days
+hr,core,Get Holidays By Month Year,query,GET,/holiday/get-holidays-by-month-year,/admin/holiday/getHolidaysByMonthYear,/holiday/set-working-days
+hr,core,Get Staff Weekly Off,query,GET,/holiday/get-staff-weekly-off,/admin/holiday/getStaffWeeklyOff,/holiday/staff-week-off
+hr,core,Get Weekly Off By Month Year,query,GET,/holiday/get-weekly-off-by-month-year,/admin/holiday/getWeeklyOffByMonthYear,/holiday/set-working-days
+hr,core,Save Staff Weekly Off,command,POST,/holiday/save-staff-weekly-off,/admin/holiday/saveStaffWeeklyOff,/holiday/staff-week-off
+hr,core,Save Weekly Off,command,POST,/holiday/save-weekly-off,/admin/holiday/saveWeeklyOff,/holiday/set-working-days
+hr,core,Search Set Working Days,query,GET,/holiday/search-set-working-days,/admin/holiday/search_set_working_days,/holiday/set-working-days
+hr,core,Add Leave,command,POST,/leaverequest/add-leave,/admin/leaverequest/addLeave,/leaverequest
+hr,core,Add Staff Leave,command,POST,/leaverequest/add-staff-leave,/admin/leaverequest/add_staff_leave,/staff/leaverequest
+hr,core,Bulk Leave Approve,command,POST,/leaverequest/bulk-leave-approve,/admin/leaverequest/bulkLeaveApprove,/leaverequest
+hr,core,Cancel Staff Leave,query,POST,/leaverequest/cancel-staff-leave,/admin/leaverequest/cancel_staff_leave,/staff/leaverequest
+hr,core,Count Leave,query,POST,/leaverequest/count-leave,/admin/leaverequest/countLeave,/leaverequest /staff/leaverequest
+hr,core,Downloadleaverequestdoc,query,GET,/leaverequest/downloadleaverequestdoc,/admin/leaverequest/downloadleaverequestdoc,/staff/leaverequest
+hr,core,Get Combination Leave Count,query,GET,/leaverequest/get-combination-leave-count,/admin/leaverequest/getCombinationLeaveCount,/staff/leaverequest
+hr,core,Get Combined Leave Details,query,GET,/leaverequest/get-combined-leave-details,/admin/leaverequest/getCombinedLeaveDetails,/leaverequest /staff/leaverequest /staff/profile/:id
+hr,core,Get Staff Combination Leaves,query,GET,/leaverequest/get-staff-combination-leaves,/admin/leaverequest/getStaffCombinationLeaves,/staff/leaverequest
+hr,core,Leave Record,query,POST,/leaverequest/leave-record,/admin/leaverequest/leaveRecord,/leaverequest /staff/leaverequest /staff/profile/:id
+hr,core,Leave Status,query,POST,/leaverequest/leave-status,/admin/leaverequest/leaveStatus,/leaverequest /staff/leaverequest
+hr,core,Remove,command,DELETE,/leaverequest/remove,/admin/leaverequest/remove,/leaverequest /staff/leaverequest
+hr,core,Save Cancel Request,command,POST,/leaverequest/save-cancel-request,/admin/leaverequest/save_cancel_request,/leaverequest
+hr,core,Createleavetype,command,POST,/leavetypes/createleavetype,/admin/leavetypes/createleavetype,/leavetypes
+hr,core,Create Custom Fields For Certificate,command,POST,/staff-certificate/create-custom-fields-for-certificate,/admin/staff_certificate/createCustomFieldsForCertificate,/staff-certificate
+hr,core,Generatemultiple,query,POST,/staff-certificate/generatemultiple,/admin/staff_certificate/generatemultiple,/staff-certificate/staff-generate-certificate
+hr,core,Get Certificate Custom Fields,query,GET,/staff-certificate/get-certificate-custom-fields,/admin/staff_certificate/getCertificateCustomFields,/staff-certificate/staff-generate-certificate
+hr,core,Search,query,GET,/staff-certificate/search,/admin/staff_certificate/search,/staff-certificate/staff-generate-certificate
+hr,core,View,query,GET,/staff-certificate/view,/admin/staff_certificate/view,/staff-certificate
+hr,core,Delete Leave Clubbing,command,DELETE,/staff-leave-assign/delete-leave-clubbing,/admin/staff_leave_assign/delete_leave_clubbing,/staff-leave-assign
+hr,core,Delete Weekoff Rules,command,DELETE,/staff-leave-assign/delete-weekoff-rules,/admin/staff_leave_assign/delete_weekoff_rules,/staff-leave-assign
+hr,core,Edit Leave Clubbing Rule,command,POST,/staff-leave-assign/edit-leave-clubbing-rule,/admin/staff_leave_assign/edit_leave_clubbing_rule,/staff-leave-assign
+hr,core,Edit Staff Assign Form,command,POST,/staff-leave-assign/edit-staff-assign-form,/admin/staff_leave_assign/editStaffAssignForm,/staff-leave-assign
+hr,core,Get Leave Clubbing Rules,query,GET,/staff-leave-assign/get-leave-clubbing-rules,/admin/staff_leave_assign/get_leave_clubbing_rules,/staff-leave-assign
+hr,core,Get Weekoff Rules,query,GET,/staff-leave-assign/get-weekoff-rules,/admin/staff_leave_assign/get_weekoff_rules,/staff-leave-assign
+hr,core,Save Assign Staff,command,POST,/staff-leave-assign/save-assign-staff,/admin/staff_leave_assign/save_assign_staff,/staff-leave-assign
+hr,core,Save Leave Clubbing Rules,command,POST,/staff-leave-assign/save-leave-clubbing-rules,/admin/staff_leave_assign/save_leave_clubbing_rules,/staff-leave-assign
+hr,core,Save Weekoff Rules,command,POST,/staff-leave-assign/save-weekoff-rules,/admin/staff_leave_assign/save_weekoff_rules,/staff-leave-assign
+hr,core,Update Assign Staff,command,POST,/staff-leave-assign/update-assign-staff,/admin/staff_leave_assign/update_assign_staff,/staff-leave-assign
+hr,core,Ajax Attendance,query,POST,/staff/ajax-attendance,/admin/staff/ajax_attendance,/staff/profile/:id
+hr,core,Bulk Update Leaves Export,command,POST,/staff/bulk-update-leaves-export,/admin/staff/bulk_update_leaves_export,/staff
+hr,core,Bulk Update Leaves Import,command,POST,/staff/bulk-update-leaves-import,/admin/staff/bulk_update_leaves_import,/staff
+hr,core,Change Password,query,POST,/staff/change-password,/admin/staff/change_password,/staff/profile/:id
+hr,core,Disablestaff,query,POST,/staff/disablestaff,/admin/staff/disablestaff,/staff/profile/:id
+hr,core,Disablestafflist,query,GET,/staff/disablestafflist,/admin/staff/disablestafflist,/staff/disablestafflist
+hr,core,Get Employee By Role,query,GET,/staff/get-employee-by-role,/admin/staff/getEmployeeByRole,/conference/meeting /conference/timetable /gmeet/meeting /gmeet/timetable /leaverequest /payroll /staff/leaverequest
+hr,core,Get Leave By Year,query,GET,/staff/get-leave-by-year,/admin/staff/getLeaveByYear,/staff/profile/:id
+hr,core,Get Staff Leave Details By Year,query,GET,/staff/get-staff-leave-details-by-year,/admin/staff/getStaffLeaveDetailsByYear,/staff/leaverequest
+hr,core,Leave Request Approval Report Pdf,query,GET,/staff/leave-request-approval-report-pdf,/admin/staff/leave_request_approval_report_pdf,/staff/leaverequest /staff/profile/:id
+hr,core,Set Subject Preference,query,POST,/staff/set-subject-preference,/admin/staff/setSubjectPreference,/staff/profile/:id
+hr,core,Staff Bulk Update,command,POST,/staff/staff-bulk-update,/admin/staff/staff_bulk_update,/staff/staff-bulk-update
+hr,core,Staff Bulk Update Save,command,POST,/staff/staff-bulk-update-save,/admin/staff/staff_bulk_update_save,/staff/staff-bulk-update
+hr,core,Create,command,POST,/staffidcard/create,/admin/staffidcard/create,/staffidcard
+hr,core,View,query,GET,/staffidcard/view,/admin/staffidcard/view,/staffidcard
+hr,core,Add,command,POST,/teacherlog/add,/teacherlog/add,/teacherlog
+hr,core,Approvetechlog,command,POST,/teacherlog/approvetechlog,/teacherlog/approvetechlog,/teacherlog
+hr,core,Fetchtecherlog Request,query,GET,/teacherlog/fetchtecherlog-request,/teacherlog/fetchtecherlog_request,/teacherlog
+hr,core,Load Teacherlog Viewpage,query,GET,/teacherlog/load-teacherlog-viewpage,/teacherlog/load_teacherlog_viewpage,/teacherlog
+hr,core,Teacherlog Remove,command,DELETE,/teacherlog/teacherlog-remove,/teacherlog/teacherlog_remove,/teacherlog
+hr,core,Update,command,POST,/teacherlog/update,/teacherlog/update,/teacherlog
+hr,core,Delete Record,command,DELETE,/teachers-research/delete-record,/admin/teachers_research/delete_record,/teachers-research
+hr,core,Get Edit Record,query,GET,/teachers-research/get-edit-record,/admin/teachers_research/get_edit_record,/teachers-research
+hr,core,Research Details,query,GET,/teachers-research/research-details,/admin/teachers_research/research_details,/teachers-research
+hr,core,Add Staff Timeline,command,POST,/timeline/add-staff-timeline,/admin/timeline/add_staff_timeline,/staff/profile/:id
+hr,core,Delete Staff Timeline,command,DELETE,/timeline/delete-staff-timeline,/admin/timeline/delete_staff_timeline,/staff/profile/:id
+hr,core,Editstafftimeline,command,POST,/timeline/editstafftimeline,/admin/timeline/editstafftimeline,/staff/profile/:id
+hr,core,Getstaffsingletimeline,query,GET,/timeline/getstaffsingletimeline,/admin/timeline/getstaffsingletimeline,/staff/profile/:id
+hr,core,Staff Timeline,query,POST,/timeline/staff-timeline,/admin/timeline/staff_timeline,/staff/profile/:id
+payroll,extended,Create,command,POST,/payroll/create,/admin/payroll/create,/payroll /staffpayroll/generate-income-tax /staffpayroll/staff-payroll
+payroll,extended,Payment Record,query,POST,/payroll/payment-record,/admin/payroll/paymentRecord,/payroll
+payroll,extended,Payment Success,query,POST,/payroll/payment-success,/admin/payroll/paymentSuccess,/payroll
+payroll,extended,Payslip View,query,GET,/payroll/payslip-view,/admin/payroll/payslipView,/payroll
+payroll,extended,Add Element,command,POST,/staffpayroll/add-element,/admin/staffpayroll/add_element,/staffpayroll/add-element
+payroll,extended,Add Payroll Dependant Elements,command,POST,/staffpayroll/add-payroll-dependant-elements,/admin/staffpayroll/add_payroll_dependant_elements,/staffpayroll/manage-staff-payroll
+payroll,extended,Add Tax Slab,command,POST,/staffpayroll/add-tax-slab,/admin/staffpayroll/add_tax_slab,/staffpayroll/setup-tax-slab
+payroll,extended,Bulk Generate Export,command,POST,/staffpayroll/bulk-generate-export,/admin/staffpayroll/bulk_generate_export,/staffpayroll/staff-payroll
+payroll,extended,Bulk Generate Import,command,POST,/staffpayroll/bulk-generate-import,/admin/staffpayroll/bulk_generate_import,/staffpayroll/staff-payroll
+payroll,extended,Copy From Previous Month,query,POST,/staffpayroll/copy-from-previous-month,/admin/staffpayroll/copy_from_previous_month,/staffpayroll/staff-payroll
+payroll,extended,Delete Child Record,command,DELETE,/staffpayroll/delete-child-record,/admin/staffpayroll/delete_child_record,/staffpayroll/add-income-tax-element
+payroll,extended,Delete Income Tax Slab,command,DELETE,/staffpayroll/delete-income-tax-slab,/admin/staffpayroll/delete_income_tax_slab,/staffpayroll/setup-tax-slab
+payroll,extended,Delete Parent Record,command,DELETE,/staffpayroll/delete-parent-record,/admin/staffpayroll/delete_parent_record,/staffpayroll/add-income-tax-element
+payroll,extended,Delete Payroll Dependant,command,DELETE,/staffpayroll/delete-payroll-dependant,/admin/staffpayroll/delete_payroll_dependant,/staffpayroll/manage-staff-payroll
+payroll,extended,Get Form16,query,GET,/staffpayroll/get-form16,/admin/staffpayroll/getForm16,/staffpayroll/generate-income-tax
+payroll,extended,Get Payroll Elements Except Current ID,query,GET,/staffpayroll/get-payroll-elements-except-current-id,/admin/staffpayroll/get_payroll_elements_except_current_id,/staffpayroll/manage-staff-payroll
+payroll,extended,Get Visiting Staff Payroll,query,GET,/staffpayroll/get-visiting-staff-payroll,/admin/staffpayroll/getVisitingStaffPayroll,/staffpayroll/visiting-staff-payroll
+payroll,extended,Getincometaxdetails,query,GET,/staffpayroll/getincometaxdetails,/admin/staffpayroll/getincometaxdetails,/staffpayroll/generate-income-tax
+payroll,extended,Getpayelements By ID,query,GET,/staffpayroll/getpayelements-by-id,/admin/staffpayroll/getpayelementsByID,/staffpayroll/add-element
+payroll,extended,Getstaffbankdetails,query,GET,/staffpayroll/getstaffbankdetails,/admin/staffpayroll/getstaffbankdetails,/staffpayroll/staff-payroll
+payroll,extended,Payment Success,query,POST,/staffpayroll/payment-success,/admin/staffpayroll/paymentSuccess,/staffpayroll/staff-payroll
+payroll,extended,Payslip View,query,GET,/staffpayroll/payslip-view,/admin/staffpayroll/payslipView,/staff/profile/:id /staffpayroll/staff-payroll /staffpayroll/visiting-staff-payroll
+payroll,extended,Print All Payslips,query,GET,/staffpayroll/print-all-payslips,/admin/staffpayroll/printAllPayslips,/staffpayroll/staff-payroll
+payroll,extended,Revert Generated,query,POST,/staffpayroll/revert-generated,/admin/staffpayroll/revertGenerated,/staffpayroll/staff-payroll
+payroll,extended,Revert Paid,query,POST,/staffpayroll/revert-paid,/admin/staffpayroll/revertPaid,/staffpayroll/staff-payroll
+payroll,extended,Save Income Tax Element,command,POST,/staffpayroll/save-income-tax-element,/admin/staffpayroll/save_income_tax_element,/staffpayroll/add-income-tax-element
+payroll,extended,Save Manage Payroll,command,POST,/staffpayroll/save-manage-payroll,/admin/staffpayroll/save_manage_payroll,/staffpayroll/manage-staff-payroll
+finance,extended,Getexpenselist,query,GET,/expense/getexpenselist,/admin/expense/getexpenselist,/expense
+finance,extended,Getsearchexpenselist,query,GET,/expense/getsearchexpenselist,/admin/expense/getsearchexpenselist,/expense/expensesearch
+finance,extended,Search,query,GET,/expense/search,/admin/expense/search,/expense/expensesearch
+finance,extended,Ajax Search,query,POST,/expensehead/ajax-search,/admin/expensehead/ajaxSearch,/expensehead
+finance,extended,Create,command,POST,/expensehead/create,/admin/expensehead/create,/expensehead
+finance,extended,Checkvalidation,query,POST,/income/checkvalidation,/admin/income/checkvalidation,/income/incomesearch
+finance,extended,Getincomelist,query,GET,/income/getincomelist,/admin/income/getincomelist,/income
+finance,extended,Getincomesearchlist,query,GET,/income/getincomesearchlist,/admin/income/getincomesearchlist,/income/incomesearch
+finance,extended,Create,command,POST,/incomehead/create,/admin/incomehead/create,/incomehead
+lesson-plan,extended,Change Topic Status,query,GET,/lessonplan/change-topic-status,/admin/lessonplan/changeTopicStatus,/syllabus/status
+lesson-plan,extended,Createinstruction Plan,command,POST,/lessonplan/createinstruction-plan,/admin/lessonplan/createinstruction_plan,/lessonplan/instruction-plan
+lesson-plan,extended,Createlesson,command,POST,/lessonplan/createlesson,/admin/lessonplan/createlesson,/lessonplan/lesson
+lesson-plan,extended,Createtopic,command,POST,/lessonplan/createtopic,/admin/lessonplan/createtopic,/lessonplan/topic
+lesson-plan,extended,Deleteinstruction Planbulk,command,DELETE,/lessonplan/deleteinstruction-planbulk,/admin/lessonplan/deleteinstruction_planbulk,/lessonplan/instruction-plan
+lesson-plan,extended,Deletelessonbulk,command,DELETE,/lessonplan/deletelessonbulk,/admin/lessonplan/deletelessonbulk,/lessonplan/lesson
+lesson-plan,extended,Get,query,GET,/lessonplan/get,/admin/lessonplan/get_,/syllabus/status
+lesson-plan,extended,Get Classwise Batch Data,query,GET,/lessonplan/get-classwise-batch-data,/admin/lessonplan/getClasswiseBatchData,/lessonplan/instruction-plan
+lesson-plan,extended,Getinstruction Planlist,query,GET,/lessonplan/getinstruction-planlist,/admin/lessonplan/getinstruction_planlist,/lessonplan/instruction-plan
+lesson-plan,extended,Getlesson Bysubjectid,query,GET,/lessonplan/getlesson-bysubjectid,/admin/lessonplan/getlessonBysubjectid,/lessonplan/topic
+lesson-plan,extended,Getlesson Bysubjectidedit,query,GET,/lessonplan/getlesson-bysubjectidedit,/admin/lessonplan/getlessonBysubjectidedit,/syllabus
+lesson-plan,extended,Getlessonlist,query,GET,/lessonplan/getlessonlist,/admin/lessonplan/getlessonlist,/lessonplan/lesson
+lesson-plan,extended,Gettopic Bylessonid,query,GET,/lessonplan/gettopic-bylessonid,/admin/lessonplan/gettopicBylessonid,/syllabus
+lesson-plan,extended,Gettopiclist,query,GET,/lessonplan/gettopiclist,/admin/lessonplan/gettopiclist,/lessonplan/topic
+lesson-plan,extended,Topic Completedate,query,POST,/lessonplan/topic-completedate,/admin/lessonplan/topic_completedate,/syllabus/status
+lesson-plan,extended,Add Syllabus,command,POST,/syllabus/add-syllabus,/admin/syllabus/add_syllabus,/syllabus
+lesson-plan,extended,Get Subject Syllabus,query,GET,/syllabus/get-subject-syllabus,/admin/syllabus/get_subject_syllabus,/syllabus
+lesson-plan,extended,Get Weekdates,query,GET,/syllabus/get-weekdates,/admin/syllabus/get_weekdates,/syllabus
+lesson-plan,extended,Getsubject Syllabus,query,GET,/syllabus/getsubject-syllabus,/admin/syllabus/getsubject_syllabus,/syllabus
+lesson-plan,extended,Status,command,POST,/syllabus/status,/admin/syllabus/status,/syllabus/status
+outcomes,extended,Add Book,command,POST,/copo/add-book,/admin/copo/addBook,/copo/plan
+outcomes,extended,Add Course Objective,command,POST,/copo/add-course-objective,/admin/copo/addCourseObjective,/copo/plan
+outcomes,extended,Add Gaps Identified,command,POST,/copo/add-gaps-identified,/admin/copo/addGapsIdentified,/copo/plan
+outcomes,extended,Add Industrial Sector,command,POST,/copo/add-industrial-sector,/admin/copo/addIndustrialSector,/copo/plan
+outcomes,extended,Add Info,command,POST,/copo/add-info,/admin/copo/add_info,/copo/plan
+outcomes,extended,Add Innovative Pedagogy Adopted,command,POST,/copo/add-innovative-pedagogy-adopted,/admin/copo/addInnovativePedagogyAdopted,/copo/plan
+outcomes,extended,Add Job Profiles,command,POST,/copo/add-job-profiles,/admin/copo/addJobProfiles,/copo/plan
+outcomes,extended,Add Other Activity,command,POST,/copo/add-other-activity,/admin/copo/addOtherActivity,/copo/plan
+outcomes,extended,Add Skill Set,command,POST,/copo/add-skill-set,/admin/copo/addSkillSet,/copo/plan
+outcomes,extended,Approveandnext,command,POST,/copo/approveandnext,/admin/copo/approveandnext,/copo/tlp-approve-list
+outcomes,extended,Approveplan,command,POST,/copo/approveplan,/admin/copo/approveplan,/copo/tlp-approve-list
+outcomes,extended,Complete And Send,query,POST,/copo/complete-and-send,/admin/copo/completeAndSend,/copo/plan /copo/tlp-approve-list
+outcomes,extended,Delete Element,command,DELETE,/copo/delete-element,/admin/copo/deleteElement,/copo/plan
+outcomes,extended,Forword Message,query,POST,/copo/forword-message,/admin/copo/forwordMessage,/copo/plan
+outcomes,extended,Get Book,query,GET,/copo/get-book,/admin/copo/getBook,/copo/plan
+outcomes,extended,Get Course Info,query,GET,/copo/get-course-info,/admin/copo/getCourseInfo,/copo/plan
+outcomes,extended,Get Course Objective,query,GET,/copo/get-course-objective,/admin/copo/getCourseObjective,/copo/plan
+outcomes,extended,Get Course Outcomes,query,GET,/copo/get-course-outcomes,/admin/copo/getCourseOutcomes,/copo/course-outcomes
+outcomes,extended,Get Gaps Identified,query,GET,/copo/get-gaps-identified,/admin/copo/getGapsIdentified,/copo/plan
+outcomes,extended,Get Industrial Sector,query,GET,/copo/get-industrial-sector,/admin/copo/getIndustrialSector,/copo/plan
+outcomes,extended,Get Innovative Pedagogy Adopted,query,GET,/copo/get-innovative-pedagogy-adopted,/admin/copo/getInnovativePedagogyAdopted,/copo/plan
+outcomes,extended,Get Job Profile,query,GET,/copo/get-job-profile,/admin/copo/getJobProfile,/copo/plan
+outcomes,extended,Get Lesson Course Outcomes,query,GET,/copo/get-lesson-course-outcomes,/admin/copo/getLessonCourseOutcomes,/copo/lesson
+outcomes,extended,Get Lesson Details,query,GET,/copo/get-lesson-details,/admin/copo/getLessonDetails,/copo/lesson
+outcomes,extended,Get Other Activity,query,GET,/copo/get-other-activity,/admin/copo/getOtherActivity,/copo/plan
+outcomes,extended,Get Program Outcomes,query,GET,/copo/get-program-outcomes,/admin/copo/getProgramOutcomes,/copo/program-outcomes
+outcomes,extended,Get Skill Set,query,GET,/copo/get-skill-set,/admin/copo/getSkillSet,/copo/plan
+outcomes,extended,Get Tab Info,query,GET,/copo/get-tab-info,/admin/copo/getTabInfo,/copo/plan
+outcomes,extended,Getsubject By Examgroup,query,GET,/copo/getsubject-by-examgroup,/admin/copo/getsubjectByExamgroup,/outcome-basis-education
+outcomes,extended,Load Lesson Content,query,POST,/copo/load-lesson-content,/admin/copo/loadLessonContent,/copo/lesson
+outcomes,extended,Print Indirect Program Outcomes,query,GET,/copo/print-indirect-program-outcomes,/admin/copo/print_indirect_program_outcomes,/copo/indirect-po-mapping
+outcomes,extended,Print Program Outcomes,query,GET,/copo/print-program-outcomes,/admin/copo/print_program_outcomes,/copo/co-po-mapping
+outcomes,extended,Print Subject Plan,query,GET,/copo/print-subject-plan,/admin/copo/printSubjectPlan,/copo/plan /copo/tlp-approve-list
+outcomes,extended,Rejectplan,command,POST,/copo/rejectplan,/admin/copo/rejectplan,/copo/tlp-approve-list
+outcomes,extended,Save CO PO Mappings,command,POST,/copo/save-co-po-mappings,/admin/copo/saveCoPoMappings,/copo/co-po-mapping
+outcomes,extended,Save Indirect PO Mappings,command,POST,/copo/save-indirect-po-mappings,/admin/copo/save_indirect_po_mappings,/copo/indirect-po-mapping
+outcomes,extended,Track Approval Log,query,POST,/copo/track-approval-log,/admin/copo/trackApprovalLog,/copo/plan /copo/tlp-approve-list
+outcomes,extended,Update Course Outcomes,command,POST,/copo/update-course-outcomes,/admin/copo/updateCourseOutcomes,/copo/course-outcomes
+outcomes,extended,Update Lesson,command,POST,/copo/update-lesson,/admin/copo/updateLesson,/copo/lesson
+outcomes,extended,Update Program Outcomes,command,POST,/copo/update-program-outcomes,/admin/copo/updateProgramOutcomes,/copo/program-outcomes
+outcomes,extended,Assessment Tool CO Pdf,query,GET,/outcome-basis-education/assessment-tool-co-pdf,/outcome_basis_education/assessment_tool_co_pdf,/examgroup/exam-form /examgroup/revaluation-form /outcome-basis-education
+outcomes,extended,Save CO Assessment Attainment,command,POST,/outcome-basis-education/save-co-assessment-attainment,/outcome_basis_education/save_co_assessment_attainment,/outcome-basis-education
+assignments,extended,Add Evaluation,command,POST,/homework/add-evaluation,/homework/add_evaluation,/homework
+assignments,extended,Closehomeworklist,query,GET,/homework/closehomeworklist,/homework/closehomeworklist,/homework
+assignments,extended,Deletehomework,command,DELETE,/homework/deletehomework,/homework/deletehomework,/homework
+assignments,extended,Dtevaluationlist,query,GET,/homework/dtevaluationlist,/homework/dtevaluationlist,/homework
+assignments,extended,Dthomeworklist,query,GET,/homework/dthomeworklist,/homework/dthomeworklist,/homework
+assignments,extended,Edit,command,POST,/homework/edit,/homework/edit,/homework
+assignments,extended,Evaluation,query,POST,/homework/evaluation,/homework/evaluation,/homework
+assignments,extended,Getedit Record,query,GET,/homework/getedit-record,/homework/geteditRecord,/homework
+assignments,extended,Getuploadcriteriadata,command,POST,/homework/getuploadcriteriadata,/homework/getuploadcriteriadata,/homework
+assignments,extended,Homework Docs,query,POST,/homework/homework-docs,/homework/homework_docs,/homework
+assignments,extended,Searchvalidation,query,GET,/homework/searchvalidation,/homework/searchvalidation,/homework
+library,extended,Getbooklist,query,GET,/book/getbooklist,/admin/book/getbooklist,/book/getall
+library,extended,Add,command,POST,/member/add,/admin/member/add,/member/student
+library,extended,Addteacher,command,POST,/member/addteacher,/admin/member/addteacher,/member/teacher
+library,extended,Surrender,query,POST,/member/surrender,/admin/member/surrender,/member/student /member/teacher
+hostel,extended,Create,command,POST,/hostel/create,/admin/hostel/create,/hostel
+hostel,extended,Fetchgatepass Request,query,GET,/hostel/fetchgatepass-request,/admin/hostel/fetchgatepass_request,/hostel/gatepass-list /hostel/scan-qrcode
+hostel,extended,Fetchgatepassticket Details,query,GET,/hostel/fetchgatepassticket-details,/admin/hostel/fetchgatepassticket_details,/hostel/scan-qrcode
+hostel,extended,Get All Student List,query,GET,/hostel/get-all-student-list,/admin/hostel/getAllStudentList,/hostel/assign-room /hostel/change-room
+hostel,extended,Get Allocated Student,query,GET,/hostel/get-allocated-student,/admin/hostel/get_allocated_student,/hostel/assign-room /hostel/change-room
+hostel,extended,Get Room Charges,query,GET,/hostel/get-room-charges,/admin/hostel/get_room_charges,/hostel/assign-room /hostel/change-room
+hostel,extended,Get Room Student List,query,GET,/hostel/get-room-student-list,/admin/hostel/getRoom_student_list,/hostel/assign-room /hostel/change-room
+hostel,extended,Get Rooms Bed,query,GET,/hostel/get-rooms-bed,/admin/hostel/get_rooms_bed,/hostel/assign-room /hostel/change-room
+hostel,extended,Get Student List,query,GET,/hostel/get-student-list,/admin/hostel/getStudentList,/hostel/assign-room /hostel/change-room
+hostel,extended,Hostel Rooms,query,POST,/hostel/hostel-rooms,/admin/hostel/hostel_rooms,/hostel/assign-room /hostel/change-room
+hostel,extended,Hostel Rooms For Change,query,POST,/hostel/hostel-rooms-for-change,/admin/hostel/hostel_rooms_for_change,/hostel/change-room
+hostel,extended,Insert Assign Room,command,POST,/hostel/insert-assign-room,/admin/hostel/insert_assign_room,/hostel/assign-room
+hostel,extended,Insert Change Room,command,POST,/hostel/insert-change-room,/admin/hostel/insert_change_room,/hostel/change-room
+hostel,extended,Update Gatepass,command,POST,/hostel/update-gatepass,/admin/hostel/update_gatepass,/hostel/gatepass-list /hostel/scan-qrcode
+hostel,extended,Update Gatepass Status,command,POST,/hostel/update-gatepass-status,/admin/hostel/update_gatepass_status,/hostel/scan-qrcode
+hostel,extended,Vaaccant Room,query,POST,/hostel/vaaccant-room,/admin/hostel/vaaccant_room,/hostel/assign-room
+hostel,extended,Vacancy Status,query,POST,/hostel/vacancy-status,/admin/hostel/vacancy_status,/hostel/vacancy-status
+hostel,extended,Create,command,POST,/hostelroom/create,/admin/hostelroom/create,/hostelroom
+hostel,extended,Dthostellist,query,GET,/hostelroom/dthostellist,/admin/hostelroom/dthostellist,/hostelroom/studenthosteldetails
+hostel,extended,Get Room,query,GET,/hostelroom/get-room,/admin/hostelroom/getRoom,/student/create
+hostel,extended,Searchvalidation,query,GET,/hostelroom/searchvalidation,/admin/hostelroom/searchvalidation,/hostelroom/studenthosteldetails
+hostel,extended,Create,command,POST,/roomtype/create,/admin/roomtype/create,/roomtype
+transport,extended,Add Point,command,POST,/pickuppoint/add-point,/admin/pickuppoint/add_point,/pickuppoint
+transport,extended,Add Student Fees,command,POST,/pickuppoint/add-student-fees,/admin/pickuppoint/add_student_fees,/pickuppoint/student-fees
+transport,extended,Addmore Point,command,POST,/pickuppoint/addmore-point,/admin/pickuppoint/addmore_point,/pickuppoint/assign
+transport,extended,Create,command,POST,/pickuppoint/create,/admin/pickuppoint/create,/pickuppoint/assign
+transport,extended,Get Assigndetails,command,POST,/pickuppoint/get-assigndetails,/admin/pickuppoint/get_assigndetails,/pickuppoint/assign
+transport,extended,Get Pickupdropdownlist,query,GET,/pickuppoint/get-pickupdropdownlist,/admin/pickuppoint/get_pickupdropdownlist,/pickuppoint/assign /student/create
+transport,extended,Get Pointdata,query,GET,/pickuppoint/get-pointdata,/admin/pickuppoint/get_pointdata,/pickuppoint
+transport,extended,Getpickpointlist,query,GET,/pickuppoint/getpickpointlist,/admin/pickuppoint/getpickpointlist,/pickuppoint
+transport,extended,Getpickuppointsbyroute,query,GET,/pickuppoint/getpickuppointsbyroute,/admin/pickuppoint/getpickuppointsbyroute,/route/studenttransportdetails
+transport,extended,Pointmap,query,POST,/pickuppoint/pointmap,/admin/pickuppoint/pointmap,/pickuppoint
+transport,extended,Reorder,query,POST,/pickuppoint/reorder,/admin/pickuppoint/reorder,/pickuppoint/assign
+transport,extended,Reorder Pointid,query,POST,/pickuppoint/reorder-pointid,/admin/pickuppoint/reorder_pointid,/pickuppoint/assign
+transport,extended,Student Transport Months,query,POST,/pickuppoint/student-transport-months,/admin/pickuppoint/student_transport_months,/pickuppoint/student-fees
+transport,extended,Create,command,POST,/route/create,/admin/route/create,/route
+transport,extended,Add,command,POST,/vehicle/add,/admin/vehicle/add,/vehicle
+transport,extended,Edit,command,POST,/vehicle/edit,/admin/vehicle/edit,/vehicle
+transport,extended,Getsinglevehicledata,query,GET,/vehicle/getsinglevehicledata,/admin/vehicle/getsinglevehicledata,/vehicle
+transport,extended,Vehicledetails,query,POST,/vehicle/vehicledetails,/admin/vehicle/vehicledetails,/vehicle
+inventory,extended,Getitemlist,query,GET,/issueitem/getitemlist,/admin/issueitem/getitemlist,/issueitem
+inventory,extended,Return Item,query,POST,/issueitem/return-item,/admin/issueitem/returnItem,/issueitem
+inventory,extended,Create,command,POST,/itemcategory/create,/admin/itemcategory/create,/itemcategory
+inventory,extended,Get Item By Category,query,GET,/itemstock/get-item-by-category,/admin/itemstock/getItemByCategory,/itemstock
+inventory,extended,Get Itemunit,query,GET,/itemstock/get-itemunit,/admin/itemstock/getItemunit,/itemstock
+inventory,extended,Create,command,POST,/itemstore/create,/admin/itemstore/create,/itemstore
+inventory,extended,Create,command,POST,/itemsupplier/create,/admin/itemsupplier/create,/itemsupplier
+inventory,extended,Create Requisitiontopic,command,POST,/requisitions/create-requisitiontopic,/admin/requisitions/createRequisitiontopic,/requisitions
+inventory,extended,Delete Req Doc,command,DELETE,/requisitions/delete-req-doc,/admin/requisitions/delete_req_doc,/requisitions
+inventory,extended,Fetchrequisition Request Receipt,query,GET,/requisitions/fetchrequisition-request-receipt,/admin/requisitions/fetchrequisition_request_receipt,/requisitions/load-requisition-list
+inventory,extended,Get Requisition Request View,query,GET,/requisitions/get-requisition-request-view,/admin/requisitions/get_requisition_request_view,/requisitions/load-requisition-list
+inventory,extended,Load Requisition List,query,GET,/requisitions/load-requisition-list,/admin/requisitions/load_requisition_list,/requisitions/load-requisition-list
+inventory,extended,Up Requisition Request,query,POST,/requisitions/up-requisition-request,/admin/requisitions/up_requisition_request,/requisitions/load-requisition-list
+communicate,extended,Adduser,command,POST,/chat/adduser,/admin/chat/adduser,/chat
+communicate,extended,Chat Update,command,POST,/chat/chat-update,/admin/chat/chatUpdate,/chat
+communicate,extended,Get Chat Record,query,POST,/chat/get-chat-record,/admin/chat/getChatRecord,/chat
+communicate,extended,Mychatnotification,query,POST,/chat/mychatnotification,/admin/chat/mychatnotification,/chat
+communicate,extended,Mynewuser,query,POST,/chat/mynewuser,/admin/chat/mynewuser,/chat
+communicate,extended,Myuser,query,POST,/chat/myuser,/admin/chat/myuser,/chat
+communicate,extended,New Message,query,POST,/chat/new-message,/admin/chat/newMessage,/chat
+communicate,extended,Searchuser,query,POST,/chat/searchuser,/admin/chat/searchuser,/chat
+communicate,extended,Test Mail,query,POST,/emailconfig/test-mail,/emailconfig/test_mail,/emailconfig /smsconfig
+communicate,extended,Add Email Template,command,POST,/mailsms/add-email-template,/admin/mailsms/add_email_template,/mailsms/email-template
+communicate,extended,Add SMS Template,command,POST,/mailsms/add-sms-template,/admin/mailsms/add_sms_template,/mailsms/sms-template
+communicate,extended,Delete Schedule,command,DELETE,/mailsms/delete-schedule,/admin/mailsms/delete_schedule,/mailsms/schedule
+communicate,extended,Edit Email Template,command,POST,/mailsms/edit-email-template,/admin/mailsms/edit_email_template,/mailsms/email-template
+communicate,extended,Edit SMS Template,command,POST,/mailsms/edit-sms-template,/admin/mailsms/edit_sms_template,/mailsms/sms-template
+communicate,extended,Get Birthday Preview,query,GET,/mailsms/get-birthday-preview,/admin/mailsms/get_birthday_preview,/mailsms/compose
+communicate,extended,Get Class Preview,query,GET,/mailsms/get-class-preview,/admin/mailsms/get_class_preview,/mailsms/compose
+communicate,extended,Get Individual Preview,query,GET,/mailsms/get-individual-preview,/admin/mailsms/get_individual_preview,/mailsms/compose
+communicate,extended,Get Preview,query,GET,/mailsms/get-preview,/admin/mailsms/get_preview,/mailsms/compose /mailsms/email-template
+communicate,extended,Search,query,GET,/mailsms/search,/admin/mailsms/search,/content/upload /mailsms/compose /mailsms/compose-sms
+communicate,extended,Send Birthday,query,POST,/mailsms/send-birthday,/admin/mailsms/send_birthday,/mailsms/compose
+communicate,extended,Send Birthday SMS,query,POST,/mailsms/send-birthday-sms,/admin/mailsms/send_birthday_sms,/mailsms/compose-sms
+communicate,extended,Send Class,query,POST,/mailsms/send-class,/admin/mailsms/send_class,/mailsms/compose
+communicate,extended,Send Class SMS,query,POST,/mailsms/send-class-sms,/admin/mailsms/send_class_sms,/mailsms/compose-sms
+communicate,extended,Send Group,query,POST,/mailsms/send-group,/admin/mailsms/send_group,/mailsms/compose
+communicate,extended,Send Group SMS,query,POST,/mailsms/send-group-sms,/admin/mailsms/send_group_sms,/mailsms/compose-sms
+communicate,extended,Send Individual,query,POST,/mailsms/send-individual,/admin/mailsms/send_individual,/mailsms/compose
+communicate,extended,Send Individual SMS,query,POST,/mailsms/send-individual-sms,/admin/mailsms/send_individual_sms,/mailsms/compose-sms
+communicate,extended,Smstemplatedata,query,POST,/mailsms/smstemplatedata,/admin/mailsms/smstemplatedata,/mailsms/compose-sms
+communicate,extended,Templatedata,query,POST,/mailsms/templatedata,/admin/mailsms/templatedata,/mailsms/compose
+communicate,extended,Test SMS,query,POST,/mailsms/test-sms,/admin/mailsms/test_sms,/smsconfig
+communicate,extended,Update Email Template,command,POST,/mailsms/update-email-template,/admin/mailsms/update_email_template,/mailsms/email-template
+communicate,extended,Update SMS Template,command,POST,/mailsms/update-sms-template,/admin/mailsms/update_sms_template,/mailsms/sms-template
+communicate,extended,Gettemplate,query,GET,/notification/gettemplate,/admin/notification/gettemplate,/notification/setting
+communicate,extended,Read,query,POST,/notification/read,/admin/notification/read,/admin/dashboard
+communicate,extended,Savetemplate,command,POST,/notification/savetemplate,/admin/notification/savetemplate,/notification/setting
+communicate,extended,Mponline,query,POST,/smsconfig/mponline,/smsconfig/mponline,/smsconfig
+communicate,extended,Twilio,query,POST,/smsconfig/twilio,/smsconfig/twilio,/atkt-form/admissionsetting /liberal-art/admissionsetting /onlineadmission/admissionsetting
+front-office,extended,Details,query,GET,/complaint/details,/admin/complaint/details,/complaint
+front-office,extended,Edit,command,POST,/complaint/edit,/admin/complaint/edit,/complaint
+front-office,extended,Details,query,GET,/dispatch/details,/admin/dispatch/details,/dispatch /receive
+front-office,extended,Add,command,POST,/enquiry/add,/admin/enquiry/add,/enquiry
+front-office,extended,Check Number,query,POST,/enquiry/check-number,/admin/enquiry/check_number,/enquiry
+front-office,extended,Delete,command,DELETE,/enquiry/delete,/admin/enquiry/delete,/enquiry
+front-office,extended,Details,query,GET,/enquiry/details,/admin/enquiry/details,/enquiry
+front-office,extended,Editpost,command,POST,/enquiry/editpost,/admin/enquiry/editpost,/enquiry
+front-office,extended,Follow Up,query,POST,/enquiry/follow-up,/admin/enquiry/follow_up,/enquiry
+front-office,extended,Follow Up List,query,GET,/enquiry/follow-up-list,/admin/enquiry/follow_up_list,/enquiry
+front-office,extended,Details,query,GET,/generalcall/details,/admin/generalcall/details,/generalcall
+front-office,extended,Getcalllist,query,GET,/generalcall/getcalllist,/admin/generalcall/getcalllist,/generalcall
+front-office,extended,Acknowledge By Staff,query,POST,/inward/acknowledge-by-staff,/admin/inward/acknowledge_by_staff,/inward/inward-list /outward/outward-list
+front-office,extended,Add Inward,command,POST,/inward/add-inward,/admin/inward/add_inward,/inward/inward-list /outward/outward-list
+front-office,extended,Ajax Approve,command,POST,/inward/ajax-approve,/admin/inward/ajax_approve,/inward/inward-list
+front-office,extended,Delete Inward,command,DELETE,/inward/delete-inward,/admin/inward/delete_inward,/inward/inward-list
+front-office,extended,Delete Member,command,DELETE,/inward/delete-member,/admin/inward/delete_member,/inward/inward-list
+front-office,extended,Edit Inward,command,POST,/inward/edit-inward,/admin/inward/edit_inward,/inward/inward-list
+front-office,extended,Edit Inward Modal,command,POST,/inward/edit-inward-modal,/admin/inward/edit_inward_modal,/inward/inward-list
+front-office,extended,Fetch Dept Staff,query,GET,/inward/fetch-dept-staff,/admin/inward/fetch_dept_staff,/inward/inward-list /outward/outward-list
+front-office,extended,Fetch Role Staff,query,GET,/inward/fetch-role-staff,/admin/inward/fetch_role_staff,/course-master /inward/inward-list /liberal-art/liberal-art-report /liberal-art/liberal-art-student /outward/outward-list
+front-office,extended,Inward Approve Reject,command,POST,/inward/inward-approve-reject,/admin/inward/inward_approve_reject,/inward/inward-list
+front-office,extended,Principal Approve Reject,command,POST,/inward/principal-approve-reject,/admin/inward/principal_approve_reject,/inward/inward-list
+front-office,extended,Principal Inward Approve,command,POST,/inward/principal-inward-approve,/admin/inward/principal_inward_approve,/inward/inward-list
+front-office,extended,Principal Inward Reject,command,POST,/inward/principal-inward-reject,/admin/inward/principal_inward_reject,/inward/inward-list
+front-office,extended,Send Approval,query,POST,/inward/send-approval,/admin/inward/send_approval,/inward/inward-list
+front-office,extended,Send Approval To Staff By Registrar,query,POST,/inward/send-approval-to-staff-by-registrar,/admin/inward/send_approval_to_staff_by_registrar,/inward/inward-list
+front-office,extended,Staff Action,query,POST,/inward/staff-action,/admin/inward/staff_action,/inward/inward-list
+front-office,extended,Staff Approval,query,POST,/inward/staff-approval,/admin/inward/staff_approval,/inward/inward-list
+front-office,extended,Track Inward,query,POST,/inward/track-inward,/admin/inward/track_inward,/inward/inward-list
+front-office,extended,View Inward Details,query,GET,/inward/view-inward-details,/admin/inward/view_inward_details,/inward/inward-list
+front-office,extended,View Staff Acknowledge,query,GET,/inward/view-staff-acknowledge,/admin/inward/view_staff_acknowledge,/inward/inward-list
+front-office,extended,Add Inward Outward,command,POST,/outward/add-inward-outward,/admin/outward/add_inward_outward,/outward/outward-list
+front-office,extended,Add Inwardoutward,command,POST,/outward/add-inwardoutward,/admin/outward/add_inwardoutward,/outward/outward-list
+front-office,extended,Add Outward,command,POST,/outward/add-outward,/admin/outward/add_outward,/outward/outward-list
+front-office,extended,Add Outward Document,command,POST,/outward/add-outward-document,/admin/outward/add_outward_document,/outward/outward-list
+front-office,extended,Delete Member,command,DELETE,/outward/delete-member,/admin/outward/delete_member,/outward/outward-list
+front-office,extended,Delete Outward,command,DELETE,/outward/delete-outward,/admin/outward/delete_outward,/outward/outward-list
+front-office,extended,Edit Inward Outward,command,POST,/outward/edit-inward-outward,/admin/outward/edit_inward_outward,/outward/outward-list
+front-office,extended,Edit Outward,command,POST,/outward/edit-outward,/admin/outward/edit_outward,/outward/outward-list
+front-office,extended,Edit Outward Modal,command,POST,/outward/edit-outward-modal,/admin/outward/edit_outward_modal,/outward/outward-list
+front-office,extended,Fetch Dept Staff,query,GET,/outward/fetch-dept-staff,/admin/outward/fetch_dept_staff,/outward/outward-list
+front-office,extended,Print Inoutwarddetail,query,GET,/outward/print-inoutwarddetail,/admin/outward/print_inoutwarddetail,/outward/outward-list
+front-office,extended,Print Outwarddetail,query,GET,/outward/print-outwarddetail,/admin/outward/print_outwarddetail,/outward/outward-list
+front-office,extended,Upload Document,command,POST,/outward/upload-document,/admin/outward/upload_document,/outward/outward-list
+front-office,extended,View Inoutwarddetail,query,GET,/outward/view-inoutwarddetail,/admin/outward/view_inoutwarddetail,/outward/outward-list
+front-office,extended,View Outwarddetail,query,GET,/outward/view-outwarddetail,/admin/outward/view_outwarddetail,/outward/outward-list
+front-office,extended,Add,command,POST,/visitors/add,/admin/visitors/add,/visitors
+front-office,extended,Delete,command,DELETE,/visitors/delete,/admin/visitors/delete,/visitors
+front-office,extended,Details,query,GET,/visitors/details,/admin/visitors/details,/canteen/create-coupon /visitors
+front-office,extended,Edit,command,POST,/visitors/edit,/admin/visitors/edit,/visitors
+front-office,extended,Editvisitor,command,POST,/visitors/editvisitor,/admin/visitors/editvisitor,/visitors
+front-office,extended,Get Principal,query,GET,/visitors/get-principal,/admin/visitors/getPrincipal,/visitors
+front-office,extended,Getstudent,query,GET,/visitors/getstudent,/admin/visitors/getstudent,/visitors
+certificates,extended,Search,query,GET,/certificate-report/search,/admin/Certificate_report/search,/certificate-report
+certificates,extended,Create,command,POST,/certificate/create,/admin/certificate/create,/certificate
+certificates,extended,Create Custom Fields For Certificate,command,POST,/certificate/create-custom-fields-for-certificate,/admin/certificate/createCustomFieldsForCertificate,/certificate
+certificates,extended,View,query,GET,/certificate/view,/admin/certificate/view,/certificate
+certificates,extended,Generatemultiple,query,POST,/generatecertificate/generatemultiple,/admin/generatecertificate/generatemultiple,/certificate-report /generatecertificate
+certificates,extended,Get Certificate Custom Fields,query,GET,/generatecertificate/get-certificate-custom-fields,/admin/generatecertificate/getCertificateCustomFields,/generatecertificate
+certificates,extended,Search,query,GET,/generatecertificate/search,/admin/generatecertificate/search,/generatecertificate
+certificates,extended,Downloadstdimagesfolderzip,query,GET,/generateidcard/downloadstdimagesfolderzip,/admin/generateidcard/downloadstdimagesfolderzip,/generateidcard/search
+certificates,extended,Generatemultiple,query,POST,/generateidcard/generatemultiple,/admin/generateidcard/generatemultiple,/generateidcard/search
+certificates,extended,Search,query,GET,/generateidcard/search,/admin/generateidcard/search,/generateidcard/search
+certificates,extended,View,query,GET,/studentidcard/view,/admin/studentidcard/view,/studentidcard
+downloads,extended,Ajaxupdate,command,POST,/content/ajaxupdate,/admin/content/ajaxupdate,/content/upload
+downloads,extended,Ajaxupload,command,POST,/content/ajaxupload,/admin/content/ajaxupload,/content/upload
+downloads,extended,Delete,command,DELETE,/content/delete,/admin/content/delete,/content/upload
+downloads,extended,Delete Array,command,DELETE,/content/delete-array,/admin/content/delete_array,/content/upload
+downloads,extended,Download Content,query,GET,/content/download-content,/admin/content/download_content,/content/upload
+downloads,extended,Generate Url,command,POST,/content/generate-url,/admin/content/generate_url,/content/upload
+downloads,extended,Getsharedcontents,query,GET,/content/getsharedcontents,/admin/content/getsharedcontents,/content/list
+downloads,extended,Getsharelist,query,GET,/content/getsharelist,/admin/content/getsharelist,/content/list
+downloads,extended,Getuploaddata,command,POST,/content/getuploaddata,/admin/content/getuploaddata,/content/upload
+downloads,extended,Share,query,POST,/content/share,/admin/content/share,/content/upload
+downloads,extended,Getcontenttypelist,query,GET,/contenttype/getcontenttypelist,/admin/contenttype/getcontenttypelist,/contenttype
+downloads,extended,Add,command,POST,/video-tutorial/add,/admin/video_tutorial/add,/video-tutorial
+downloads,extended,Delete,command,DELETE,/video-tutorial/delete,/admin/video_tutorial/delete,/video-tutorial
+downloads,extended,Edit,command,POST,/video-tutorial/edit,/admin/video_tutorial/edit,/video-tutorial
+downloads,extended,Get,query,GET,/video-tutorial/get,/admin/video_tutorial/get,/video-tutorial
+downloads,extended,Get Page,query,GET,/video-tutorial/get-page,/admin/video_tutorial/getPage,/video-tutorial
+downloads,extended,Getsection,query,GET,/video-tutorial/getsection,/admin/video_tutorial/getsection,/video-tutorial
+downloads,extended,Searchvalidation,query,GET,/video-tutorial/searchvalidation,/admin/video_tutorial/searchvalidation,/video-tutorial
+lms,optional,Coursedetail,query,POST,/onlinecourse/course/coursedetail,/onlinecourse/course/coursedetail,/onlinecourse/course
+lms,optional,Coursepreview,query,GET,/onlinecourse/course/coursepreview,/onlinecourse/course/coursepreview,/onlinecourse/course
+lms,optional,Create,command,POST,/onlinecourse/course/create,/onlinecourse/course/create,/onlinecourse/course
+lms,optional,Getcourselist,query,GET,/onlinecourse/course/getcourselist,/onlinecourse/course/getcourselist,/onlinecourse/course
+lms,optional,Publish Unpublish,query,POST,/onlinecourse/course/publish-unpublish,/onlinecourse/course/publish_unpublish,/onlinecourse/course
+lms,optional,Savesetting,command,POST,/onlinecourse/course/savesetting,/onlinecourse/course/savesetting,/onlinecourse/course/setting
+lms,optional,Updatecourse,command,POST,/onlinecourse/course/updatecourse,/onlinecourse/course/updatecourse,/onlinecourse/course
+lms,optional,Add Course Assignment,command,POST,/onlinecourse/courseassignment/add-course-assignment,/onlinecourse/courseassignment/add_course_assignment,/onlinecourse/course
+lms,optional,Add Evaluation,command,POST,/onlinecourse/courseassignment/add-evaluation,/onlinecourse/courseassignment/add_evaluation,/onlinecourse/course
+lms,optional,Evaluation,query,POST,/onlinecourse/courseassignment/evaluation,/onlinecourse/courseassignment/evaluation,/onlinecourse/course
+lms,optional,Categoryadd,command,POST,/onlinecourse/coursecategory/categoryadd,/onlinecourse/coursecategory/categoryadd,/onlinecourse/coursecategory/categoryadd
+lms,optional,Add Course Exam,command,POST,/onlinecourse/courseexam/add-course-exam,/onlinecourse/courseexam/add_course_exam,/onlinecourse/course
+lms,optional,Delete Exam Questions,command,DELETE,/onlinecourse/courseexam/delete-exam-questions,/onlinecourse/courseexam/deleteExamQuestions,/onlinecourse/course
+lms,optional,Get Exam Questions,query,GET,/onlinecourse/courseexam/get-exam-questions,/onlinecourse/courseexam/getExamQuestions,/onlinecourse/course
+lms,optional,Question Add,command,POST,/onlinecourse/courseexam/question-add,/onlinecourse/courseexam/questionAdd,/onlinecourse/course
+lms,optional,Add,command,POST,/onlinecourse/courseexamquestion/add,/onlinecourse/courseexamquestion/add,/onlinecourse/courseexamquestion
+lms,optional,Addform,command,POST,/onlinecourse/courseexamquestion/addform,/onlinecourse/courseexamquestion/addform,/onlinecourse/courseexamquestion
+lms,optional,Bulkdelete,command,DELETE,/onlinecourse/courseexamquestion/bulkdelete,/onlinecourse/courseexamquestion/bulkdelete,/onlinecourse/courseexamquestion
+lms,optional,Editform,command,POST,/onlinecourse/courseexamquestion/editform,/onlinecourse/courseexamquestion/editform,/onlinecourse/courseexamquestion
+lms,optional,Get Datatable,query,POST,/onlinecourse/courseexamquestion/get-datatable,/onlinecourse/courseexamquestion/getDatatable,/onlinecourse/courseexamquestion
+lms,optional,Getimages,query,GET,/onlinecourse/courseexamquestion/getimages,/onlinecourse/courseexamquestion/getimages,/onlinecourse/courseexamquestion
+lms,optional,Questionsearchvalidation,query,GET,/onlinecourse/courseexamquestion/questionsearchvalidation,/onlinecourse/courseexamquestion/questionsearchvalidation,/onlinecourse/courseexamquestion
+lms,optional,Search Question,query,GET,/onlinecourse/courseexamquestion/search-question,/onlinecourse/courseexamquestion/search_question,/onlinecourse/course
+lms,optional,Uploadfile,command,POST,/onlinecourse/courseexamquestion/uploadfile,/onlinecourse/courseexamquestion/uploadfile,/onlinecourse/courseexamquestion
+lms,optional,Addlesson,command,POST,/onlinecourse/courselesson/addlesson,/onlinecourse/courselesson/addlesson,/onlinecourse/course
+lms,optional,Editlesson,command,POST,/onlinecourse/courselesson/editlesson,/onlinecourse/courselesson/editlesson,/onlinecourse/course
+lms,optional,Get Lesson Attachment,query,GET,/onlinecourse/courselesson/get-lesson-attachment,/onlinecourse/courselesson/get_lesson_attachment,/onlinecourse/course
+lms,optional,Add,command,POST,/onlinecourse/coursequiz/add,/onlinecourse/coursequiz/add,/onlinecourse/course
+lms,optional,Addnewquestion,command,POST,/onlinecourse/coursequiz/addnewquestion,/onlinecourse/coursequiz/addnewquestion,/onlinecourse/course
+lms,optional,Edit,command,POST,/onlinecourse/coursequiz/edit,/onlinecourse/coursequiz/edit,/onlinecourse/course
+lms,optional,Editnewquestion,command,POST,/onlinecourse/coursequiz/editnewquestion,/onlinecourse/coursequiz/editnewquestion,/onlinecourse/course
+lms,optional,Addsection,command,POST,/onlinecourse/coursesection/addsection,/onlinecourse/coursesection/addsection,/onlinecourse/course
+lms,optional,Editsection,command,POST,/onlinecourse/coursesection/editsection,/onlinecourse/coursesection/editsection,/onlinecourse/course
+lms,optional,Checkvalidation,query,POST,/onlinecourse/offlinepayment/checkvalidation,/onlinecourse/offlinepayment/checkvalidation,/onlinecourse/offlinepayment/payment
+lms,optional,Courselist,query,GET,/onlinecourse/offlinepayment/courselist,/onlinecourse/offlinepayment/courselist,/onlinecourse/offlinepayment/payment
+lms,optional,Paid,query,POST,/onlinecourse/offlinepayment/paid,/onlinecourse/offlinepayment/paid,/onlinecourse/offlinepayment/payment
+lms,optional,Print,query,GET,/onlinecourse/offlinepayment/print,/onlinecourse/offlinepayment/print,/onlinecourse/offlinepayment/payment
+lms,optional,Revert,query,POST,/onlinecourse/offlinepayment/revert,/onlinecourse/offlinepayment/revert,/onlinecourse/offlinepayment/payment
+lms,optional,Search,query,GET,/onlinecourse/offlinepayment/search,/onlinecourse/offlinepayment/search,/onlinecourse/offlinepayment/payment
+lms,optional,Studentlist,query,GET,/onlinecourse/offlinepayment/studentlist,/onlinecourse/offlinepayment/studentlist,/onlinecourse/offlinepayment/payment
+lms,optional,Success,query,POST,/onlinecourse/offlinepayment/success,/onlinecourse/offlinepayment/success,/onlinecourse/offlinepayment/payment
+feedback,optional,Add Assigned Feedback,command,POST,/feedback/add-assigned-feedback,/feedback/add_assigned_feedback,/feedback/assign-feedback-form
+feedback,optional,Delete Assign Feedback,command,DELETE,/feedback/delete-assign-feedback,/feedback/delete_assign_feedback,/feedback/assign-feedback-form
+feedback,optional,Delete Feedback Listname,command,DELETE,/feedback/delete-feedback-listname,/feedback/delete_feedback_listname,/feedback/feedback-formname-master
+feedback,optional,Fetchformwisefields,query,GET,/feedback/fetchformwisefields,/feedback/fetchformwisefields,/feedback/feedback-formname-master
+feedback,optional,Getsectionbyclassid,query,GET,/feedback/getsectionbyclassid,/feedback/getsectionbyclassid,/feedback/assign-feedback-form /flowmaster/event-list
+feedback,optional,Searchnew,query,GET,/feedback/searchnew,/feedback/searchnew,/feedback/assign-feedback-form /flowmaster/event-list
+naac,optional,All Events,query,POST,/naac/all-events,/admin/naac/all_events,/canteen/menu-list /naac/events
+naac,optional,Allote Task,query,POST,/naac/allote-task,/admin/naac/allote_task,/naac/task-allocation
+naac,optional,Aqar Part B Pdf,query,GET,/naac/aqar-part-b-pdf,/admin/naac/aqar_part_B_pdf,/naac/naac-report
+naac,optional,NAAC Student Feedback,query,POST,/naac/delete-data/naac-student-feedback,/admin/naac/delete_data/naac_student_feedback,/naac/student-feedback-list
+naac,optional,NAAC Student Rating,query,POST,/naac/delete-data/naac-student-rating,/admin/naac/delete_data/naac_student_rating,/naac/student-rating-form
+naac,optional,NAAC Task Master,query,POST,/naac/delete-data/naac-task-master,/admin/naac/delete_data/naac_task_master,/naac /naac/naac-report-master
+naac,optional,Get Task Detail By ID,query,GET,/naac/get-task-detail-by-id,/admin/naac/get_task_detail_by_id,/naac/task-allocation
+naac,optional,NAAC Report Gettasklist,query,GET,/naac/naac-report-gettasklist,/admin/naac/naac_report_gettasklist,/naac/naac-report-master
+naac,optional,NAAC Student Feedback,query,POST,/naac/update-status/naac-student-feedback,/admin/naac/update_status/naac_student_feedback,/naac/student-feedback-list
+alumni,optional,Add,command,POST,/alumni/add,/admin/alumni/add,/alumni/alumnilist /report/alumnireport
+alumni,optional,Add Event,command,POST,/alumni/add-event,/admin/alumni/add_event,/alumni/events
+alumni,optional,Alumnilist,query,GET,/alumni/alumnilist,/admin/alumni/alumnilist,/alumni/alumnilist
+alumni,optional,Delete Event,command,DELETE,/alumni/delete-event,/admin/alumni/delete_event,/alumni/events
+alumni,optional,Deletestudent,command,DELETE,/alumni/deletestudent,/admin/alumni/deletestudent,/alumni/alumnilist /report/alumnireport
+alumni,optional,Get Alumnidetails,query,GET,/alumni/get-alumnidetails,/admin/alumni/get_alumnidetails,/alumni/alumnilist /report/alumnireport
+alumni,optional,Get Event,query,GET,/alumni/get-event,/admin/alumni/get_event,/alumni/events
+canteen,optional,All Events,query,POST,/canteen/all-events,/admin/canteen/all_events,/canteen/menu-list /naac/events
+canteen,optional,Canteen,query,POST,/canteen/delete-data,/admin/canteen/delete_data/canteen,/canteen/getall-canteen
+canteen,optional,Break Type,query,POST,/canteen/delete-data/break-type,/admin/canteen/delete_data/break_type,/canteen/getall-breaktype
+canteen,optional,Canteen Coupon,query,POST,/canteen/delete-data/canteen-coupon,/admin/canteen/delete_data/canteen_coupon,/canteen/create-coupon
+canteen,optional,Canteen Foodrating,query,POST,/canteen/delete-data/canteen-foodrating,/admin/canteen/delete_data/canteen_foodrating,/canteen/canteen-auditor
+canteen,optional,Food Item,query,POST,/canteen/delete-data/food-item,/admin/canteen/delete_data/food_item,/canteen/getall-food-item
+canteen,optional,Food Item ID,query,POST,/canteen/food-item-id,/admin/canteen/foodItemId,/canteen/assign-menu
+canteen,optional,Food Item Menuwise,query,POST,/canteen/food-item-menuwise,/admin/canteen/foodItem_menuwise,/canteen/canteen-auditor
+canteen,optional,Get Breaktype List,query,GET,/canteen/get-breaktype-list,/admin/canteen/get_breaktype_list,/canteen/getall-breaktype
+canteen,optional,Get Events,query,GET,/canteen/get-events,/admin/canteen/get_events,/canteen/menu-list
+canteen,optional,Get Food Item List,query,GET,/canteen/get-food-item-list,/admin/canteen/get_foodItem_list,/canteen/getall-food-item
+canteen,optional,1,query,POST,/canteen/get-food-item/:id,/admin/canteen/getFoodItem/1,/canteen/assign-menu
+canteen,optional,Getcanteenlist,query,GET,/canteen/getcanteenlist,/admin/canteen/getcanteenlist,/canteen/getall-canteen /naac/student-feedback-list
+canteen,optional,Insert Data,command,POST,/canteen/insert-data,/admin/canteen/insert_data,/canteen/assign-menu
+canteen,optional,Canteen,query,POST,/canteen/update-status,/admin/canteen/update_status/canteen,/canteen/getall-canteen
+canteen,optional,Break Type,query,POST,/canteen/update-status/break-type,/admin/canteen/update_status/break_type,/canteen/getall-breaktype
+canteen,optional,Food Item,query,POST,/canteen/update-status/food-item,/admin/canteen/update_status/food_item,/canteen/getall-food-item
+room-booking,optional,Approve,command,POST,/roombooking/roombook/approve,/roombooking/roombook/approve,/roombooking/roombook/roombookrequestlist
+room-booking,optional,Bulk Approve,command,POST,/roombooking/roombook/bulk-approve,/roombooking/roombook/bulkApprove,/roombooking/roombook/roombookrequestlist
+room-booking,optional,Cancel,query,POST,/roombooking/roombook/cancel,/roombooking/roombook/cancel,/roombooking/roombook/roombookrequestlist
+room-booking,optional,Check Bookedvalidation,query,POST,/roombooking/roombook/check-bookedvalidation,/roombooking/Roombook/checkBookedvalidation,/roombooking/roombook /roombooking/roombook/roombookrequest /roombooking/roombook/roombookrequestlist
+room-booking,optional,Delete,command,DELETE,/roombooking/roombook/delete,/roombooking/Roombook/delete,/roombooking/roombook /roombooking/roombook/roombookrequest
+room-booking,optional,Getdata,query,GET,/roombooking/roombook/getdata,/roombooking/Roombook/getdata,/roombooking/roombook /roombooking/roombook/roombookrequest
+room-booking,optional,Getrromrequest Data,query,GET,/roombooking/roombook/getrromrequest-data,/roombooking/roombook/getrromrequestData,/roombooking/roombook/roombookrequestlist
+room-booking,optional,Load,query,POST,/roombooking/roombook/load,/roombooking/Roombook/load,/roombooking/roombook /roombooking/roombook/roombookrequest
+room-booking,optional,Reject,command,POST,/roombooking/roombook/reject,/roombooking/roombook/reject,/roombooking/roombook/roombookrequestlist
+room-booking,optional,Roombookrequestlist,query,GET,/roombooking/roombook/roombookrequestlist,/roombooking/roombook/roombookrequestlist,/roombooking/roombook/roombookrequestlist
+room-booking,optional,Save Room,command,POST,/roombooking/roombook/save-room,/roombooking/Roombook/save_room,/roombooking/roombook
+room-booking,optional,Save Room Request,command,POST,/roombooking/roombook/save-room-request,/roombooking/Roombook/save_room_request,/roombooking/roombook/roombookrequest
+room-booking,optional,Update,command,POST,/roombooking/roombook/update,/roombooking/Roombook/update,/roombooking/roombook /roombooking/roombook/roombookrequest
+live-classes,optional,Add By Other,command,POST,/conference/add-by-other,/admin/conference/addByOther,/conference/timetable
+live-classes,optional,Add History,command,POST,/conference/add-history,/admin/conference/add_history,/conference/meeting
+live-classes,optional,Add Meeting,command,POST,/conference/add-meeting,/admin/conference/addMeeting,/conference/meeting
+live-classes,optional,Addcredential,command,POST,/conference/addcredential,/admin/conference/addcredential,/conference/meeting
+live-classes,optional,Chkstatus,query,POST,/conference/chkstatus,/admin/conference/chkstatus,/conference/meeting /conference/timetable
+live-classes,optional,Get Viewer List,query,GET,/conference/get-viewer-list,/admin/conference/getViewerList,/conference/class-report /conference/meeting-report
+live-classes,optional,Getlivestatus,query,GET,/conference/getlivestatus,/admin/conference/getlivestatus,/conference/meeting /conference/timetable
+live-classes,optional,Staff Credential,query,POST,/conference/staff-credential,/admin/conference/staffCredential,/conference/meeting
+live-classes,optional,Add By Other,command,POST,/gmeet/add-by-other,/admin/gmeet/addByOther,/gmeet/timetable
+live-classes,optional,Add History,command,POST,/gmeet/add-history,/admin/gmeet/add_history,/gmeet/meeting
+live-classes,optional,Add Meeting,command,POST,/gmeet/add-meeting,/admin/gmeet/addMeeting,/gmeet/meeting
+live-classes,optional,Chgstatus,query,POST,/gmeet/chgstatus,/admin/gmeet/chgstatus,/gmeet/timetable
+live-classes,optional,Get Meeting Staff,query,GET,/gmeet/get-meeting-staff,/admin/gmeet/getMeetingStaff,/gmeet/meeting
+live-classes,optional,Get Viewer List,query,GET,/gmeet/get-viewer-list,/admin/gmeet/getViewerList,/gmeet/class-report /gmeet/meeting-report
+placements,optional,Printpdfresume,query,GET,/resume/printpdfresume,/admin/resume/printpdfresume,/resume /resume/download
+placements,optional,Addtnpcompany,command,POST,/tnp/addtnpcompany,/admin/tnp/addtnpcompany,/tnp/tnp-company-list
+placements,optional,Compnay Delete,command,DELETE,/tnp/compnay-delete,/admin/tnp/compnay_delete,/tnp/tnp-company-list
+placements,optional,Downloadresumeszipfiles,query,GET,/tnp/downloadresumeszipfiles,/admin/tnp/downloadresumeszipfiles,/tnp
+placements,optional,Fetchcompany Requestid,query,GET,/tnp/fetchcompany-requestid,/admin/tnp/fetchcompany_requestid,/tnp/tnp-company-list
+placements,optional,Updatetnpcompany,command,POST,/tnp/updatetnpcompany,/admin/tnp/updatetnpcompany,/tnp/tnp-company-list
+placements,optional,View Std Achievment List,query,GET,/tnp/view-std-achievment-list,/admin/tnp/view_std_achievment_list,/tnp
+mentoring,optional,Assign Mentor,command,POST,/assign-mentor,/admin/assign_mentor,/assign-mentor
+mentoring,optional,Generate Pdf,command,POST,/assign-mentor/generate-pdf,/admin/assign_mentor/generate_pdf,/assign-mentor/ojt-approval-list
+mentoring,optional,Get Student By Staff,query,GET,/assign-mentor/get-student-by-staff,/admin/assign_mentor/getStudentByStaff,/assign-mentor
+mentoring,optional,OJT Approval List,query,GET,/assign-mentor/ojt-approval-list,/admin/assign_mentor/ojt_approval_list,/assign-mentor/ojt-approval-list
+mentoring,optional,Save Mentor Data,command,POST,/assign-mentor/save-mentor-data,/admin/assign_mentor/save_mentor_data,/assign-mentor
+mentoring,optional,Student Lists,query,GET,/assign-mentor/student-lists,/admin/assign_mentor/student_lists,/assign-mentor
+mentoring,optional,Update OJT Request,command,POST,/assign-mentor/update-ojt-request,/admin/assign_mentor/update_ojt_request,/assign-mentor/ojt-approval-list
+mentoring,optional,Update Project Request,command,POST,/assign-mentor/update-project-request,/admin/assign_mentor/update_project_request,/assign-mentor/project-approval-list
+mentoring,optional,Update SIP Request,command,POST,/assign-mentor/update-sip-request,/admin/assign_mentor/update_sip_request,/assign-mentor/ojt-approval-list
+activities,optional,Approve Event,command,POST,/flowmaster/approve-event,/admin/flowmaster/approve_event,/flowmaster/event-list
+activities,optional,Assign Participant Event Details,command,POST,/flowmaster/assign-participant-event-details,/admin/flowmaster/assign_participant_event_details,/flowmaster/event-list
+activities,optional,Assigned Participant Event Details,command,POST,/flowmaster/assigned-participant-event-details,/admin/flowmaster/assigned_participant_event_details,/flowmaster/event-list
+activities,optional,Create,command,POST,/flowmaster/create,/admin/flowmaster/create,/flowmaster/add-event
+activities,optional,Delete Data,command,DELETE,/flowmaster/delete-data,/admin/flowmaster/delete_data,/flowmaster/add-event
+activities,optional,Delete Event,command,DELETE,/flowmaster/delete-event,/admin/flowmaster/delete_event,/admission-transfer-cancellation/transfer-cancellation-list /flowmaster/event-list
+activities,optional,Delete Staff,command,DELETE,/flowmaster/delete-staff,/admin/flowmaster/delete_staff,/flowmaster/add-event
+activities,optional,Event Reject,command,POST,/flowmaster/event-reject,/admin/flowmaster/event_reject,/flowmaster/event-list
+activities,optional,Get Current Event,query,GET,/flowmaster/get-current-event,/admin/flowmaster/get_current_event,/flowmaster/event-list
+activities,optional,Manage Event Participants,query,POST,/flowmaster/manage-event-participants,/admin/flowmaster/manageEventParticipants,/flowmaster/event-list
+activities,optional,Print Edetail Sign,query,GET,/flowmaster/print-edetail-sign,/admin/flowmaster/print_edetail_sign,/flowmaster/event-list
+activities,optional,Print Edetail Std Report,query,GET,/flowmaster/print-edetail-std-report,/admin/flowmaster/print_edetail_stdReport,/flowmaster/event-list
+activities,optional,Print Participants,query,GET,/flowmaster/print-participants,/admin/flowmaster/printParticipants,/flowmaster/event-list
+activities,optional,Report Event Details,query,GET,/flowmaster/report-event-details,/admin/flowmaster/report_event_details,/flowmaster/event-list
+activities,optional,Show Activity Images,query,POST,/flowmaster/show-activity-images,/admin/flowmaster/show_activity_images,/flowmaster/event-list
+activities,optional,Show Postevent,query,POST,/flowmaster/show-postevent,/admin/flowmaster/show_postevent,/admission-transfer-cancellation/transfer-cancellation-list /flowmaster/event-list
+activities,optional,Singledelete Activity,command,DELETE,/flowmaster/singledelete-activity,/admin/flowmaster/singledelete_activity,/flowmaster/event-list
+activities,optional,Singledelete Activity Image,command,DELETE,/flowmaster/singledelete-activity-image,/admin/flowmaster/singledelete_activity_image,/flowmaster/event-list
+activities,optional,Track Event,query,POST,/flowmaster/track-event,/admin/flowmaster/track_event,/flowmaster/event-list
+activities,optional,Update Event Participant,command,POST,/flowmaster/update-event-participant,/admin/flowmaster/update_event_participant,/flowmaster/event-list
+activities,optional,Upload Invoice,command,POST,/flowmaster/upload-invoice,/admin/flowmaster/upload_invoice,/flowmaster/event-list
+activities,optional,Upload Postevent,command,POST,/flowmaster/upload-postevent,/admin/flowmaster/upload_postevent,/admission-transfer-cancellation/transfer-cancellation-list /flowmaster/event-list
+activities,optional,View Event Details,query,GET,/flowmaster/view-event-details,/admin/flowmaster/view_event_details,/flowmaster/event-list
+cms,optional,Add,command,POST,/front/banner/add,/admin/front/banner/add,/front/banner
+cms,optional,Remove,command,DELETE,/front/banner/remove,/admin/front/banner/remove,/front/banner
+cms,optional,Add Video,command,POST,/front/media/add-video,/admin/front/media/addVideo,/front/media
+cms,optional,Delete Item,command,DELETE,/front/media/delete-item,/admin/front/media/deleteItem,/front/media
+cms,optional,Get Media,query,GET,/front/media/get-media,/admin/front/media/getMedia,/front/banner
+cms,optional,Get Page,query,GET,/front/media/get-page,/admin/front/media/getPage,/front/media
+system,core,Addfiletype,command,POST,/admin/addfiletype,/admin/admin/addfiletype,/admin/filetype
+system,core,Changepass,query,POST,/admin/changepass,/admin/admin/changepass,/admin/changepass
+system,core,Create,command,POST,/attributes/create,/admin/attributes/create,/attributes
+system,core,Delete,command,DELETE,/audit/delete,/admin/audit/delete,/audit
+system,core,Get Datatable,query,POST,/audit/get-datatable,/admin/audit/getDatatable,/audit
+system,core,Change Status,query,POST,/captcha/change-status,/admin/captcha/changeStatus,/captcha
+system,core,Create,command,POST,/category/create,/category/create,/category
+system,core,Changeactive,query,POST,/currency/changeactive,/admin/currency/changeactive,/currency
+system,core,Changestatus,query,POST,/currency/changestatus,/admin/currency/changestatus,/currency
+system,core,Editprice,command,POST,/currency/editprice,/admin/currency/editprice,/currency
+system,core,Editsymbol,command,POST,/currency/editsymbol,/admin/currency/editsymbol,/currency
+system,core,Get Amount Format,query,GET,/currency/get-amount-format,/admin/currency/getAmountFormat,/student/create
+system,core,Get Custom Field Value,query,GET,/customfield/get-custom-field-value,/admin/customfield/get_custom_field_value,/customfield
+system,core,Updateorder,command,POST,/customfield/updateorder,/admin/customfield/updateorder,/customfield /paymentcategory /paymentcategory/collegeotherfees /paymentcategory/multimerchant
+system,core,Defoult Language,query,POST,/language/defoult-language,/admin/language/defoult_language,/language
+system,core,Editcountrycode,command,POST,/language/editcountrycode,/admin/language/editcountrycode,/language
+system,core,Onloadlanguage,query,POST,/language/onloadlanguage,/admin/language/onloadlanguage,/language
+system,core,Rtl,query,POST,/language/rtl,/admin/language/rtl,/language
+system,core,Select Language,query,POST,/language/select-language,/admin/language/select_language,/language
+system,core,Unselect Language,query,POST,/language/unselect-language,/admin/language/unselect_language,/language
+system,core,Change Status,query,POST,/module/change-status,/admin/module/changeStatus,/module
+system,core,Change Student Status,query,POST,/module/change-student-status,/admin/module/changeStudentStatus,/module
+system,core,Edit,command,POST,/print-headerfooter/edit,/admin/print_headerfooter/edit,/print-headerfooter
+system,core,Generalsetting,query,POST,/schsettings/generalsetting,/schsettings/generalsetting,/schsettings
+system,core,Create,command,POST,/sessions/create,/sessions/create,/sessions
+system,core,Add Menu,command,POST,/sidemenu/add-menu,/admin/sidemenu/add_menu,/sidemenu
+system,core,Add Sub Menu,command,POST,/sidemenu/add-sub-menu,/admin/sidemenu/add_sub_menu,/sidemenu
+system,core,Ajax List Menu,query,GET,/sidemenu/ajax-list-menu,/admin/sidemenu/ajax_list_menu,/sidemenu
+system,core,Getmenu,query,GET,/sidemenu/getmenu,/admin/sidemenu/getmenu,/sidemenu
+system,core,Getsubmenu,query,GET,/sidemenu/getsubmenu,/admin/sidemenu/getsubmenu,/sidemenu
+system,core,Menu Updateorder,command,POST,/sidemenu/menu-updateorder,/admin/sidemenu/menu_updateorder,/sidemenu
+system,core,Submenu Updateorder,command,POST,/sidemenu/submenu-updateorder,/admin/sidemenu/submenu_updateorder,/sidemenu
+system,core,Change Status,query,POST,/systemfield/change-status,/admin/systemfield/changeStatus,/systemfield
+system,core,Delete,command,DELETE,/userlog/delete,/admin/userlog/delete,/userlog
+system,core,Get Datatable,query,POST,/userlog/get-datatable,/admin/userlog/getDatatable,/userlog
+system,core,Get Payment Log Datatable,query,POST,/userlog/get-payment-log-datatable,/admin/userlog/getPaymentLogDatatable,/userlog/payment-log
+system,core,Change Status,query,POST,/users/change-status,/admin/users/changeStatus,/users

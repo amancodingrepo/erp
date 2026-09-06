@@ -1,0 +1,367 @@
+# Admin sidebar (live)
+
+- **Admission**
+  - **Dashboard** `/admin/admission/admission_dashboard`
+  - **Cutoff Setup** `/admin/admission/cutofflist`
+  - **Import Applicants** `/admin/admission/importapplication`
+  - **Generate Merit List** `/admin/admission/generatemeritlist`
+  - **Manage Admission** `/admin/admission/manageadmission`
+  - **Selection Status Report** `/admin/admission/selection_status_report`
+  - **Summarized Report** `/admin/admission/summary_report`
+  - **Admission Report** `/admin/admission/report`
+- **Student Information**
+  - **Student Details** `/student/search`
+  - **Student Dashboard** `/student/student_dashboard`
+  - **Student Admission** `/student/create`
+  - **Railway Concession** `/railway_concession/index`
+  - **Bulk Update** `/student/bulkupdate`
+  - **Other Course Form** `/admin/liberal_art/liberal_art_student`
+  - **Disabled Students** `/student/disablestudentslist`
+  - **Bulk Delete** `/student/bulkdelete`
+  - **Student Categories** `/category`
+  - **Online Application** `/admin/onlinestudent`
+  - **Disable Reason** `/admin/disable_reason`
+  - **Assign Optional Subject** `/student/assign_optional_course`
+  - **Semester Allocation** `/student/semester_allocation`
+  - **Student Bulk Upload** `/student/student_bulk_upload`
+  - **Generate Roll Number** `/student/generaterollnumber`
+  - **Approve Optional Subject** `/student/approve_optional_course`
+  - **Upload Student Documents** `/student/upload_student_documents`
+  - **Upload Student Photo** `/student/upload_student_photo`
+- **Dashboard**
+  - **Dashboard** `/admin/dashboard`
+- **Fees Collection**
+  - **Collect Fees** `/studentfee`
+  - **Fees Fine Rules** `/admin/fine_rules`
+  - **Fee Receipt Import** `/admin/fee_receipt_import`
+  - **Fee Receipt List** `/studentfee/feereceipt`
+  - **Fee Summary Dashboard** `/studentfee/fee_summary_dashboard`
+  - **Offline Bank Payments** `/admin/offlinepayment`
+  - **Search Fees Payment** `/studentfee/searchpayment`
+  - **Search Due Fees** `/studentfee/feesearch`
+  - **Assign Variable Fees** `/admin/assign_variable_fees`
+  - **Fees Master** `/admin/feemaster`
+  - **Fees Group** `/admin/feegroup`
+  - **Fees Type Group** `/admin/fees_type_group`
+  - **Fees Type** `/admin/feetype`
+  - **Assign Fee Master** `/admin/feemastercoursewise`
+  - **Fees Discount** `/admin/feediscount`
+  - **Fees Carry Forward** `/admin/feesforward`
+  - **College Other Fees** `/admin/paymentcategory/collegeotherfees`
+  - **Fees Reminder** `/admin/feereminder/setting`
+  - **Scholarship** `/stdscholarship`
+  - **Fees Installment** `/admin/fees_installment`
+- **Attendance**
+  - **Student Attendance** `/admin/stuattendence`
+  - **Approve Leave** `/admin/approve_leave`
+  - **Attendance By Date** `/admin/stuattendence/attendencereport`
+- **Online Course**
+  - **Online Course** `/onlinecourse/course/index`
+  - **Offline Payment** `/onlinecourse/offlinepayment/payment`
+  - **Course Category** `/onlinecourse/coursecategory/categoryadd`
+  - **Question Bank** `/onlinecourse/courseexamquestion/index`
+  - **Online Course Report** `/onlinecourse/coursereport/report`
+  - **Setting** `/onlinecourse/course/setting`
+- **Human Resource**
+  - **Staff Directory** `/admin/staff`
+  - **Staff Attendance** `/admin/staffattendance`
+  - **Approve Leave Request 3** `/admin/leaverequest/leaverequest`
+  - **Apply Leave** `/admin/staff/leaverequest`
+  - **Leave Type** `/admin/leavetypes`
+  - **Leave Approval Setup** `/admin/staff_leave_assign`
+  - **Teachers Rating** `/admin/staff/rating`
+  - **Department** `/admin/department/department`
+  - **Designation** `/admin/designation/designation`
+  - **Disabled Staff** `/admin/staff/disablestafflist`
+  - **Bulk Update** `/admin/staff/staff_bulk_update`
+  - **Teachers Research** `/admin/teachers_research/`
+  - **Assign Mentor** `/admin/assign_mentor`
+  - **Project Approval List** `/admin/assign_mentor/project_approval_list`
+  - **OJT / SIP Approval List** `/admin/assign_mentor/ojt_approval_list`
+  - **Project Chapter List** `/admin/assign_mentor/project_chapter_list`
+  - **OJT Details** `/admin/assign_mentor/ojt_details`
+  - **Staff Certificate** `/admin/staff_certificate`
+  - **Generate Certificate** `/admin/staff_certificate/staff_generate_certificate`
+  - **Recruitment** `/admin/hr_recruitment`
+- **Payroll**
+  - **Add Pay Element** `/admin/staffpayroll/add_element`
+  - **Select Pay Element** `/admin/staffpayroll/select_pay_element`
+  - **Manage Staff Payroll** `/admin/staffpayroll/manage_staff_payroll`
+  - **Generate Staff Payroll** `/admin/staffpayroll/staff_payroll`
+  - **Visiting Staff Payroll** `/admin/staffpayroll/visiting_staff_payroll`
+  - **Add Income Tax Element** `/admin/staffpayroll/add_income_tax_element`
+  - **Generate Income Tax** `/admin/staffpayroll/generate_income_tax`
+  - **Setup Tax Slab** `/admin/staffpayroll/setup_tax_slab`
+- **Gmeet Live Classes**
+  - **Live Classes** `/admin/gmeet/timetable`
+  - **Live Meeting** `/admin/gmeet/meeting`
+  - **Live Class Report** `/admin/gmeet/class_report`
+  - **Live Meeting Report** `/admin/gmeet/meeting_report`
+  - **Setting** `/admin/gmeet/index`
+- **Zoom Live Classes**
+  - **Live Meeting** `/admin/conference/meeting`
+  - **Live Classes** `/admin/conference/timetable`
+  - **Live Class Report** `/admin/conference/class_report`
+  - **Live Meeting Report** `/admin/conference/meeting_report`
+  - **Setting** `/admin/conference`
+- **Academics**
+  - **Class Timetable** `/admin/timetable/classreport`
+  - **Teachers Timetable** `/admin/timetable/mytimetable`
+  - **Assign Class Teacher** `/admin/teacher/assign_class_teacher`
+  - **Assign Subject Teacher** `/admin/teacher/assign_subject_teacher`
+  - **Promote Students** `/admin/stdtransfer`
+  - **Semester** `/admin/subjectgroup`
+  - **Subjects** `/admin/subject`
+  - **Class** `/classes`
+  - **Department** `/department`
+  - **Sections** `/sections`
+  - **Assign Major/Minor** `/sectionwise_specialization/assign_program`
+  - **Program** `/course_master`
+  - **Specialization** `/sectionwise_specialization`
+  - **Program Intake** `/Programintake`
+- **Assignment**
+  - **Add Assignment** `/homework`
+- **Examinations**
+  - **Mark Entry Single Subject** `/admin/examgroup/markEntrySingleSubject`
+  - **Mark Entry Subjectwise** `/admin/examgroup/markEntrySubjectwise`
+  - **Mark Entry Multi Subjectwise** `/admin/examgroup/displaymarksexamsubjwise`
+  - **Exam Group** `/admin/examgroup`
+  - **Exam Schedule** `/admin/exam_schedule`
+  - **ATKT Form** `/admin/atkt_form/atkt_form_student`
+  - **Edit ATKT Form** `/admin/atkt_form/edit_atkt_form_student`
+  - **Exam Result** `/admin/examresult`
+  - **Backlog** `/admin/examresult/backlog`
+  - **Result Block/Unblock** `/admin/examresult/exam_result_block_unblock`
+  - **Design Admit Card** `/admin/admitcard`
+  - **Print Admit Card** `/admin/examresult/admitcard`
+  - **Exam Type** `/admin/examgroup/exam_type`
+  - **Exam Form** `/admin/examgroup/exam_form`
+  - **Print Marksheet Format** `/admin/exammarksheet/marksheet`
+  - **Design Marksheet Format** `/admin/exammarksheet`
+  - **Revaluation Form** `/admin/examgroup/revaluation_form`
+  - **Design Marksheet** `/admin/marksheet`
+  - **Print Marksheet** `/admin/examresult/marksheet`
+  - **Marks Grade** `/admin/grade`
+  - **Relative Grade** `/admin/grade/relative_Grade`
+  - **Result Remark** `/admin/result_remark`
+  - **Marks Division** `/admin/marksdivision`
+  - **Assign Seat Number** `/student/assign_seat_number`
+  - **Paper Setting** `/admin/papersetting`
+  - **Remuneration Setup** `/admin/examgroup/remuneration_setup`
+  - **Exam Remuneration Bill** `/admin/examgroup/exam_remuneration_bill`
+  - **Remuneration Hour Setup** `/admin/examgroup/remuneration_hoursetup`
+  - **Remuneration Hour Setup** `/admin/examgroup/remuneration_hoursetup`
+  - **Questions Paper Creation** `/admin/paper_creation`
+  - **Assign Staff** `/admin/paper_creation/assign_paper_creation`
+  - **Questions Paper Approve List** `/admin/paper_creation/que_paper_approval_list`
+- **Online Examinations**
+  - **Online Exam** `/admin/onlineexam`
+  - **Question Bank** `/admin/question`
+- **Seating Arrangement**
+  - **Subject Details** `/seating_arrangement/index`
+  - **Assign Block** `/seating_arrangement/assign_block`
+  - **Report** `/seating_arrangement/report`
+- **Lesson Plan**
+  - **Copy Old Lessons** `/admin/lessonplan/copylesson`
+  - **Manage Lesson Plan** `/admin/syllabus`
+  - **Manage Syllabus Status** `/admin/syllabus/status`
+  - **Create Lesson** `/admin/lessonplan/lesson`
+  - **Topic** `/admin/lessonplan/topic`
+  - **Instruction Plan** `/admin/lessonplan/instruction_plan`
+- **Certificate**
+  - **Student Certificate** `/admin/certificate`
+  - **Generate Certificate** `/admin/generatecertificate`
+  - **Student ID Card** `/admin/studentidcard`
+  - **Generate ID Card** `/admin/generateidcard/search`
+  - **Staff ID Card** `/admin/staffidcard`
+  - **Generate Staff ID Card** `/admin/generatestaffidcard`
+  - **Certificate Report** `/admin/certificate_report`
+- **Feedback Management**
+  - **Add Form** `/feedback/feedback_formname_master`
+  - **Field Master** `/feedback/index`
+  - **Assign Form** `/feedback/assign_feedback_form`
+  - **Feedback Form** `/feedback/showview_feedback_form`
+  - **Submitted Form** `/feedback/submitted_forms`
+  - **Fill Feedback Form** `/feedback/fill_feedback_form`
+- **CO-PO**
+  - **Course Outcomes** `/admin/copo/course_outcomes`
+  - **Program Outcomes** `/admin/copo/program_outcomes`
+  - **Create Lesson** `/admin/copo/lesson`
+  - **Plan** `/admin/copo/plan`
+  - **CO-PO Mapping** `/admin/copo/co_po_mapping`
+  - **TLP Approve List** `/admin/copo/tlp_approve_list`
+  - **Indirect PO Mapping** `/admin/copo/indirect_po_mapping`
+- **Training & Placements**
+  - **Training & Placements List** `/admin/tnp`
+  - **Placements Company List** `/admin/tnp/tnp_company_list`
+- **Task Management**
+  - **Task Management** `/teacherlog`
+- **Canteen**
+  - **Create Coupon** `/admin/canteen/create_coupon`
+  - **Canteen Auditor** `/admin/canteen/canteen_auditor`
+  - **Menu List** `/admin/canteen/menu_list`
+  - **Assign Menu** `/admin/canteen/assign_menu`
+  - **Food Item Master** `/admin/canteen/getall_foodItem`
+  - **Menu Type Master** `/admin/canteen/getall_breaktype`
+  - **Canteen Master** `/admin/canteen/getall_canteen`
+- **Download Center**
+  - **Content Type** `/admin/contenttype`
+  - **Content Share List** `/admin/content/list`
+  - **Upload /Share Content** `/admin/content/upload`
+  - **Video Tutorial** `/admin/video_tutorial`
+- **Communicate**
+  - **Notice Board 6** `/admin/notification`
+  - **Send Email** `/admin/mailsms/compose`
+  - **Send SMS** `/admin/mailsms/compose_sms`
+  - **Email / SMS Log** `/admin/mailsms/index`
+  - **Schedule Email SMS Log** `/admin/mailsms/schedule`
+  - **Login Credentials Send** `/student/bulkmail`
+  - **Email Template** `/admin/mailsms/email_template`
+  - **SMS Template** `/admin/mailsms/sms_template`
+- **Front Office**
+  - **Admission Enquiry** `/admin/enquiry`
+  - **Visitor Book** `/admin/visitors`
+  - **Phone Call Log** `/admin/generalcall`
+  - **Postal Dispatch** `/admin/dispatch`
+  - **Postal Receive** `/admin/receive`
+  - **Complaint** `/admin/complaint`
+  - **Setup Front Office** `/admin/visitorspurpose`
+  - **Inward** `/admin/inward/inward_list`
+  - **Outward** `/admin/outward/outward_list`
+- **Front CMS**
+  - **Event** `/admin/front/events`
+  - **Gallery** `/admin/front/gallery`
+  - **News** `/admin/front/notice`
+  - **Media Manager** `/admin/front/media`
+  - **Pages** `/admin/front/page`
+  - **Menus** `/admin/front/menus`
+  - **Banner Images** `/admin/front/banner`
+- **Annual Calendar**
+  - **Set Working Days** `/admin/holiday/set_working_days`
+  - **Set Staff Week Off** `/admin/holiday/staff_week_off`
+- **Student Support**
+  - **Student Support Topics** `/admin/requisitions`
+  - **Student Support List** `/admin/requisitions/load_requisition_list`
+- **Student CV**
+  - **Build CV** `/admin/resume/index`
+  - **Download CV** `/admin/resume/download`
+- **Booking System**
+  - **Booking System** `/roombooking/roombook`
+  - **Booking System Request** `/roombooking/roombook/roombookrequest`
+  - **Booking Request List** `/roombooking/roombook/roombookrequestlist`
+- **Activity Management**
+  - **Add Activity** `/admin/flowmaster/add_event`
+  - **Activity List** `/admin/flowmaster/event_list`
+- **Income**
+  - **Add Income** `/admin/income`
+  - **Search Income** `/admin/income/incomesearch`
+  - **Income Head** `/admin/incomehead`
+- **Expenses**
+  - **Add Expense** `/admin/expense`
+  - **Search Expense** `/admin/expense/expensesearch`
+  - **Expense Head** `/admin/expensehead`
+- **Library**
+  - **Book List** `/admin/book/getall`
+  - **Issue - Return** `/admin/member`
+  - **Add Student** `/admin/member/student`
+  - **Add Staff Member** `/admin/member/teacher`
+- **Inventory**
+  - **Issue Item** `/admin/issueitem`
+  - **Add Item Stock** `/admin/itemstock`
+  - **Add Item** `/admin/item`
+  - **Item Category** `/admin/itemcategory`
+  - **Item Store** `/admin/itemstore`
+  - **Item Supplier** `/admin/itemsupplier`
+- **Transport**
+  - **Transpot Fee Master** `/admin/transport/feemaster`
+  - **Pickup Point** `/admin/pickuppoint`
+  - **Routes** `/admin/route`
+  - **Vehicles** `/admin/vehicle`
+  - **Assign Vehicle** `/admin/vehroute`
+  - **Route Pickup Point** `/admin/pickuppoint/assign`
+  - **Student Transport Fees** `/admin/pickuppoint/student_fees`
+- **Hostel**
+  - **Vacancy Status** `/admin/hostel/vacancy_status`
+  - **Scan qrcode** `/admin/hostel/scan_qrcode`
+  - **Gatepass List** `/admin/hostel/gatepass_list`
+  - **Change Room** `/admin/hostel/change_room`
+  - **Assign Room** `/admin/hostel/assign_room`
+  - **Hostel Rooms** `/admin/hostelroom`
+  - **Room Type** `/admin/roomtype`
+  - **Add Hostel** `/admin/hostel`
+- **Alumni**
+  - **Manage Alumni** `/admin/alumni/alumnilist`
+  - **Events** `/admin/alumni/events`
+- **NAAC**
+  - **NAAC Dashborad** `/admin/naac/naac_dashboard`
+  - **NAAC Report** `/admin/naac/naac_report_master`
+  - **Task Master** `/admin/naac/index`
+  - **Student Feedback Form** `/admin/naac/student_feedback_list`
+  - **Student Rating Form** `/admin/naac/student_rating_form`
+  - **Task Allocation** `/admin/naac/task_allocation`
+- **Multi Branch**
+  - **Overview** `/admin/multibranch/branch/overview`
+  - **Report** `/admin/multibranch/finance/index`
+  - **Setting** `/admin/multibranch/branch`
+- **Reports**
+  - **Student Information** `/report/studentinformation`
+  - **Front Office** `/report/setFrontOfficeReport`
+  - **Activity Management** `/report/flowmaster_report`
+  - **Inward** `/report/inward_report`
+  - **Outward** `/report/outward_report`
+  - **Teacher Achievement** `/report/teacherachievement_report`
+  - **Teacher's Research Publication & Awards** `/report/teacheraward_report`
+  - **Railway Concession Report** `/report/railway_concession_report`
+  - **Staff Payroll** `/staffpayrollreports/staff_payroll`
+  - **Outcome Basis Education** `/outcome_basis_education/index`
+  - **Finance** `/financereports/finance`
+  - **Attendance** `/attendencereports/attendance`
+  - **Examinations** `/admin/examresult/examinations`
+  - **Online Examinations** `/admin/onlineexam/report`
+  - **Lesson Plan** `/report/lesson_plan`
+  - **Human Resource** `/report/human_resource`
+  - **Library** `/report/library`
+  - **Inventory** `/report/inventory`
+  - **Other Course Form** `/admin/liberal_art/liberal_art_report`
+  - **ATKT Form** `/admin/atkt_form/atkt_form_report`
+  - **Transport** `/admin/route/studenttransportdetails`
+  - **Hostel** `/admin/hostelroom/studenthosteldetails`
+  - **Alumni** `/report/alumnireport`
+  - **Payment Log** `/admin/userlog/paymentLog`
+  - **User Log** `/admin/userlog`
+  - **Student Log Update** `/admin/student_log_update`
+  - **Audit Trail Report** `/admin/audit`
+  - **Feedback** `/feedbackreport/index`
+  - **NAAC** `/admin/naac/naac_report`
+- **System Setting**
+  - **General Setting** `/schsettings`
+  - **Session Setting** `/sessions`
+  - **Manage Attributes** `/admin/attributes/index`
+  - **Notification Setting** `/admin/notification/setting`
+  - **SMS Setting** `/smsconfig`
+  - **Email Setting** `/emailconfig`
+  - **Payment Methods** `/admin/paymentsettings`
+  - **Print Header Footer** `/admin/print_headerfooter`
+  - **Front CMS Setting** `/admin/frontcms`
+  - **Roles Permissions** `/admin/roles`
+  - **Backup Restore** `/admin/admin/backup`
+  - **Languages** `/admin/language`
+  - **Currency** `/admin/currency`
+  - **Users** `/admin/users`
+  - **Modules** `/admin/module`
+  - **Custom Fields** `/admin/customfield`
+  - **Captcha Setting** `/admin/captcha`
+  - **System Fields** `/admin/systemfield`
+  - **Student Profile Update** `/student/profilesetting`
+  - **ATKT/Regular Exam Form** `/admin/atkt_form/admissionsetting`
+  - **Revaluation Form** `/admin/revaluation_form/revaluationformsetting`
+  - **Online Admission Setting** `/admin/onlineadmission/admissionsetting`
+  - **Other Course Form** `/admin/liberal_art/admissionsetting`
+  - **File Types** `/admin/admin/filetype`
+  - **Sidebar Menu** `/admin/sidemenu`
+  - **System Update** `/admin/updater`
+  - **Multi Merchant** `/admin/paymentcategory/multimerchant`
+  - **Payment Category** `/admin/paymentcategory`
+  - **Assign Payment Category** `/admin/paymentcategory/assignPaymentCategory`
+  - **Batch Setting** `/admin/batch_settings`
+  - **Staff Leave Batches** `/admin/leave_batch_years`
