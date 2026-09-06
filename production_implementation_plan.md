@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Stopped after Task 2 at user request (2026-09-05). **Resume at Task 3.** Branch `main`. Tests at stop: 34 passing.
+**Execution:** Subagent-driven. Task 3 Students SIS implemented 2026-09-06. **Resume at Task 4 (Fees).** Branch `main`.
 
 ### Progress
 
@@ -17,8 +17,9 @@
 | 0 Baseline (secrets, migrate, health) | **Done** | `3bb7208` |
 | 1 RBAC, audit, users/roles, password reset | **Done** | `a58c9e8` + `e2839d3` (SuperAdmin lockout 409, guardian campus IDOR) |
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
-| 3 Students SIS | **Next** | — |
-| 4–13 Fees through acceptance | Pending | — |
+| 3 Students SIS | **Done** | — |
+| 4 Fees production | **Next** | — |
+| 5–13 Attendance through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -41,7 +42,7 @@
 | Area | Today (after Task 2) | Production bar |
 |---|---|---|
 | Screens | 335 catch-all routes; academics + users/roles wired; rest generic registers | v1 wired set only (not every CSV `core` row) |
-| Students | Minimal create (name, admissionNo, optional class) | Full create form (`06-students.md` + field catalog), 360 tabs, CSV import, roll generator, documents |
+| Students | Full create, 360, CSV import (all-or-nothing), rolls, documents, category/disable-reason masters | Same (Task 3 done). Seed still needs student1/parent1 roster (Task 8) |
 | Fees | Manual invoice + payment; Teacher **403** on collect; no class assign, ledger, fine slab, PDF | Type→Group→Master→assign class→line collect→immutable receipt→cancel contra |
 | Attendance | Bulk mark; working-days API exists, not yet enforced on mark | Working calendar, leave codes LEAVE, % ignores holidays, lock after N days |
 | Exams | Group/exam/subject/marks/finalize; promotion does not delete marks | Cascade filters, roster, draft/finalize, result block → withheld, PDF |
@@ -232,7 +233,7 @@ Expected: FAIL (no teacher user and/or route does not 403).
 
 ---
 
-### Task 3: Students production (SIS heart) — **NEXT**
+### Task 3: Students production (SIS heart) — DONE
 
 **Spec:** `06-students.md`, field-catalog student create, portals-live 360 tabs, api-contracts students
 
@@ -247,23 +248,23 @@ Expected: FAIL (no teacher user and/or route does not 403).
 - Replace: `src/app/(staff)/staff/students/[id]/page.tsx` (360 tabs: Profile, Guardians, Documents, Fees, Attendance, Exams, Timeline)
 - Wire: `/staff/student/search`, `/staff/student/create`, `/staff/student/disablestudentslist`, `/staff/student/generaterollnumber`, `/staff/student/student-bulk-upload`, `/staff/category`
 
-- [ ] **Step 1:** Failing tests from acceptance-tests Students section (unique admissionNo, duplicate 409, search fragment, disable+reason).
+- [x] **Step 1:** Failing tests from acceptance-tests Students section (unique admissionNo, duplicate 409, search fragment, disable+reason).
 
-- [ ] **Step 2:** Zod `studentCreateSchema` covering identity, contact, addresses (permanent/local + same-as), previous education, bank, guardians (father/mother), optional class/section/session. Encrypt `aadhaarEnc`/`panEnc` with `crypto.ts` (AES-256-GCM, key `FIELD_ENCRYPTION_KEY`).
+- [x] **Step 2:** Zod `studentCreateSchema` covering identity, contact, addresses (permanent/local + same-as), previous education, bank, guardians (father/mother), optional class/section/session. Encrypt `aadhaarEnc`/`panEnc` with `crypto.ts` (AES-256-GCM, key `FIELD_ENCRYPTION_KEY`).
 
-- [ ] **Step 3:** List API returns LIVE columns only: Student ID, Name, Class, Roll, Enrollment No, Father/Spouse, DOB, Gender, Category, Mobile.
+- [x] **Step 3:** List API returns LIVE columns only: Student ID, Name, Class, Roll, Enrollment No, Father/Spouse, DOB, Gender, Category, Mobile.
 
-- [ ] **Step 4:** 360 GET includes enrollments history, invoices summary, last 30 attendance, exam marks (honor `isBlocked`).
+- [x] **Step 4:** 360 GET includes enrollments history, invoices summary, last 30 attendance, exam marks (honor `isBlocked`).
 
-- [ ] **Step 5:** Roll generator: class, section, startFrom, arrangement mix|boys_first|girls_first, sort last|first|id.
+- [x] **Step 5:** Roll generator: class, section, startFrom, arrangement mix|boys_first|girls_first, sort last|first|id.
 
-- [ ] **Step 6:** CSV import: parse header from spec; **transaction per file**; any bad row → zero inserts + `{ errors: [{ line, fields }] }`.
+- [x] **Step 6:** CSV import: parse header from spec; **transaction per file**; any bad row → zero inserts + `{ errors: [{ line, fields }] }`.
 
-- [ ] **Step 7:** Documents upload: `uploads.ts` allowlist jpg/png/pdf, max 5MB, store under `uploads/{campusId}/students/{id}/`.
+- [x] **Step 7:** Documents upload: `uploads.ts` allowlist jpg/png/pdf, max 5MB, store under `uploads/{campusId}/students/{id}/`.
 
-- [ ] **Step 8:** Categories + disable reasons real masters (`/staff/category`, `/staff/disable-reason`).
+- [x] **Step 8:** Categories + disable reasons real masters (`/staff/category`, `/staff/disable-reason`).
 
-- [ ] **Step 9:** Commit `feat: production student SIS create 360 import rolls`
+- [x] **Step 9:** Commit `feat: production student SIS create 360 import rolls`
 
 ---
 

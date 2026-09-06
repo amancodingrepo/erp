@@ -2,6 +2,7 @@ export class HttpError extends Error {
   status: number;
   code: string;
   fields?: Record<string, string>;
+  errors?: unknown;
 
   constructor(
     status: number,

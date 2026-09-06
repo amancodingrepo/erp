@@ -16,13 +16,31 @@ type Row = {
   fatherName: string | null;
   dob: string | null;
   gender: string | null;
+  category: string | null;
   mobile: string | null;
   status: string;
 };
 
-export default function StudentsPage() {
+const COLUMNS = [
+  "Student ID",
+  "Name",
+  "Class",
+  "Roll",
+  "Enrollment No",
+  "Father/Spouse",
+  "DOB",
+  "Gender",
+  "Category",
+  "Mobile",
+];
+
+export default function StudentsPage({
+  defaultStatus = "ACTIVE",
+}: {
+  defaultStatus?: string;
+}) {
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState("ACTIVE");
+  const [status, setStatus] = useState(defaultStatus);
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
 
@@ -37,21 +55,28 @@ export default function StudentsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [defaultStatus]);
 
   function onSearch(event: FormEvent) {
     event.preventDefault();
     load();
   }
 
+  function fmtDate(value: string | null) {
+    if (!value) return "—";
+    return String(value).slice(0, 10);
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl">Students</h1>
+          <h1 className="font-display text-4xl">
+            {defaultStatus === "DISABLED" ? "Disabled students" : "Students"}
+          </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">{total} in this filter</p>
         </div>
-        <Link href="/staff/students/create">
+        <Link href="/staff/student/create">
           <Button variant="brass">Admit student</Button>
         </Link>
       </div>
@@ -83,16 +108,14 @@ export default function StudentsPage() {
         </Button>
       </form>
       <div className="mt-6 overflow-x-auto border border-[var(--rule)]">
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="bg-[var(--ink)] text-[var(--paper)]">
             <tr>
-              {["Student ID", "Name", "Class", "Roll", "Enrollment", "Father", "Mobile"].map(
-                (h) => (
-                  <th key={h} className="px-3 py-2 font-medium">
-                    {h}
-                  </th>
-                ),
-              )}
+              {COLUMNS.map((h) => (
+                <th key={h} className="px-3 py-2 font-medium">
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -110,12 +133,18 @@ export default function StudentsPage() {
                 <td className="px-3 py-2">{row.rollNo ?? "—"}</td>
                 <td className="px-3 py-2">{row.enrollmentNo ?? "—"}</td>
                 <td className="px-3 py-2">{row.fatherName ?? "—"}</td>
+                <td className="px-3 py-2">{fmtDate(row.dob)}</td>
+                <td className="px-3 py-2">{row.gender ?? "—"}</td>
+                <td className="px-3 py-2">{row.category ?? "—"}</td>
                 <td className="px-3 py-2">{row.mobile ?? "—"}</td>
               </tr>
             ))}
             {!rows.length ? (
               <tr>
-                <td className="px-3 py-8 text-center text-[var(--muted)]" colSpan={7}>
+                <td
+                  className="px-3 py-8 text-center text-[var(--muted)]"
+                  colSpan={COLUMNS.length}
+                >
                   No students match this search.
                 </td>
               </tr>

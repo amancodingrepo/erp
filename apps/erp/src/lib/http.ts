@@ -17,6 +17,7 @@ export function fail(error: unknown) {
         error: error.code,
         message: error.message,
         ...(error.fields ? { fields: error.fields } : {}),
+        ...(error.errors ? { errors: error.errors } : {}),
       },
       { status: error.status },
     );

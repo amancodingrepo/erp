@@ -14,6 +14,7 @@ apps/erp/.next/
 apps/erp/node_modules/
 apps/erp/.env
 apps/erp/.env.local
+apps/erp/uploads/
 erp-crawl/html/
 erp-crawl/pages.jsonl
 erp-crawl/crawl.log

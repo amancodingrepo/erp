@@ -11,13 +11,20 @@ import RolesPage from "@/app/(staff)/staff/roles/page";
 import CreateStudentPage from "@/app/(staff)/staff/students/create/page";
 import StudentsPage from "@/app/(staff)/staff/students/page";
 import UsersPage from "@/app/(staff)/staff/users/page";
+import StudentsOps from "@/components/modules/students-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
   "/staff/admin/dashboard": () => <DashboardPage />,
   "/staff/student/search": () => <StudentsPage />,
   "/staff/student/create": () => <CreateStudentPage />,
-  "/staff/student/disablestudentslist": () => <StudentsPage />,
+  "/staff/student/disablestudentslist": () => (
+    <StudentsPage defaultStatus="DISABLED" />
+  ),
+  "/staff/student/generaterollnumber": () => <StudentsOps mode="rolls" />,
+  "/staff/student/student-bulk-upload": () => <StudentsOps mode="import" />,
+  "/staff/category": () => <StudentsOps mode="categories" />,
+  "/staff/disable-reason": () => <StudentsOps mode="disableReasons" />,
   "/staff/studentfee": () => <CollectFeesPage />,
   "/staff/stuattendence": () => <AttendancePage />,
   "/staff/stuattendence/attendencereport": () => <AttendancePage />,

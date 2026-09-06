@@ -6,7 +6,7 @@ import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
-const bodySchema = z.object({ reasonId: z.string().optional() });
+const bodySchema = z.object({ reasonId: z.string().min(1) });
 
 export async function POST(
   request: Request,
@@ -24,7 +24,13 @@ export async function POST(
       where: { id, campusId: user.campusId },
     });
     if (!existing) throw notFound("student");
-    const body = bodySchema.parse(await readJson(request).catch(() => ({})));
+    const body = bodySchema.parse(await readJson(request));
+    const reason = await prisma.disableReason.findFirst({
+      where: { id: body.reasonId, campusId: user.campusId },
+    });
+    if (!reason) {
+      throw notFound("disable reason");
+    }
     const student = await prisma.student.update({
       where: { id },
       data: {

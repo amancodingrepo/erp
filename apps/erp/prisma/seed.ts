@@ -184,6 +184,33 @@ async function main() {
     data: { userId: teacherUser.id, roleId: teacherRole.id },
   });
 
+  const defaultCategories = [
+    { name: "General", code: "GEN" },
+    { name: "OBC", code: "OBC" },
+    { name: "SC", code: "SC" },
+    { name: "ST", code: "ST" },
+  ];
+  for (const cat of defaultCategories) {
+    const existing = await prisma.category.findFirst({
+      where: { campusId: campus.id, name: cat.name },
+    });
+    if (!existing) {
+      await prisma.category.create({
+        data: { campusId: campus.id, name: cat.name, code: cat.code },
+      });
+    }
+  }
+  for (const name of ["Left college", "Disciplinary", "Transferred"]) {
+    const existing = await prisma.disableReason.findFirst({
+      where: { campusId: campus.id, name },
+    });
+    if (!existing) {
+      await prisma.disableReason.create({
+        data: { campusId: campus.id, name },
+      });
+    }
+  }
+
   for (const id of OPTIONAL_MODULES) {
     const key = `module.${id}.enabled`;
     await prisma.setting.upsert({
