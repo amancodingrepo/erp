@@ -241,6 +241,7 @@ function listRow(s: {
   status: StudentStatus;
   category?: { name: string } | null;
   enrollments: Array<{
+    id: string;
     rollNo?: string | null;
     class: { name: string };
     section: { name: string };
@@ -259,6 +260,7 @@ function listRow(s: {
     section: enrollment?.section.name ?? null,
     rollNo: enrollment?.rollNo ?? s.rollNo,
     enrollmentNo: s.enrollmentNo,
+    enrollmentId: enrollment?.id ?? null,
     fatherName: father?.name ?? null,
     dob: s.dob,
     gender: s.gender,

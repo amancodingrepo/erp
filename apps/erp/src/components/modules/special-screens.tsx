@@ -12,6 +12,7 @@ import CreateStudentPage from "@/app/(staff)/staff/students/create/page";
 import StudentsPage from "@/app/(staff)/staff/students/page";
 import UsersPage from "@/app/(staff)/staff/users/page";
 import StudentsOps from "@/components/modules/students-ops";
+import FeesOps from "@/components/modules/fees-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -26,6 +27,14 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/category": () => <StudentsOps mode="categories" />,
   "/staff/disable-reason": () => <StudentsOps mode="disableReasons" />,
   "/staff/studentfee": () => <CollectFeesPage />,
+  "/staff/studentfee/feesearch": () => <FeesOps mode="due" />,
+  "/staff/studentfee/feereceipt": () => <FeesOps mode="receipts" />,
+  "/staff/feetype": () => <FeesOps mode="types" />,
+  "/staff/feegroup": () => <FeesOps mode="groups" />,
+  "/staff/feemaster": () => <FeesOps mode="masters" />,
+  "/staff/feemastercoursewise": () => <FeesOps mode="assign" />,
+  "/staff/feediscount": () => <FeesOps mode="discounts" />,
+  "/staff/fine-rules": () => <FeesOps mode="fines" />,
   "/staff/stuattendence": () => <AttendancePage />,
   "/staff/stuattendence/attendencereport": () => <AttendancePage />,
   "/staff/examgroup": () => <ExamsPage />,

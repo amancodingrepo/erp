@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 3 Students SIS implemented 2026-09-06. **Resume at Task 4 (Fees).** Branch `main`.
+**Execution:** Subagent-driven. Task 4 Fees implemented 2026-09-06. **Resume at Task 5 (Attendance).** Branch `main`.
 
 ### Progress
 
@@ -17,9 +17,10 @@
 | 0 Baseline (secrets, migrate, health) | **Done** | `3bb7208` |
 | 1 RBAC, audit, users/roles, password reset | **Done** | `a58c9e8` + `e2839d3` (SuperAdmin lockout 409, guardian campus IDOR) |
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
-| 3 Students SIS | **Done** | — |
-| 4 Fees production | **Next** | — |
-| 5–13 Attendance through acceptance | Pending | — |
+| 3 Students SIS | **Done** | `cb08823` |
+| 4 Fees production | **Done** | — |
+| 5 Attendance + leave | **Next** | — |
+| 6–13 Exams through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -43,7 +44,7 @@
 |---|---|---|
 | Screens | 335 catch-all routes; academics + users/roles wired; rest generic registers | v1 wired set only (not every CSV `core` row) |
 | Students | Full create, 360, CSV import (all-or-nothing), rolls, documents, category/disable-reason masters | Same (Task 3 done). Seed still needs student1/parent1 roster (Task 8) |
-| Fees | Manual invoice + payment; Teacher **403** on collect; no class assign, ledger, fine slab, PDF | Type→Group→Master→assign class→line collect→immutable receipt→cancel contra |
+| Fees | Assign master, line collect, idempotent pay, contra cancel, ledger, due search, PDF receipt | Same (Task 4 done). Razorpay still Phase B |
 | Attendance | Bulk mark; working-days API exists, not yet enforced on mark | Working calendar, leave codes LEAVE, % ignores holidays, lock after N days |
 | Exams | Group/exam/subject/marks/finalize; promotion does not delete marks | Cascade filters, roster, draft/finalize, result block → withheld, PDF |
 | RBAC | Nav gated by permission + module flags; optional modules seeded off; SuperAdmin last-admin 409 | Same + student/parent IDOR tests (Task 8) |
@@ -268,7 +269,7 @@ Expected: FAIL (no teacher user and/or route does not 403).
 
 ---
 
-### Task 4: Fees production
+### Task 4: Fees production — DONE
 
 **Spec:** `07-fees.md`, `collect-fees-live.md`, api-contracts fees, acceptance Fees
 
@@ -286,23 +287,23 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Replace: collect UI to match live: search class/section/keyword → row → addfee page with **lines** Amount/Paid/Discount/Fine/Balance
 - Wire: `/staff/studentfee`, `/staff/studentfee/feesearch`, `/staff/studentfee/feereceipt`, `/staff/feetype`, `/staff/feegroup`, `/staff/feemaster`, `/staff/feemastercoursewise`, `/staff/feediscount`, `/staff/fine-rules`
 
-- [ ] **Step 1:** Failing tests — master Tuition 20000 + Exam 2000; assign class; each student invoice 22000; pay 10000 PARTIAL + receiptNo; same Idempotency-Key; pay rest+fine PAID; cancel → contra, invoice reopens, original receipt remains.
+- [x] **Step 1:** Failing tests — master Tuition 20000 + Exam 2000; assign class; each student invoice 22000; pay 10000 PARTIAL + receiptNo; same Idempotency-Key; pay rest+fine PAID; cancel → contra, invoice reopens, original receipt remains.
 
-- [ ] **Step 2:** `assignMasterToClass({ masterId, classId, sessionId })` creates `FeeInvoice` + `FeeInvoiceLine` per current enrollment if none exist.
+- [x] **Step 2:** `assignMasterToClass({ masterId, classId, sessionId })` creates `FeeInvoice` + `FeeInvoiceLine` per current enrollment if none exist.
 
-- [ ] **Step 3:** Collect body includes `enrollmentId` (live `student_session_id`) + `invoiceId` + optional `lineId`. Pay against lines (FIFO if omitted). Persist `idempotencyKey`. `receiptNo` sequential per campus `RCP-{session}-{seq}`. Cancel inserts a contra payment row (negative/zero-out via new row) and sets `cancelledAt` on the original; **never update `amount`**.
+- [x] **Step 3:** Collect body includes `enrollmentId` (live `student_session_id`) + `invoiceId` + optional `lineId`. Pay against lines (FIFO if omitted). Persist `idempotencyKey`. `receiptNo` sequential per campus `RCP-{session}-{seq}`. Cancel inserts a contra payment row (negative/zero-out via new row) and sets `cancelledAt` on the original; **never update `amount`**.
 
-- [ ] **Step 4:** Fine: `FineRule.afterDays` vs dueDate; computed at collect; cashier may waive with reason (audit).
+- [x] **Step 4:** Fine: `FineRule.afterDays` vs dueDate; computed at collect; cashier may waive with reason (audit).
 
-- [ ] **Step 5:** Discount named `FeeDiscount` attachable to payment. Scholarship method credits invoice.
+- [x] **Step 5:** Discount named `FeeDiscount` attachable to payment. Scholarship method credits invoice.
 
-- [ ] **Step 6:** Cancel payment: `cancelledAt`, reverse paid, **never rewrite amount**. PDF receipt watermark Cancelled.
+- [x] **Step 6:** Cancel payment: `cancelledAt`, reverse paid, **never rewrite amount**. PDF receipt watermark Cancelled.
 
-- [ ] **Step 7:** Ledger GET and due search (fee group multi-select + class/section).
+- [x] **Step 7:** Ledger GET and due search (fee group multi-select + class/section).
 
-- [ ] **Step 8:** Collect UI live columns from `collect-fees-live.md`. Print uses campus name from settings.
+- [x] **Step 8:** Collect UI live columns from `collect-fees-live.md`. Print uses campus name from settings.
 
-- [ ] **Step 9:** Commit `feat: production fee collect ledger receipts`
+- [x] **Step 9:** Commit `feat: production fee collect ledger receipts`
 
 ---
 

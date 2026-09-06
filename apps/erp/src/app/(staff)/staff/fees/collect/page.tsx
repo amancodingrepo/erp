@@ -4,72 +4,92 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
+type Klass = { id: string; name: string; sections: { id: string; name: string }[] };
 type StudentRow = {
   id: string;
   admissionNo: string;
   name: string;
   class: string | null;
+  section: string | null;
+  fatherName: string | null;
+  dob: string | null;
   mobile: string | null;
+  enrollmentId: string | null;
 };
-
+type Line = {
+  id: string;
+  description: string;
+  amount: string | number;
+  paid: string | number;
+  discount: string | number;
+  fine: string | number;
+  dueDate?: string | null;
+};
 type Invoice = {
   id: string;
+  status: string;
   total: string | number;
   paid: string | number;
-  status: string;
+  lines: Line[];
+  master?: { group?: { name: string } };
 };
 
+const SELECT =
+  "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
+
+function n(value: string | number) {
+  return Number(value);
+}
+
 export default function CollectFeesPage() {
+  const [classes, setClasses] = useState<Klass[]>([]);
+  const [classId, setClassId] = useState("");
+  const [sectionId, setSectionId] = useState("");
   const [q, setQ] = useState("");
-  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [rows, setRows] = useState<StudentRow[]>([]);
   const [selected, setSelected] = useState<StudentRow | null>(null);
-  const [masters, setMasters] = useState<Array<{ id: string; group: { name: string } }>>([]);
-  const [sessions, setSessions] = useState<Array<{ id: string; name: string }>>([]);
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [lineId, setLineId] = useState("");
+
+  const sections = classes.find((c) => c.id === classId)?.sections ?? [];
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/v1/fee-masters").then((r) => r.json()),
-      fetch("/api/v1/sessions").then((r) => r.json()),
-    ]).then(([m, s]) => {
-      setMasters(m.data ?? []);
-      setSessions(s.data ?? []);
-    });
+    fetch("/api/v1/classes")
+      .then((r) => r.json())
+      .then((j) => setClasses(j.data ?? []));
   }, []);
 
   async function search(event: FormEvent) {
     event.preventDefault();
-    const res = await fetch(`/api/v1/students?q=${encodeURIComponent(q)}`);
+    const params = new URLSearchParams({ pageSize: "50" });
+    if (q) params.set("q", q);
+    if (classId) params.set("classId", classId);
+    if (sectionId) params.set("sectionId", sectionId);
+    const res = await fetch(`/api/v1/students?${params}`);
     const json = await res.json();
-    setStudents(json.data ?? []);
+    setRows(json.data ?? []);
+    setSelected(null);
+    setInvoices([]);
   }
 
-  async function makeInvoice(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selected) return;
-    const form = new FormData(event.currentTarget);
-    const res = await fetch("/api/v1/fees/invoices", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        studentId: selected.id,
-        sessionId: form.get("sessionId"),
-        masterId: form.get("masterId"),
-      }),
-    });
+  async function openCollect(row: StudentRow) {
+    setSelected(row);
+    const params = new URLSearchParams();
+    if (row.enrollmentId) params.set("enrollmentId", row.enrollmentId);
+    else params.set("studentId", row.id);
+    const res = await fetch(`/api/v1/fees/invoices?${params}`);
     const json = await res.json();
-    if (!res.ok) {
-      setMessage(json.message ?? "Could not invoice");
-      return;
-    }
-    setInvoice(json);
-    setMessage(`Invoice ${json.status} · ₹${json.total}`);
+    setInvoices(json.data ?? []);
+    setLineId("");
   }
 
   async function pay(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!invoice) return;
+    if (!selected?.enrollmentId || !invoices[0]) {
+      setMessage("No enrollment or invoice for this student");
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const res = await fetch("/api/v1/fees/payments", {
       method: "POST",
@@ -78,10 +98,15 @@ export default function CollectFeesPage() {
         "Idempotency-Key": crypto.randomUUID(),
       },
       body: JSON.stringify({
-        invoiceId: invoice.id,
+        enrollmentId: selected.enrollmentId,
+        invoiceId: invoices[0].id,
+        lineId: lineId || undefined,
         amount: Number(form.get("amount")),
+        discount: form.get("discount") ? Number(form.get("discount")) : 0,
+        fine: form.get("fine") ? Number(form.get("fine")) : undefined,
         method: form.get("method"),
         note: form.get("note") || undefined,
+        paidAt: form.get("date") || undefined,
       }),
     });
     const json = await res.json();
@@ -89,9 +114,11 @@ export default function CollectFeesPage() {
       setMessage(json.message ?? json.error ?? "Payment failed");
       return;
     }
-    setInvoice(json.invoice);
     setMessage(`Receipt ${json.receiptNo}`);
+    openCollect(selected);
   }
+
+  const invoice = invoices[0];
 
   return (
     <div className="space-y-8">
@@ -99,94 +126,180 @@ export default function CollectFeesPage() {
         <h1 className="font-display text-4xl">Collect fees</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">{message}</p>
       </div>
-      <form className="flex gap-3" onSubmit={search}>
-        <div className="flex-1">
-          <Label htmlFor="q">Student</Label>
+      <form className="grid gap-3 sm:grid-cols-4" onSubmit={search}>
+        <div>
+          <Label htmlFor="classId">Class</Label>
+          <select
+            id="classId"
+            className={SELECT}
+            value={classId}
+            onChange={(e) => {
+              setClassId(e.target.value);
+              setSectionId("");
+            }}
+          >
+            <option value="">All</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="sectionId">Section</Label>
+          <select
+            id="sectionId"
+            className={SELECT}
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+          >
+            <option value="">All</option>
+            {sections.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="q">Keyword</Label>
           <Input
             id="q"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Name or student ID"
+            placeholder="Name / student ID"
           />
         </div>
         <Button className="self-end" type="submit">
           Search
         </Button>
       </form>
-      <ul className="divide-y border border-[var(--rule)]">
-        {students.map((s) => (
-          <li key={s.id}>
-            <button
-              type="button"
-              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-[var(--paper-2)]"
-              onClick={() => setSelected(s)}
-            >
-              <span>
-                {s.admissionNo} · {s.name}
-              </span>
-              <span className="text-[var(--muted)]">{s.class}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {selected ? (
-        <form
-          onSubmit={makeInvoice}
-          className="grid gap-3 border border-[var(--rule)] p-4 sm:grid-cols-2"
-        >
-          <p className="sm:col-span-2 font-medium">
-            Invoice for {selected.name}
-          </p>
-          <select
-            name="sessionId"
-            required
-            className="h-10 rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
-          >
-            {sessions.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
+      <div className="overflow-x-auto border border-[var(--rule)]">
+        <table className="w-full min-w-[800px] text-left text-sm">
+          <thead className="bg-[var(--ink)] text-[var(--paper)]">
+            <tr>
+              {["Class", "Section", "Student ID", "Name", "Father/Spouse", "DOB", "Phone", "Action"].map(
+                (h) => (
+                  <th key={h} className="px-3 py-2 font-medium">
+                    {h}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id} className="odd:bg-[var(--paper-2)]">
+                <td className="px-3 py-2">{row.class ?? "—"}</td>
+                <td className="px-3 py-2">{row.section ?? "—"}</td>
+                <td className="px-3 py-2">{row.admissionNo}</td>
+                <td className="px-3 py-2">{row.name}</td>
+                <td className="px-3 py-2">{row.fatherName ?? "—"}</td>
+                <td className="px-3 py-2">{row.dob ? String(row.dob).slice(0, 10) : "—"}</td>
+                <td className="px-3 py-2">{row.mobile ?? "—"}</td>
+                <td className="px-3 py-2">
+                  <Button size="sm" type="button" onClick={() => openCollect(row)}>
+                    Collect
+                  </Button>
+                </td>
+              </tr>
             ))}
-          </select>
-          <select
-            name="masterId"
-            required
-            className="h-10 rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
-          >
-            {masters.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.group.name}
-              </option>
-            ))}
-          </select>
-          <Button type="submit">Create invoice</Button>
-        </form>
-      ) : null}
-      {invoice ? (
-        <form onSubmit={pay} className="space-y-3 border border-[var(--rule)] p-4">
-          <p className="text-sm">
-            Status {invoice.status} · total {String(invoice.total)} · paid{" "}
-            {String(invoice.paid)}
+          </tbody>
+        </table>
+      </div>
+
+      {selected && invoice ? (
+        <div className="space-y-4 border border-[var(--rule)] p-4">
+          <p className="font-medium">
+            {selected.name} · {invoice.master?.group?.name ?? "Invoice"} · {invoice.status}
           </p>
-          <div>
-            <Label htmlFor="amount">Amount</Label>
-            <Input id="amount" name="amount" type="number" min="1" step="0.01" required />
-          </div>
-          <select
-            name="method"
-            className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
-            defaultValue="CASH"
-          >
-            <option value="CASH">Cash</option>
-            <option value="UPI">UPI</option>
-            <option value="BANK_TRANSFER">Bank transfer</option>
-            <option value="CHEQUE">Cheque</option>
-          </select>
-          <Input name="note" placeholder="Note" />
-          <Button type="submit" variant="brass">
-            Record payment
-          </Button>
-        </form>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr>
+                {["Fees", "Due", "Amount", "Discount", "Fine", "Paid", "Balance"].map((h) => (
+                  <th key={h} className="py-1">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {invoice.lines.map((line) => {
+                const balance =
+                  n(line.amount) + n(line.fine) - n(line.discount) - n(line.paid);
+                return (
+                  <tr key={line.id}>
+                    <td className="py-1">{line.description}</td>
+                    <td>{line.dueDate ? String(line.dueDate).slice(0, 10) : "—"}</td>
+                    <td>{n(line.amount)}</td>
+                    <td>{n(line.discount)}</td>
+                    <td>{n(line.fine)}</td>
+                    <td>{n(line.paid)}</td>
+                    <td>{balance}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <form className="grid gap-3 sm:grid-cols-3" onSubmit={pay}>
+            <div>
+              <Label htmlFor="date">Date</Label>
+              <Input id="date" name="date" type="date" />
+            </div>
+            <div>
+              <Label htmlFor="amount">Amount (₹)</Label>
+              <Input id="amount" name="amount" type="number" min="1" step="0.01" required />
+            </div>
+            <div>
+              <Label htmlFor="discount">Discount (₹)</Label>
+              <Input id="discount" name="discount" type="number" min="0" step="0.01" />
+            </div>
+            <div>
+              <Label htmlFor="fine">Fine (₹)</Label>
+              <Input id="fine" name="fine" type="number" min="0" step="0.01" />
+            </div>
+            <div>
+              <Label htmlFor="method">Payment mode</Label>
+              <select id="method" name="method" className={SELECT} defaultValue="CASH">
+                <option value="CASH">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="CHEQUE">Cheque</option>
+                <option value="DD">DD</option>
+                <option value="BANK_TRANSFER">Bank transfer</option>
+                <option value="CARD">Card</option>
+                <option value="SCHOLARSHIP">Scholarship</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="lineId">Line (optional)</Label>
+              <select
+                id="lineId"
+                className={SELECT}
+                value={lineId}
+                onChange={(e) => setLineId(e.target.value)}
+              >
+                <option value="">FIFO</option>
+                {invoice.lines.map((line) => (
+                  <option key={line.id} value={line.id}>
+                    {line.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="sm:col-span-3">
+              <Label htmlFor="note">Note</Label>
+              <Input id="note" name="note" />
+            </div>
+            <Button type="submit" variant="brass">
+              Save payment
+            </Button>
+          </form>
+        </div>
+      ) : selected ? (
+        <p className="text-sm text-[var(--muted)]">
+          No invoice yet. Assign a fee master to this class first.
+        </p>
       ) : null}
     </div>
   );
