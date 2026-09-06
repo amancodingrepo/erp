@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
-type Mode = "staff" | "designations" | "notices" | "settings";
+type Mode = "staff" | "designations" | "notices" | "settings" | "letterhead";
 const SELECT =
   "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
 
@@ -12,6 +12,7 @@ export default function CampusOps({ mode }: { mode: Mode }) {
   if (mode === "staff") return <StaffPanel />;
   if (mode === "designations") return <NamedMaster path="/api/v1/designations" title="Designations" />;
   if (mode === "notices") return <NoticesPanel />;
+  if (mode === "letterhead") return <LetterheadPanel />;
   return <SettingsPanel />;
 }
 
@@ -258,6 +259,65 @@ function SettingsPanel() {
           </select>
         </div>
         <Button type="submit">Save settings</Button>
+      </form>
+    </div>
+  );
+}
+
+function LetterheadPanel() {
+  const [printHeader, setPrintHeader] = useState("");
+  const [printFooter, setPrintFooter] = useState("");
+  const [uploadTypes, setUploadTypes] = useState("pdf,jpg,jpeg,png");
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/v1/settings")
+      .then((r) => r.json())
+      .then((j) => {
+        setPrintHeader(j.printHeader ?? "");
+        setPrintFooter(j.printFooter ?? "");
+        setUploadTypes(j.uploadTypes ?? "pdf,jpg,jpeg,png");
+      });
+  }, []);
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    const res = await fetch("/api/v1/settings", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ printHeader, printFooter, uploadTypes }),
+    });
+    setMessage(res.ok ? "Saved" : "Could not save");
+  }
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Print header / footer</h1>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid gap-3" onSubmit={onSubmit}>
+        <div>
+          <Label htmlFor="printHeader">Header</Label>
+          <Input
+            id="printHeader"
+            value={printHeader}
+            onChange={(e) => setPrintHeader(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="printFooter">Footer</Label>
+          <Input
+            id="printFooter"
+            value={printFooter}
+            onChange={(e) => setPrintFooter(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="uploadTypes">Allowed upload types</Label>
+          <Input
+            id="uploadTypes"
+            value={uploadTypes}
+            onChange={(e) => setUploadTypes(e.target.value)}
+            placeholder="pdf,jpg,jpeg,png"
+          />
+        </div>
+        <Button type="submit">Save letterhead</Button>
       </form>
     </div>
   );

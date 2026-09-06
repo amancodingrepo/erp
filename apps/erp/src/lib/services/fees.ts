@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { conflict, notFound, validationError } from "@/lib/errors";
 import { dec, moneyMin, ZERO } from "@/lib/money";
 import type { AuthPrincipal } from "@/lib/permissions";
+import { campusLetterhead } from "@/lib/letterhead";
 import { buildReceiptPdf, type ReceiptView } from "@/lib/pdf/receipt";
 
 export const collectSchema = z.object({
@@ -507,8 +508,11 @@ export async function getReceipt(input: {
   });
   if (!payment) throw notFound("receipt");
   const student = payment.invoice.student;
+  const letterhead = await campusLetterhead(input.campusId);
   const view: ReceiptView = {
-    campusName: student.campus.name,
+    campusName: letterhead.campusName,
+    header: letterhead.header,
+    footer: letterhead.footer,
     receiptNo: payment.receiptNo,
     studentName: [student.firstName, student.lastName].filter(Boolean).join(" "),
     admissionNo: student.admissionNo,

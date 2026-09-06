@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
@@ -347,12 +348,25 @@ function DuePanel() {
 }
 
 function ReceiptsPanel() {
-  const [receiptNo, setReceiptNo] = useState("");
+  const params = useSearchParams();
+  const [receiptNo, setReceiptNo] = useState(params.get("receiptNo") ?? "");
   const [payload, setPayload] = useState<Record<string, unknown> | null>(null);
+  async function load(no: string) {
+    if (!no) return;
+    const res = await fetch(`/api/v1/fees/receipts/${encodeURIComponent(no)}`);
+    setPayload(await res.json());
+  }
+  useEffect(() => {
+    const fromUrl = params.get("receiptNo");
+    if (fromUrl) {
+      setReceiptNo(fromUrl);
+      load(fromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const res = await fetch(`/api/v1/fees/receipts/${encodeURIComponent(receiptNo)}`);
-    setPayload(await res.json());
+    await load(receiptNo);
   }
   return (
     <>

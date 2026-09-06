@@ -21,6 +21,10 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [q, setQ] = useState("");
   const [palette, setPalette] = useState(false);
+  const [dataHits, setDataHits] = useState<{
+    students: Array<{ id: string; admissionNo: string; name: string; href: string }>;
+    receipts: Array<{ receiptNo: string; student: string; href: string }>;
+  }>({ students: [], receipts: [] });
 
   useEffect(() => {
     fetch("/api/v1/auth/me")
@@ -80,6 +84,26 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
       )
       .slice(0, 20);
   }, [q, me]);
+
+  useEffect(() => {
+    const needle = q.trim();
+    if (!palette || needle.length < 2) {
+      setDataHits({ students: [], receipts: [] });
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      fetch(`/api/v1/search?q=${encodeURIComponent(needle)}`)
+        .then((r) => r.json())
+        .then((json) =>
+          setDataHits({
+            students: json.students ?? [],
+            receipts: json.receipts ?? [],
+          }),
+        )
+        .catch(() => setDataHits({ students: [], receipts: [] }));
+    }, 200);
+    return () => window.clearTimeout(handle);
+  }, [q, palette]);
 
   async function logout() {
     await fetch("/api/v1/auth/logout", { method: "POST" });
@@ -177,16 +201,44 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             onClick={(e) => e.stopPropagation()}
           >
             <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--brass)]">
-              Jump to screen
+              Jump to student, receipt, or screen
             </p>
             <input
               autoFocus
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Student search, collect fees, NAAC…"
+              placeholder="Name, admission no, receipt no, screen…"
               className="mt-3 h-11 w-full rounded-md border border-[var(--rule)] bg-[var(--paper-2)] px-3"
             />
             <ul className="mt-3 max-h-80 overflow-y-auto text-sm">
+              {dataHits.students.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href={s.href}
+                    className="block px-2 py-2 hover:bg-[var(--paper-2)]"
+                    onClick={() => setPalette(false)}
+                  >
+                    <span className="font-medium">{s.name}</span>
+                    <span className="ml-2 text-[var(--muted)]">
+                      {s.admissionNo} · student
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {dataHits.receipts.map((r) => (
+                <li key={r.receiptNo}>
+                  <Link
+                    href={r.href}
+                    className="block px-2 py-2 hover:bg-[var(--paper-2)]"
+                    onClick={() => setPalette(false)}
+                  >
+                    <span className="font-medium">{r.receiptNo}</span>
+                    <span className="ml-2 text-[var(--muted)]">
+                      {r.student} · receipt
+                    </span>
+                  </Link>
+                </li>
+              ))}
               {hits.map((s) => (
                 <li key={s.href}>
                   <Link

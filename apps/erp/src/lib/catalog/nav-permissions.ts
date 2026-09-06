@@ -57,6 +57,7 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/designation": "hr.staff.view",
   "/staff/notification": "communicate.notice.view",
   "/staff/schsettings": "settings.campus.view",
+  "/staff/print-headerfooter": "settings.campus.view",
   "/staff/module": "settings.modules.view",
   "/staff/admin/backup": "settings.backup.edit",
 };

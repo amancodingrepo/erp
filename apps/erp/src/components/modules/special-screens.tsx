@@ -67,6 +67,7 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/designation": () => <CampusOps mode="designations" />,
   "/staff/notification": () => <CampusOps mode="notices" />,
   "/staff/schsettings": () => <CampusOps mode="settings" />,
+  "/staff/print-headerfooter": () => <CampusOps mode="letterhead" />,
 };
 
 export function SpecialScreen({

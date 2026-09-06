@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 8 Portals implemented 2026-09-06. **Resume at Task 9 (Files, PDF letterhead, command palette).** Branch `main`.
+**Execution:** Subagent-driven. Task 9 search/letterhead implemented 2026-09-06. **Resume at Task 10 (first-class reports).** Branch `main`.
 
 ### Progress
 
@@ -22,9 +22,10 @@
 | 5 Attendance + leave | **Done** | `867e948` |
 | 6 Examinations production | **Done** | `09bc265` |
 | 7 Staff directory + notices + settings | **Done** | `1f15b4a` |
-| 8 Student and parent portals | **Done** | — |
-| 9 Files, PDF letterhead, command palette | **Next** | — |
-| 10–13 Reports through acceptance | Pending | — |
+| 8 Student and parent portals | **Done** | `fcd51d2` |
+| 9 Files, PDF letterhead, command palette | **Done** | — |
+| 10 First-class reports | **Next** | — |
+| 11–13 Hide screens, security, acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -433,7 +434,7 @@ it("student cannot collect fees", async () => {
 
 ---
 
-### Task 9: Files, PDF letterhead, command palette data search
+### Task 9: Files, PDF letterhead, command palette data search — DONE
 
 **Spec:** architecture file handling, UX differences in `16-rebuild-blueprint.md`
 
@@ -443,11 +444,11 @@ it("student cannot collect fees", async () => {
 - Modify: command palette in `staff-shell.tsx` to query `/api/v1/search` as well as screen titles
 - Modify: print header/footer settings page `/staff/print-headerfooter`
 
-- [ ] **Step 1:** File type allowlist from settings (default pdf,jpg,png,jpeg). Reject double extensions.
+- [x] **Step 1:** File type allowlist from settings (default pdf,jpg,png,jpeg). Reject double extensions.
 
-- [ ] **Step 2:** Global search returns students + receipts; palette opens 360 or receipt.
+- [x] **Step 2:** Global search returns students + receipts; palette opens 360 or receipt.
 
-- [ ] **Step 3:** Commit `feat: uploads global search letterhead`
+- [x] **Step 3:** Commit `feat: uploads global search letterhead`
 
 ---
 

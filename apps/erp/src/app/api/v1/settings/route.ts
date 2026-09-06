@@ -4,7 +4,13 @@ import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
-const EXTRA_KEYS = ["attendanceMode", "logo"] as const;
+const EXTRA_KEYS = [
+  "attendanceMode",
+  "logo",
+  "printHeader",
+  "printFooter",
+  "uploadTypes",
+] as const;
 
 const patchSchema = z.object({
   name: z.string().min(1).optional(),
@@ -20,6 +26,9 @@ const patchSchema = z.object({
   currencyPlace: z.string().optional(),
   attendanceMode: z.string().optional(),
   logo: z.string().optional().nullable(),
+  printHeader: z.string().optional(),
+  printFooter: z.string().optional(),
+  uploadTypes: z.string().optional(),
 });
 
 async function extras(campusId: string) {
@@ -66,6 +75,9 @@ function campusPayload(
     currencyPlace: campus.currencyPlace,
     attendanceMode: extra.attendanceMode ?? "daily",
     logo: extra.logo ?? null,
+    printHeader: extra.printHeader ?? campus.name,
+    printFooter: extra.printFooter ?? campus.address ?? "",
+    uploadTypes: extra.uploadTypes ?? "pdf,jpg,jpeg,png",
   };
 }
 

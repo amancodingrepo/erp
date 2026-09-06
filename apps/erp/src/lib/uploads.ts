@@ -1,22 +1,45 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { prisma } from "./db";
 import { validationError } from "./errors";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "pdf"]);
-const ALLOWED_MIME = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "application/pdf",
-]);
+const DEFAULT_EXT = ["pdf", "jpg", "jpeg", "png"];
+const MIME_FOR: Record<string, string[]> = {
+  pdf: ["application/pdf"],
+  jpg: ["image/jpeg", "image/jpg"],
+  jpeg: ["image/jpeg", "image/jpg"],
+  png: ["image/png"],
+};
+
+export async function allowedUploadExts(campusId: string) {
+  const row = await prisma.setting.findUnique({
+    where: { campusId_key: { campusId, key: "campus.uploadTypes" } },
+  });
+  const raw =
+    typeof row?.value === "string"
+      ? row.value
+      : Array.isArray(row?.value)
+        ? (row.value as string[]).join(",")
+        : DEFAULT_EXT.join(",");
+  const exts = raw
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  return new Set(exts.length ? exts : DEFAULT_EXT);
+}
 
 export function uploadsRoot() {
   return process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
 }
 
-function sniffExt(bytes: Uint8Array, filename: string, mime: string) {
+function sniffExt(
+  bytes: Uint8Array,
+  filename: string,
+  mime: string,
+  allowed: Set<string>,
+) {
   const name = filename.split(/[/\\]/).pop() ?? "";
   if (name.split(".").length > 2) {
     throw validationError({ file: "double extension not allowed" });
@@ -24,10 +47,14 @@ function sniffExt(bytes: Uint8Array, filename: string, mime: string) {
   const fromName = name.includes(".")
     ? name.slice(name.lastIndexOf(".") + 1).toLowerCase()
     : "";
-  if (fromName && !ALLOWED_EXT.has(fromName)) {
+  if (fromName && !allowed.has(fromName)) {
     throw validationError({ file: "file type not allowed" });
   }
-  const mimeOk = !mime || ALLOWED_MIME.has(mime.toLowerCase());
+  const mimeOk =
+    !mime ||
+    [...allowed].some((ext) =>
+      (MIME_FOR[ext] ?? []).includes(mime.toLowerCase()),
+    );
   if (!mimeOk) throw validationError({ file: "file type not allowed" });
 
   const isPdf =
@@ -44,10 +71,23 @@ function sniffExt(bytes: Uint8Array, filename: string, mime: string) {
     bytes[3] === 0x47;
   const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8;
 
-  if (isPdf) return "pdf";
-  if (isPng) return "png";
-  if (isJpeg) return "jpg";
-  if (fromName && ALLOWED_EXT.has(fromName) && mimeOk) return fromName === "jpeg" ? "jpg" : fromName;
+  if (isPdf) {
+    if (!allowed.has("pdf")) throw validationError({ file: "file type not allowed" });
+    return "pdf";
+  }
+  if (isPng) {
+    if (!allowed.has("png")) throw validationError({ file: "file type not allowed" });
+    return "png";
+  }
+  if (isJpeg) {
+    if (!allowed.has("jpg") && !allowed.has("jpeg")) {
+      throw validationError({ file: "file type not allowed" });
+    }
+    return "jpg";
+  }
+  if (fromName && allowed.has(fromName) && mimeOk) {
+    return fromName === "jpeg" ? "jpg" : fromName;
+  }
   throw validationError({ file: "file type not allowed" });
 }
 
@@ -61,7 +101,8 @@ export async function saveStudentDocumentFile(input: {
   if (input.bytes.byteLength > MAX_BYTES) {
     throw validationError({ file: "file exceeds 5MB" });
   }
-  const ext = sniffExt(input.bytes, input.filename, input.mime);
+  const allowed = await allowedUploadExts(input.campusId);
+  const ext = sniffExt(input.bytes, input.filename, input.mime, allowed);
   const dir = path.join(
     uploadsRoot(),
     input.campusId,

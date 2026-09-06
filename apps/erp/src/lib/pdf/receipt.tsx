@@ -12,12 +12,15 @@ export type ReceiptView = {
   paidAt: string;
   note?: string | null;
   cancelled: boolean;
+  header?: string;
+  footer?: string;
   lines: Array<{ description: string; amount: string; paid: string; balance: string }>;
 };
 
 /** Minimal one-page PDF so receipts print without a browser. */
 export function buildReceiptPdf(data: ReceiptView): Uint8Array {
   return buildSimplePdf([
+    data.header || data.campusName,
     data.cancelled ? "*** CANCELLED ***" : "FEE RECEIPT",
     data.campusName,
     `Receipt ${data.receiptNo}`,
@@ -29,6 +32,7 @@ export function buildReceiptPdf(data: ReceiptView): Uint8Array {
         `${line.description}  amt ${line.amount}  paid ${line.paid}  bal ${line.balance}`,
     ),
     data.note ? `Note ${data.note}` : "",
+    data.footer ? data.footer : "",
   ]);
 }
 
