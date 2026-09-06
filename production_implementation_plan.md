@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 7 Staff/notices/settings implemented 2026-09-06. **Resume at Task 8 (Student and parent portals).** Branch `main`.
+**Execution:** Subagent-driven. Task 8 Portals implemented 2026-09-06. **Resume at Task 9 (Files, PDF letterhead, command palette).** Branch `main`.
 
 ### Progress
 
@@ -21,9 +21,10 @@
 | 4 Fees production | **Done** | `19ace1e` |
 | 5 Attendance + leave | **Done** | `867e948` |
 | 6 Examinations production | **Done** | `09bc265` |
-| 7 Staff directory + notices + settings | **Done** | — |
-| 8 Student and parent portals | **Next** | — |
-| 9–13 Files/reports through acceptance | Pending | — |
+| 7 Staff directory + notices + settings | **Done** | `1f15b4a` |
+| 8 Student and parent portals | **Done** | — |
+| 9 Files, PDF letterhead, command palette | **Next** | — |
+| 10–13 Reports through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -387,7 +388,7 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 
 ---
 
-### Task 8: Student and parent portals
+### Task 8: Student and parent portals — DONE
 
 **Spec:** `student-parent-portal.md`, `portals-live.md`
 
@@ -398,7 +399,7 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Modify: `src/middleware.ts` — `/student/*`, `/parent/*`
 - Modify: login portal routing
 
-- [ ] **Step 1:** IDOR tests (all must 403 or empty, never another student’s payload):
+- [x] **Step 1:** IDOR tests (all must 403 or empty, never another student’s payload):
 
 ```ts
 it("student cannot read another student", async () => {
@@ -420,15 +421,15 @@ it("student cannot collect fees", async () => {
 });
 ```
 
-- [ ] **Step 2:** Seed student user linked to a Student + parent user linked via guardian.
+- [x] **Step 2:** Seed student user linked to a Student + parent user linked via guardian.
 
-- [ ] **Step 3:** Student dashboard: next class (timetable placeholder), dues, attendance %, notices.
+- [x] **Step 3:** Student dashboard: next class (timetable placeholder), dues, attendance %, notices.
 
-- [ ] **Step 4:** Fees: ledger + download receipt PDF (own invoices only). Online pay stub until Razorpay task.
+- [x] **Step 4:** Fees: ledger + download receipt PDF (own invoices only). Online pay stub until Razorpay task.
 
-- [ ] **Step 5:** Results: if blocked, show “Result withheld”, never empty marks.
+- [x] **Step 5:** Results: if blocked, show “Result withheld”, never empty marks.
 
-- [ ] **Step 6:** Commit `feat: student and parent portals`
+- [x] **Step 6:** Commit `feat: student and parent portals`
 
 ---
 

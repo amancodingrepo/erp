@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
 import { getStudent360 } from "@/lib/services/students";
 
 const patchSchema = z.object({
@@ -29,6 +29,7 @@ export async function GET(
       "view",
     );
     const { id } = await context.params;
+    assertCanAccessStudent(user, id);
     return ok(await getStudent360(user.campusId, id));
   } catch (error) {
     return fail(error);

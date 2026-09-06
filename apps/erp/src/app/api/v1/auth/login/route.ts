@@ -31,6 +31,9 @@ export async function POST(request: Request) {
         actorType: principal.actorType,
         roles: principal.roles,
         permissions: principal.permissions,
+        studentId: principal.studentId,
+        guardianId: principal.guardianId,
+        childIds: principal.childIds,
       },
       campus,
     });

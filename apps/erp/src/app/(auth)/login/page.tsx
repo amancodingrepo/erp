@@ -44,7 +44,21 @@ function LoginForm() {
       );
       return;
     }
-    router.replace(from.startsWith("/student") ? from : "/staff/dashboard");
+    const payload = await response.json().catch(() => ({}));
+    const actor = payload.user?.actorType as string | undefined;
+    const home =
+      actor === "STUDENT"
+        ? "/student/dashboard"
+        : actor === "GUARDIAN"
+          ? "/parent/dashboard"
+          : "/staff/dashboard";
+    const dest =
+      (actor === "STUDENT" && from.startsWith("/student")) ||
+      (actor === "GUARDIAN" && from.startsWith("/parent")) ||
+      (actor === "STAFF" && from.startsWith("/staff"))
+        ? from
+        : home;
+    router.replace(dest);
   }
 
   return (

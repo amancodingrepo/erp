@@ -497,7 +497,11 @@ export async function listStudents(input: {
   status?: string | null;
   page: number;
   pageSize: number;
+  studentIds?: string[] | null;
 }) {
+  if (input.studentIds && input.studentIds.length === 0) {
+    return { data: [], total: 0, page: input.page, pageSize: input.pageSize };
+  }
   const status =
     input.status === "all"
       ? undefined
@@ -506,6 +510,7 @@ export async function listStudents(input: {
   const q = input.q?.trim();
   const where: Prisma.StudentWhereInput = {
     campusId: input.campusId,
+    ...(input.studentIds ? { id: { in: input.studentIds } } : {}),
     ...(status ? { status } : {}),
     ...(q
       ? {

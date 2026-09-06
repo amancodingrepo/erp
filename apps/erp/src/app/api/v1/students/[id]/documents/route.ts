@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound, validationError } from "@/lib/errors";
 import { created, fail, ok } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
 import { saveStudentDocumentFile } from "@/lib/uploads";
 
 export async function GET(
@@ -16,6 +16,7 @@ export async function GET(
       "view",
     );
     const { id } = await context.params;
+    assertCanAccessStudent(user, id);
     const student = await prisma.student.findFirst({
       where: { id, campusId: user.campusId },
     });

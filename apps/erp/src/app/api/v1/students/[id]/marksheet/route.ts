@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fail, ok } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
 import { studentMarksheet } from "@/lib/services/exams";
 
 export async function GET(
@@ -10,6 +10,7 @@ export async function GET(
   try {
     const user = await requireApiPermission(request, "exams", "marks", "view");
     const { id } = await context.params;
+    assertCanAccessStudent(user, id);
     const params = new URL(request.url).searchParams;
     const result = await studentMarksheet({
       campusId: user.campusId,

@@ -1,5 +1,5 @@
 import { created, fail, ok, readJson } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertStaff, requireApiPermission, visibleStudentIds } from "@/lib/principal";
 import {
   createStudent,
   listStudents,
@@ -26,6 +26,7 @@ export async function GET(request: Request) {
         status: params.get("status"),
         page,
         pageSize,
+        studentIds: visibleStudentIds(user),
       }),
     );
   } catch (error) {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
       "profile",
       "create",
     );
+    assertStaff(user);
     const body = studentCreateSchema.parse(await readJson(request));
     const student = await createStudent({ campusId: user.campusId, body });
     return created({

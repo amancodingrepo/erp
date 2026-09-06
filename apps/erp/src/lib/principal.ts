@@ -113,3 +113,30 @@ export function assertStaff(user: AuthPrincipal) {
     throw forbidden("staff only");
   }
 }
+
+/** Never trust a client-supplied studentId for students/parents. */
+export function assertCanAccessStudent(user: AuthPrincipal, studentId: string) {
+  if (user.actorType === ActorType.STAFF) return;
+  if (user.actorType === ActorType.STUDENT) {
+    if (!user.studentId || user.studentId !== studentId) {
+      throw forbidden("forbidden");
+    }
+    return;
+  }
+  if (user.actorType === ActorType.GUARDIAN) {
+    if (!user.childIds?.includes(studentId)) {
+      throw forbidden("forbidden");
+    }
+    return;
+  }
+  throw forbidden("forbidden");
+}
+
+export function visibleStudentIds(user: AuthPrincipal): string[] | null {
+  if (user.actorType === ActorType.STAFF) return null;
+  if (user.actorType === ActorType.STUDENT) {
+    return user.studentId ? [user.studentId] : [];
+  }
+  if (user.actorType === ActorType.GUARDIAN) return user.childIds ?? [];
+  return [];
+}

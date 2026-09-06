@@ -1,5 +1,5 @@
 import { fail, ok } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
 import { studentLedger } from "@/lib/services/fees";
 
 export async function GET(
@@ -9,6 +9,7 @@ export async function GET(
   try {
     const user = await requireApiPermission(request, "fees", "collect", "view");
     const { id } = await context.params;
+    assertCanAccessStudent(user, id);
     const sessionId =
       new URL(request.url).searchParams.get("sessionId") ?? undefined;
     return ok(

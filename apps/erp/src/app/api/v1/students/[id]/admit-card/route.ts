@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { validationError } from "@/lib/errors";
 import { fail, ok } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
 import { studentAdmitCard } from "@/lib/services/exams";
 
 export async function GET(
@@ -11,6 +11,7 @@ export async function GET(
   try {
     const user = await requireApiPermission(request, "exams", "marks", "view");
     const { id } = await context.params;
+    assertCanAccessStudent(user, id);
     const examId = new URL(request.url).searchParams.get("examId");
     if (!examId) throw validationError({ examId: "required" });
     const result = await studentAdmitCard({

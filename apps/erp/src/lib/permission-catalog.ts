@@ -170,10 +170,16 @@ export const ROLE_GRANTS: Record<Exclude<RoleName, "SuperAdmin">, string[]> = {
     "dashboard.home.view",
     "students.profile.view",
     "communicate.notice.view",
+    "fees.collect.view",
+    "exams.marks.view",
+    "attendance.student.view",
   ],
   Parent: [
     "dashboard.home.view",
     "students.profile.view",
     "communicate.notice.view",
+    "fees.collect.view",
+    "exams.marks.view",
+    "attendance.student.view",
   ],
 };

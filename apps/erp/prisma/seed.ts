@@ -226,11 +226,143 @@ async function main() {
     });
   }
 
+  const demoDept = await prisma.department.upsert({
+    where: { id: "seed-dept-demo" },
+    update: { name: "General" },
+    create: {
+      id: "seed-dept-demo",
+      campusId: campus.id,
+      name: "Demo Arts",
+      code: "DEMO",
+    },
+  });
+  const demoProgram = await prisma.program.upsert({
+    where: { id: "seed-program-demo" },
+    update: { name: "BA" },
+    create: {
+      id: "seed-program-demo",
+      departmentId: demoDept.id,
+      name: "BA",
+      level: "UNDERGRADUATE",
+    },
+  });
+  const demoClass = await prisma.class.upsert({
+    where: { id: "seed-class-fy" },
+    update: { name: "FY BA" },
+    create: {
+      id: "seed-class-fy",
+      programId: demoProgram.id,
+      name: "FY BA",
+      yearNo: 1,
+    },
+  });
+  const demoSection = await prisma.section.upsert({
+    where: { id: "seed-section-a" },
+    update: { name: "A" },
+    create: {
+      id: "seed-section-a",
+      classId: demoClass.id,
+      name: "A",
+    },
+  });
+
+  const studentRole = roles.get("Student")!;
+  const parentRole = roles.get("Parent")!;
+
+  const studentUser = await prisma.user.upsert({
+    where: { campusId_username: { campusId: campus.id, username: "student1" } },
+    update: { passwordHash, isActive: true, actorType: ActorType.STUDENT },
+    create: {
+      campusId: campus.id,
+      actorType: ActorType.STUDENT,
+      username: "student1",
+      email: "student1@college.local",
+      passwordHash,
+      isActive: true,
+    },
+  });
+  const demoStudent = await prisma.student.upsert({
+    where: {
+      campusId_admissionNo: { campusId: campus.id, admissionNo: "STU-001" },
+    },
+    update: { userId: studentUser.id, firstName: "Demo", lastName: "Student" },
+    create: {
+      campusId: campus.id,
+      userId: studentUser.id,
+      admissionNo: "STU-001",
+      firstName: "Demo",
+      lastName: "Student",
+    },
+  });
+  await prisma.studentEnrollment.upsert({
+    where: { id: "seed-enroll-stu001" },
+    update: {
+      classId: demoClass.id,
+      sectionId: demoSection.id,
+      sessionId: session.id,
+      isCurrent: true,
+    },
+    create: {
+      id: "seed-enroll-stu001",
+      studentId: demoStudent.id,
+      sessionId: session.id,
+      classId: demoClass.id,
+      sectionId: demoSection.id,
+      isCurrent: true,
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: studentUser.id } });
+  await prisma.userRole.create({
+    data: { userId: studentUser.id, roleId: studentRole.id },
+  });
+
+  const parentUser = await prisma.user.upsert({
+    where: { campusId_username: { campusId: campus.id, username: "parent1" } },
+    update: { passwordHash, isActive: true, actorType: ActorType.GUARDIAN },
+    create: {
+      campusId: campus.id,
+      actorType: ActorType.GUARDIAN,
+      username: "parent1",
+      email: "parent1@college.local",
+      passwordHash,
+      isActive: true,
+    },
+  });
+  const guardian = await prisma.guardian.upsert({
+    where: { userId: parentUser.id },
+    update: { name: "Demo Parent" },
+    create: {
+      userId: parentUser.id,
+      name: "Demo Parent",
+      phone: "9000000000",
+    },
+  });
+  await prisma.studentGuardian.upsert({
+    where: {
+      studentId_guardianId_relation: {
+        studentId: demoStudent.id,
+        guardianId: guardian.id,
+        relation: "father",
+      },
+    },
+    update: {},
+    create: {
+      studentId: demoStudent.id,
+      guardianId: guardian.id,
+      relation: "father",
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: parentUser.id } });
+  await prisma.userRole.create({
+    data: { userId: parentUser.id, roleId: parentRole.id },
+  });
+
   console.log("Seed complete.");
   console.log("  campus:", campus.name);
   console.log("  session: 2025-26 (current)");
   console.log("  login: admin / (SEED_ADMIN_PASSWORD or Admin@12345)");
   console.log("  login: teacher / (same password, Teacher grants only)");
+  console.log("  login: student1 / parent1 (same password, student & parent portals)");
 }
 
 main()
