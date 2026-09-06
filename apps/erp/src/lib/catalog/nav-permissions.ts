@@ -53,6 +53,10 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/grade": "exams.group.view",
   "/staff/roles": "settings.roles.view",
   "/staff/users": "settings.users.view",
+  "/staff/staff": "hr.staff.view",
+  "/staff/designation": "hr.staff.view",
+  "/staff/notification": "communicate.notice.view",
+  "/staff/schsettings": "settings.campus.view",
   "/staff/module": "settings.modules.view",
   "/staff/admin/backup": "settings.backup.edit",
 };

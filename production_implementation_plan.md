@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 6 Exams implemented 2026-09-06. **Resume at Task 7 (Staff directory / notices / settings).** Branch `main`.
+**Execution:** Subagent-driven. Task 7 Staff/notices/settings implemented 2026-09-06. **Resume at Task 8 (Student and parent portals).** Branch `main`.
 
 ### Progress
 
@@ -20,9 +20,10 @@
 | 3 Students SIS | **Done** | `cb08823` |
 | 4 Fees production | **Done** | `19ace1e` |
 | 5 Attendance + leave | **Done** | `867e948` |
-| 6 Examinations production | **Done** | — |
-| 7 Staff directory + notices + settings | **Next** | — |
-| 8–13 Portals through acceptance | Pending | — |
+| 6 Examinations production | **Done** | `09bc265` |
+| 7 Staff directory + notices + settings | **Done** | — |
+| 8 Student and parent portals | **Next** | — |
+| 9–13 Files/reports through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -361,7 +362,7 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 
 ---
 
-### Task 7: Staff directory + notices + settings UI
+### Task 7: Staff directory + notices + settings UI — DONE
 
 **Spec:** `10-hr-payroll.md` (directory only for v1), `14-reports-settings.md`, api-contracts settings
 
@@ -372,17 +373,17 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Modify: `src/app/api/v1/settings/route.ts` (campus name, logo, dateFormat, timezone, attendanceMode, current session)
 - Wire: `/staff/staff`, `/staff/designation`, `/staff/notification`, `/staff/schsettings`, `/staff/sessions`
 
-- [ ] **Step 1:** Settings PATCH institute name; receipt PDF test asserts new name (acceptance Settings).
+- [x] **Step 1:** Settings PATCH institute name; receipt PDF test asserts new name (acceptance Settings).
 
-- [ ] **Step 1b:** Custom fields — `GET/POST /api/v1/custom-fields`, `belongTo=Student`, type Dropdown; student create form renders extra inputs; values in `CustomFieldValue`. Test: field appears on create (acceptance Settings).
+- [x] **Step 1b:** Custom fields — `GET/POST /api/v1/custom-fields`, `belongTo=Student`, type Dropdown; student create form renders extra inputs; values in `CustomFieldValue`. Test: field appears on create (acceptance Settings).
 
-- [ ] **Step 2:** Staff create with employeeId unique, department, designation, user login optional.
+- [x] **Step 2:** Staff create with employeeId unique, department, designation, user login optional.
 
-- [ ] **Step 3:** Notice board audience all|staff|students|class.
+- [x] **Step 3:** Notice board audience all|staff|students|class.
 
-- [ ] **Step 4:** Payroll, recruitment, mentoring: **not** in v1. Leave screens as labelled “Phase B” empty states linking to this plan — do not keep fake ScreenRecord finance data.
+- [x] **Step 4:** Payroll, recruitment, mentoring: **not** in v1. Leave screens as labelled “Phase B” empty states linking to this plan — do not keep fake ScreenRecord finance data.
 
-- [ ] **Step 5:** Commit `feat: staff directory notices campus settings`
+- [x] **Step 5:** Commit `feat: staff directory notices campus settings`
 
 ---
 

@@ -15,6 +15,7 @@ import StudentsOps from "@/components/modules/students-ops";
 import FeesOps from "@/components/modules/fees-ops";
 import AttendanceOps from "@/components/modules/attendance-ops";
 import ExamsOps from "@/components/modules/exams-ops";
+import CampusOps from "@/components/modules/campus-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -62,6 +63,10 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/holiday/set-working-days": () => <AcademicsHub tab="workingDays" />,
   "/staff/users": () => <UsersPage />,
   "/staff/roles": () => <RolesPage />,
+  "/staff/staff": () => <CampusOps mode="staff" />,
+  "/staff/designation": () => <CampusOps mode="designations" />,
+  "/staff/notification": () => <CampusOps mode="notices" />,
+  "/staff/schsettings": () => <CampusOps mode="settings" />,
 };
 
 export function SpecialScreen({

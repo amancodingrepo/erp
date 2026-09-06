@@ -1,7 +1,9 @@
-import { Prisma } from "@prisma/client";
+import { ActorType, Gender, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { conflict } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
+import { issuePasswordReset, randomPasswordHash } from "@/lib/password-reset";
 import { requireApiPermission } from "@/lib/principal";
 
 const createSchema = z.object({
@@ -10,7 +12,11 @@ const createSchema = z.object({
   lastName: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
+  gender: z.nativeEnum(Gender).optional(),
   departmentId: z.string().optional(),
+  designationId: z.string().optional(),
+  joiningDate: z.string().optional(),
+  username: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -33,7 +39,7 @@ export async function GET(request: Request) {
             }
           : {}),
       },
-      include: { department: true, designation: true },
+      include: { department: true, designation: true, user: true },
       orderBy: { firstName: "asc" },
     });
     return ok({ data });
@@ -46,25 +52,54 @@ export async function POST(request: Request) {
   try {
     const user = await requireApiPermission(request, "hr", "staff", "create");
     const body = createSchema.parse(await readJson(request));
-    const row = await prisma.staff.create({
-      data: {
-        campusId: user.campusId,
-        employeeId: body.employeeId,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        email: body.email,
-        phone: body.phone,
-        departmentId: body.departmentId,
-      },
-    });
-    return created(row);
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return fail(error);
+    try {
+      const row = await prisma.$transaction(async (tx) => {
+        let userId: string | undefined;
+        if (body.username) {
+          const account = await tx.user.create({
+            data: {
+              campusId: user.campusId,
+              actorType: ActorType.STAFF,
+              username: body.username,
+              email: body.email,
+              passwordHash: await randomPasswordHash(),
+              isActive: true,
+            },
+          });
+          userId = account.id;
+        }
+        return tx.staff.create({
+          data: {
+            campusId: user.campusId,
+            employeeId: body.employeeId.trim(),
+            firstName: body.firstName.trim(),
+            lastName: body.lastName,
+            email: body.email,
+            phone: body.phone,
+            gender: body.gender,
+            departmentId: body.departmentId,
+            designationId: body.designationId,
+            joiningDate: body.joiningDate ? new Date(body.joiningDate) : undefined,
+            userId,
+          },
+          include: { department: true, designation: true, user: true },
+        });
+      });
+      let inviteToken: string | undefined;
+      if (row.userId) {
+        inviteToken = await issuePasswordReset(row.userId);
+      }
+      return created({ ...row, inviteToken });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw conflict("duplicate employeeId");
+      }
+      throw error;
     }
+  } catch (error) {
     return fail(error);
   }
 }

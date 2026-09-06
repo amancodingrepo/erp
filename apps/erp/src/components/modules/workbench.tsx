@@ -6,6 +6,7 @@ import { Input, Label } from "@/components/ui/input";
 import { screenByHref } from "@/lib/catalog/lookup";
 import type { FieldDef, ScreenDef } from "@/lib/catalog/screens";
 import { SpecialScreen } from "./special-screens";
+import PhaseBScreen from "./phase-b";
 
 type RecordRow = {
   id: string;
@@ -40,6 +41,14 @@ export function Workbench({ href }: { href: string }) {
   );
   const live = SpecialScreen({ href, screen });
   if (live) return live;
+  if (
+    screen.module === "payroll" ||
+    screen.module === "mentoring" ||
+    href.startsWith("/staff/hr-recruitment") ||
+    href.startsWith("/staff/staffpayroll")
+  ) {
+    return <PhaseBScreen title={screen.title} />;
+  }
   return <GenericScreen screen={screen} />;
 }
 

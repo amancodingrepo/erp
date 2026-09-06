@@ -7,6 +7,13 @@ import { Input, Label } from "@/components/ui/input";
 
 type Option = { id: string; name: string };
 type Klass = Option & { sections: Option[] };
+type CustomField = {
+  id: string;
+  name: string;
+  type: string;
+  values?: string | null;
+  required?: boolean;
+};
 
 const SELECT =
   "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
@@ -33,6 +40,7 @@ export default function CreateStudentPage() {
   const [classes, setClasses] = useState<Klass[]>([]);
   const [sessions, setSessions] = useState<Option[]>([]);
   const [categories, setCategories] = useState<Option[]>([]);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [classId, setClassId] = useState("");
   const [sameAddress, setSameAddress] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +51,12 @@ export default function CreateStudentPage() {
       fetch("/api/v1/classes").then((r) => r.json()),
       fetch("/api/v1/sessions").then((r) => r.json()),
       fetch("/api/v1/categories").then((r) => r.json()),
-    ]).then(([c, s, cat]) => {
+      fetch("/api/v1/custom-fields?belongTo=Student").then((r) => r.json()),
+    ]).then(([c, s, cat, cf]) => {
       setClasses(c.data ?? []);
       setSessions(s.data ?? []);
       setCategories(cat.data ?? []);
+      setCustomFields(cf.data ?? []);
     });
   }, []);
 
@@ -146,6 +156,10 @@ export default function CreateStudentPage() {
             }
           : undefined,
       },
+      customFields: customFields.map((field) => ({
+        fieldId: field.id,
+        value: str(`cf_${field.id}`),
+      })),
     };
     const res = await fetch("/api/v1/students", {
       method: "POST",
@@ -454,6 +468,48 @@ export default function CreateStudentPage() {
             </Field>
           </div>
         </section>
+
+        {customFields.length ? (
+          <section>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--brass)]">
+              Extra fields
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {customFields.map((field) => {
+                const options = (field.values ?? "")
+                  .split(",")
+                  .map((v) => v.trim())
+                  .filter(Boolean);
+                const isDropdown = /dropdown|select/i.test(field.type);
+                return (
+                  <Field key={field.id} id={`cf_${field.id}`} label={field.name}>
+                    {isDropdown ? (
+                      <select
+                        id={`cf_${field.id}`}
+                        name={`cf_${field.id}`}
+                        required={field.required}
+                        className={SELECT}
+                      >
+                        <option value="">—</option>
+                        {options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        id={`cf_${field.id}`}
+                        name={`cf_${field.id}`}
+                        required={field.required}
+                      />
+                    )}
+                  </Field>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         {error ? (
           <p className="text-sm text-[var(--stamp)]" role="alert">

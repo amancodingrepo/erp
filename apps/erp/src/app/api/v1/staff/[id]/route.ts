@@ -10,6 +10,7 @@ const patchSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
   departmentId: z.string().nullable().optional(),
+  designationId: z.string().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

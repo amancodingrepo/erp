@@ -117,6 +117,14 @@ export const studentCreateSchema = z.object({
       spouse: guardianInput.optional(),
     })
     .optional(),
+  customFields: z
+    .array(
+      z.object({
+        fieldId: z.string().min(1),
+        value: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export type StudentCreateInput = z.infer<typeof studentCreateSchema>;
@@ -451,6 +459,21 @@ export async function createStudent(input: {
         });
       }
       await writeRelated(tx, created.id, body);
+      if (body.customFields?.length) {
+        for (const field of body.customFields) {
+          const def = await tx.customField.findFirst({
+            where: { id: field.fieldId, campusId: input.campusId, visible: true },
+          });
+          if (!def) continue;
+          await tx.customFieldValue.create({
+            data: {
+              fieldId: def.id,
+              entityId: created.id,
+              value: field.value ?? null,
+            },
+          });
+        }
+      }
       return created;
     };
     if (input.tx) return run(input.tx);

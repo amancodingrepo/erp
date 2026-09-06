@@ -4,6 +4,8 @@ import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
+const EXTRA_KEYS = ["attendanceMode", "logo"] as const;
+
 const patchSchema = z.object({
   name: z.string().min(1).optional(),
   code: z.string().optional().nullable(),
@@ -16,7 +18,56 @@ const patchSchema = z.object({
   startWeek: z.number().int().min(0).max(6).optional(),
   currencyFormat: z.string().optional().nullable(),
   currencyPlace: z.string().optional(),
+  attendanceMode: z.string().optional(),
+  logo: z.string().optional().nullable(),
 });
+
+async function extras(campusId: string) {
+  const rows = await prisma.setting.findMany({
+    where: {
+      campusId,
+      key: { in: EXTRA_KEYS.map((k) => `campus.${k}`) },
+    },
+  });
+  const map: Record<string, unknown> = {};
+  for (const row of rows) {
+    map[row.key.replace(/^campus\./, "")] = row.value;
+  }
+  return map;
+}
+
+function campusPayload(
+  campus: {
+    name: string;
+    code: string | null;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    currentSessionId: string | null;
+    dateFormat: string;
+    timezone: string;
+    startWeek: number;
+    currencyFormat: string | null;
+    currencyPlace: string;
+  },
+  extra: Record<string, unknown>,
+) {
+  return {
+    name: campus.name,
+    code: campus.code,
+    address: campus.address,
+    phone: campus.phone,
+    email: campus.email,
+    sessionId: campus.currentSessionId,
+    dateFormat: campus.dateFormat,
+    timezone: campus.timezone,
+    startWeek: campus.startWeek,
+    currencyFormat: campus.currencyFormat,
+    currencyPlace: campus.currencyPlace,
+    attendanceMode: extra.attendanceMode ?? "daily",
+    logo: extra.logo ?? null,
+  };
+}
 
 export async function GET(request: Request) {
   try {
@@ -30,19 +81,7 @@ export async function GET(request: Request) {
       where: { id: user.campusId },
     });
     if (!campus) throw notFound("campus");
-    return ok({
-      name: campus.name,
-      code: campus.code,
-      address: campus.address,
-      phone: campus.phone,
-      email: campus.email,
-      sessionId: campus.currentSessionId,
-      dateFormat: campus.dateFormat,
-      timezone: campus.timezone,
-      startWeek: campus.startWeek,
-      currencyFormat: campus.currencyFormat,
-      currencyPlace: campus.currencyPlace,
-    });
+    return ok(campusPayload(campus, await extras(user.campusId)));
   } catch (error) {
     return fail(error);
   }
@@ -81,19 +120,21 @@ export async function PATCH(request: Request) {
           : {}),
       },
     });
-    return ok({
-      name: campus.name,
-      code: campus.code,
-      address: campus.address,
-      phone: campus.phone,
-      email: campus.email,
-      sessionId: campus.currentSessionId,
-      dateFormat: campus.dateFormat,
-      timezone: campus.timezone,
-      startWeek: campus.startWeek,
-      currencyFormat: campus.currencyFormat,
-      currencyPlace: campus.currencyPlace,
-    });
+    for (const key of EXTRA_KEYS) {
+      if (body[key] === undefined) continue;
+      await prisma.setting.upsert({
+        where: {
+          campusId_key: { campusId: user.campusId, key: `campus.${key}` },
+        },
+        update: { value: body[key] as never },
+        create: {
+          campusId: user.campusId,
+          key: `campus.${key}`,
+          value: body[key] as never,
+        },
+      });
+    }
+    return ok(campusPayload(campus, await extras(user.campusId)));
   } catch (error) {
     return fail(error);
   }
