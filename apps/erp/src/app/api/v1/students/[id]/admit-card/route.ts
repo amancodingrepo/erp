@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { validationError } from "@/lib/errors";
 import { fail, ok } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
-import { studentMarksheet } from "@/lib/services/exams";
+import { studentAdmitCard } from "@/lib/services/exams";
 
 export async function GET(
   request: Request,
@@ -10,18 +11,18 @@ export async function GET(
   try {
     const user = await requireApiPermission(request, "exams", "marks", "view");
     const { id } = await context.params;
-    const params = new URL(request.url).searchParams;
-    const result = await studentMarksheet({
+    const examId = new URL(request.url).searchParams.get("examId");
+    if (!examId) throw validationError({ examId: "required" });
+    const result = await studentAdmitCard({
       campusId: user.campusId,
       studentId: id,
-      examId: params.get("examId") ?? undefined,
-      examGroupId: params.get("examGroupId") ?? undefined,
+      examId,
     });
-    if (params.get("format") === "pdf") {
+    if (new URL(request.url).searchParams.get("format") === "pdf") {
       return new NextResponse(Buffer.from(result.pdf), {
         headers: {
           "content-type": "application/pdf",
-          "content-disposition": `inline; filename="marksheet-${id}.pdf"`,
+          "content-disposition": `inline; filename="admit-card-${id}.pdf"`,
         },
       });
     }

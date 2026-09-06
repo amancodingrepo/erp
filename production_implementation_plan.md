@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 5 Attendance implemented 2026-09-06. **Resume at Task 6 (Exams).** Branch `main`.
+**Execution:** Subagent-driven. Task 6 Exams implemented 2026-09-06. **Resume at Task 7 (Staff directory / notices / settings).** Branch `main`.
 
 ### Progress
 
@@ -19,9 +19,10 @@
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
 | 3 Students SIS | **Done** | `cb08823` |
 | 4 Fees production | **Done** | `19ace1e` |
-| 5 Attendance + leave | **Done** | — |
-| 6 Examinations production | **Next** | — |
-| 7–13 Staff/portals through acceptance | Pending | — |
+| 5 Attendance + leave | **Done** | `867e948` |
+| 6 Examinations production | **Done** | — |
+| 7 Staff directory + notices + settings | **Next** | — |
+| 8–13 Portals through acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -47,7 +48,7 @@
 | Students | Full create, 360, CSV import (all-or-nothing), rolls, documents, category/disable-reason masters | Same (Task 3 done). Seed still needs student1/parent1 roster (Task 8) |
 | Fees | Assign master, line collect, idempotent pay, contra cancel, ledger, due search, PDF receipt | Same (Task 4 done). Razorpay still Phase B |
 | Attendance | Working-day check, holiday override, lock after N days, LEAVE on approve, staff attendance | Same (Task 5 done) |
-| Exams | Group/exam/subject/marks/finalize; promotion does not delete marks | Cascade filters, roster, draft/finalize, result block → withheld, PDF |
+| Exams | Cascade mark entry, roster, draft/finalize, withheld marksheet, grades, PDF | Same (Task 6 done) |
 | RBAC | Nav gated by permission + module flags; optional modules seeded off; SuperAdmin last-admin 409 | Same + student/parent IDOR tests (Task 8) |
 | Auth | Strong local `AUTH_SECRET`; health; forgot/set-password; JWT `studentId`/`guardianId`/`childIds` | Portals using those claims; Argon2id (Task 12) |
 | Audit | `writeAudit` on fee pay, mark finalize, student disable, role PUT; `AuditLog.campusId` | Also draft mark saves (Task 6) |
@@ -331,7 +332,7 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 
 ---
 
-### Task 6: Examinations production
+### Task 6: Examinations production — DONE
 
 **Spec:** `09-examinations.md`, `mark-entry-live.md`, acceptance Exams
 
@@ -344,19 +345,19 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Replace mark entry UI: cascade exam group → exam → class → section → subject → grid (Student ID, Roll, Name, Absent, Marks, Max)
 - Wire: `/staff/examgroup`, `/staff/examgroup/mark-entry-single-subject`, `/staff/examresult`, `/staff/examresult/exam-result-block-unblock`, `/staff/grade`
 
-- [ ] **Step 1:** Tests: Regular + COLLEGE_GRADE group; subject max 100 min 40; absent student; finalize → teacher PUT 403; block → marksheet `{ status: "withheld" }`; ATKT groupKind independent.
+- [x] **Step 1:** Tests: Regular + COLLEGE_GRADE group; subject max 100 min 40; absent student; finalize → teacher PUT 403; block → marksheet `{ status: "withheld" }`; ATKT groupKind independent.
 
-- [ ] **Step 2:** Roster GET from current enrollments of exam’s classes.
+- [x] **Step 2:** Roster GET from current enrollments of exam’s classes.
 
-- [ ] **Step 3:** Marks PUT is draft until finalize; `finalizedAt` on all rows; only Principal/SuperAdmin after.
+- [x] **Step 3:** Marks PUT is draft until finalize; `finalizedAt` on all rows; only Principal/SuperAdmin after.
 
-- [ ] **Step 4:** Result block: `ExamMark.updateMany` where student + exam subjects in that `examGroupId` set `isBlocked`. Marksheet returns `{ status: "withheld", marks: [] }`.
+- [x] **Step 4:** Result block: `ExamMark.updateMany` where student + exam subjects in that `examGroupId` set `isBlocked`. Marksheet returns `{ status: "withheld", marks: [] }`.
 
-- [ ] **Step 5:** PDF marksheet/admit card from campus letterhead settings. Placeholders: student name, roll, exam, subjects table.
+- [x] **Step 5:** PDF marksheet/admit card from campus letterhead settings. Placeholders: student name, roll, exam, subjects table.
 
-- [ ] **Step 6:** Grades CRUD (`Grade` model already in schema).
+- [x] **Step 6:** Grades CRUD (`Grade` model already in schema).
 
-- [ ] **Step 7:** Commit `feat: exam mark entry finalize withheld pdf`
+- [x] **Step 7:** Commit `feat: exam mark entry finalize withheld pdf`
 
 ---
 

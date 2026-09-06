@@ -14,6 +14,7 @@ import UsersPage from "@/app/(staff)/staff/users/page";
 import StudentsOps from "@/components/modules/students-ops";
 import FeesOps from "@/components/modules/fees-ops";
 import AttendanceOps from "@/components/modules/attendance-ops";
+import ExamsOps from "@/components/modules/exams-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -46,6 +47,10 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/examgroup": () => <ExamsPage />,
   "/staff/examgroup/mark-entry-single-subject": () => <ExamsPage />,
   "/staff/examgroup/mark-entry-subjectwise": () => <ExamsPage />,
+  "/staff/examresult": () => <ExamsOps mode="results" />,
+  "/staff/examresult/exam-result-block-unblock": () => <ExamsOps mode="block" />,
+  "/staff/examresult/marksheet": () => <ExamsOps mode="results" />,
+  "/staff/grade": () => <ExamsOps mode="grades" />,
   "/staff/classes": () => <AcademicsHub tab="classes" />,
   "/staff/sections": () => <AcademicsHub tab="sections" />,
   "/staff/subject": () => <AcademicsHub tab="subjects" />,

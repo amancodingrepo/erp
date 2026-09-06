@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         campusId: user.campusId,
         ...(sessionId ? { sessionId } : {}),
       },
-      include: { exams: true },
+      include: { exams: { include: { subjects: true } } },
       orderBy: { name: "asc" },
     });
     return ok({ data });
