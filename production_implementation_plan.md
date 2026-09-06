@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 9 search/letterhead implemented 2026-09-06. **Resume at Task 10 (first-class reports).** Branch `main`.
+**Execution:** Subagent-driven. Task 10 reports implemented 2026-09-06. **Resume at Task 11 (hide unwired screens).** Branch `main`.
 
 ### Progress
 
@@ -23,9 +23,10 @@
 | 6 Examinations production | **Done** | `09bc265` |
 | 7 Staff directory + notices + settings | **Done** | `1f15b4a` |
 | 8 Student and parent portals | **Done** | `fcd51d2` |
-| 9 Files, PDF letterhead, command palette | **Done** | — |
-| 10 First-class reports | **Next** | — |
-| 11–13 Hide screens, security, acceptance | Pending | — |
+| 9 Files, PDF letterhead, command palette | **Done** | `a13ad9c` |
+| 10 First-class reports | **Done** | — |
+| 11 Hide unwired screens | **Next** | — |
+| 12–13 Security and acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -452,7 +453,7 @@ it("student cannot collect fees", async () => {
 
 ---
 
-### Task 10: First-class reports (not 148 views)
+### Task 10: First-class reports (not 148 views) — DONE
 
 **Spec:** `14-reports-settings.md` rebuild approach
 
@@ -476,11 +477,11 @@ it("student cannot collect fees", async () => {
 - Create: `src/app/api/v1/reports/[key]/route.ts` → `{ columns, rows }` + `?format=csv`
 - Wire matching `/staff/report/...` and `/staff/attendencereports/attendance` etc. to a shared `ReportView` component (filters + table + CSV)
 
-- [ ] **Step 1:** One report test: due report only unpaid lines of selected fee group.
+- [x] **Step 1:** One report test: due report only unpaid lines of selected fee group.
 
-- [ ] **Step 2:** Shared `ReportView` component; no copy-paste tables.
+- [x] **Step 2:** Shared `ReportView` component; no copy-paste tables.
 
-- [ ] **Step 3:** Commit `feat: first-class reports csv`
+- [x] **Step 3:** Commit `feat: first-class reports csv`
 
 ---
 

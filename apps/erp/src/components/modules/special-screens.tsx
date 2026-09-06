@@ -16,6 +16,7 @@ import FeesOps from "@/components/modules/fees-ops";
 import AttendanceOps from "@/components/modules/attendance-ops";
 import ExamsOps from "@/components/modules/exams-ops";
 import CampusOps from "@/components/modules/campus-ops";
+import ReportView from "@/components/modules/report-view";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -68,6 +69,16 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/notification": () => <CampusOps mode="notices" />,
   "/staff/schsettings": () => <CampusOps mode="settings" />,
   "/staff/print-headerfooter": () => <CampusOps mode="letterhead" />,
+  "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
+  "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
+  "/staff/attendencereports/attendance": () => (
+    <ReportView reportKey="attendance-percent" />
+  ),
+  "/staff/examresult/examinations": () => <ReportView reportKey="exam-results" />,
+  "/staff/userlog": () => <ReportView reportKey="user-log" />,
+  "/staff/userlog/payment-log": () => <ReportView reportKey="payment-log" />,
+  "/staff/audit": () => <ReportView reportKey="audit" />,
+  "/staff/report/human-resource": () => <ReportView reportKey="staff" />,
 };
 
 export function SpecialScreen({
