@@ -42,16 +42,9 @@ The acceptance matrix in `src/test/acceptance/` is one Vitest `it()` per bullet 
 
 ## Railway (test deploy)
 
-The app lives in `apps/erp` (isolated from the rest of the repo). Railway builds the Dockerfile here, runs Prisma migrations + seed, then `next start`.
+See **`../../RAILWAY.md`** (repo root). Set the Railway service **Root Directory** to `apps/erp`.
 
-1. From this directory (`apps/erp`):
-
-```bash
-railway up -y --path-as-root -m "erp test deploy"
-```
-
-2. Add Postgres in the same project (`railway add --database postgres --json`).
-3. On the **web** service set:
+On the **web** service set:
 
 | Variable | Value |
 |---|---|
