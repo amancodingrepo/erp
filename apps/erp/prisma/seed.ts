@@ -219,7 +219,11 @@ async function main() {
 
   for (const id of OPTIONAL_MODULES) {
     const key = `module.${id}.enabled`;
-    const enabled = id === "admission" || id === "hostel" || id === "transport";
+    const enabled =
+      id === "admission" ||
+      id === "hostel" ||
+      id === "transport" ||
+      id === "certificates";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
       update: { value: enabled },
@@ -268,6 +272,22 @@ async function main() {
       name: "fee_due",
       subject: "Fee reminder — {{campus}}",
       body: "Dear {{name}}, your outstanding balance is {{balance}}.",
+    },
+  });
+  await prisma.printTemplate.upsert({
+    where: {
+      campusId_kind_name: {
+        campusId: campus.id,
+        kind: "CERTIFICATE",
+        name: "Bonafide",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      kind: "CERTIFICATE",
+      name: "Bonafide",
+      body: "This is to certify that {{name}} ({{admissionNo}}) is a bona fide student of {{campus}}, class {{class}} / {{section}}.",
     },
   });
 

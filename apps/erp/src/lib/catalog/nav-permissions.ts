@@ -122,6 +122,13 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/mailsms": "communicate.notice.view",
   "/staff/mailsms/schedule": "communicate.notice.view",
   "/staff/feereminder/setting": "fees.collect.view",
+  "/staff/studentidcard": "students.profile.view",
+  "/staff/generateidcard/search": "students.profile.view",
+  "/staff/certificate": "students.profile.view",
+  "/staff/generatecertificate": "students.profile.view",
+  "/staff/staffidcard": "hr.staff.view",
+  "/staff/generatestaffidcard": "hr.staff.view",
+  "/staff/certificate-report": "students.profile.view",
   "/staff/paymentsettings": "settings.campus.view",
 };
 

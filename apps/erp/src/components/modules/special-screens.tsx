@@ -21,6 +21,7 @@ import AdmissionOps from "@/components/modules/admission-ops";
 import PaymentOps from "@/components/modules/payment-ops";
 import HousingOps from "@/components/modules/housing-ops";
 import CommsOps from "@/components/modules/comms-ops";
+import CertificateOps from "@/components/modules/certificate-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -101,6 +102,13 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/mailsms": () => <CommsOps mode="log" />,
   "/staff/mailsms/schedule": () => <CommsOps mode="log" />,
   "/staff/feereminder/setting": () => <CommsOps mode="reminder" />,
+  "/staff/studentidcard": () => <CertificateOps mode="id-design" />,
+  "/staff/generateidcard/search": () => <CertificateOps mode="id-generate" />,
+  "/staff/certificate": () => <CertificateOps mode="cert-design" />,
+  "/staff/generatecertificate": () => <CertificateOps mode="cert-generate" />,
+  "/staff/staffidcard": () => <CertificateOps mode="staff-id" />,
+  "/staff/generatestaffidcard": () => <CertificateOps mode="staff-id" />,
+  "/staff/certificate-report": () => <CertificateOps mode="report" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

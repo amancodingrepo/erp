@@ -57,6 +57,8 @@ model Campus {
   vehicles         Vehicle[]
   messageTemplates MessageTemplate[]
   messageLogs      MessageLog[]
+  printTemplates   PrintTemplate[]
+  certificateIssues CertificateIssue[]
 }
 
 model AcademicSession {
@@ -997,6 +999,29 @@ model MessageTemplate {
   body      String
   createdAt DateTime @default(now())
   @@unique([campusId, channel, name])
+}
+
+model PrintTemplate {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  kind      String
+  name      String
+  body      String
+  createdAt DateTime @default(now())
+  @@unique([campusId, kind, name])
+}
+
+model CertificateIssue {
+  id         String   @id @default(cuid())
+  campusId   String
+  campus     Campus   @relation(fields: [campusId], references: [id])
+  templateId String?
+  studentId  String?
+  staffId    String?
+  title      String
+  createdAt  DateTime @default(now())
+  @@index([campusId, createdAt])
 }
 
 model MessageLog {
