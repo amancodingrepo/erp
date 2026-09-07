@@ -219,12 +219,24 @@ async function main() {
 
   for (const id of OPTIONAL_MODULES) {
     const key = `module.${id}.enabled`;
+    const enabled = id === "admission";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
-      update: { value: false },
-      create: { campusId: campus.id, key, value: false },
+      update: { value: enabled },
+      create: { campusId: campus.id, key, value: enabled },
     });
   }
+  await prisma.setting.upsert({
+    where: {
+      campusId_key: { campusId: campus.id, key: "admission.applicationFee" },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      key: "admission.applicationFee",
+      value: 500,
+    },
+  });
 
   const demoDept = await prisma.department.upsert({
     where: { id: "seed-dept-demo" },

@@ -17,6 +17,7 @@ import AttendanceOps from "@/components/modules/attendance-ops";
 import ExamsOps from "@/components/modules/exams-ops";
 import CampusOps from "@/components/modules/campus-ops";
 import ReportView from "@/components/modules/report-view";
+import AdmissionOps from "@/components/modules/admission-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -70,6 +71,10 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/schsettings": () => <CampusOps mode="settings" />,
   "/staff/print-headerfooter": () => <CampusOps mode="letterhead" />,
   "/staff/module": () => <CampusOps mode="modules" />,
+  "/staff/onlinestudent": () => <AdmissionOps mode="inbox" />,
+  "/staff/onlineadmission/admissionsetting": () => (
+    <AdmissionOps mode="settings" />
+  ),
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

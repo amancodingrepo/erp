@@ -112,6 +112,10 @@ function LoginForm() {
             <Link href="/forgot-password" className="underline-offset-4 hover:underline">
               Forgot password
             </Link>
+            {" · "}
+            <Link href="/apply" className="underline-offset-4 hover:underline">
+              Online admission
+            </Link>
           </p>
         </form>
       </div>

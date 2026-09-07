@@ -143,6 +143,14 @@ describe("nav gating", () => {
     expect(hrefs).not.toContain("/staff/railway-concession");
   });
 
+  it("shows online application inbox when admission is enabled", () => {
+    const admin = principal({ roles: ["SuperAdmin"], permissions: [] });
+    const groups = filterNav(NAV, admin, { admission: true });
+    const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).toContain("/staff/onlinestudent");
+    expect(hrefs).toContain("/staff/onlineadmission/admissionsetting");
+  });
+
   it("lets SuperAdmin demo an enabled optional module as empty-state nav", () => {
     const admin = principal({ roles: ["SuperAdmin"], permissions: [] });
     const groups = filterNav(NAV, admin, { hostel: true });

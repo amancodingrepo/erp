@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 13 acceptance matrix implemented 2026-09-06. **v1 plan complete (Tasks 0–13).** Branch `main`.
+**Execution:** Subagent-driven. Phase B-1 online admission in progress 2026-09-06. Branch `main`.
 
 ### Progress
 
@@ -559,7 +559,7 @@ Manual (still required):
 
 Order from `16-rebuild-blueprint.md`:
 
-1. Online admission public form + application fee (`05-admissions.md`)
+1. Online admission public form + application fee (`05-admissions.md`) — **done** (`/apply`, staff inbox, enroll after fee)
 2. Razorpay/Cashfree webhook + multi-merchant mapping
 3. Merit/cutoff batch job (only if government college)
 4. Hostel + transport + fee heads

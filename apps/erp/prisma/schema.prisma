@@ -48,6 +48,7 @@ model Campus {
   staff        Staff[]
   settings     Setting[]
   auditLogs    AuditLog[]
+  applications Application[]
 }
 
 model AcademicSession {
@@ -211,6 +212,7 @@ model Program {
   durationYears Int         @default(3)
   classes      Class[]
   specializations Specialization[]
+  applications Application[]
 }
 
 model Specialization {
@@ -326,6 +328,42 @@ model DisableReason {
   name     String
 }
 
+enum ApplicationStatus {
+  APPLIED
+  FEE_PAID
+  ENROLLED
+  REJECTED
+}
+
+model Application {
+  id             String            @id @default(cuid())
+  campusId       String
+  campus         Campus            @relation(fields: [campusId], references: [id])
+  applicationNo  String
+  firstName      String
+  lastName       String?
+  email          String?
+  mobile         String?
+  dob            DateTime?         @db.Date
+  gender         Gender?
+  fatherName     String?
+  programId      String?
+  program        Program?          @relation(fields: [programId], references: [id])
+  feeAmount      Decimal           @db.Decimal(12, 2)
+  feePaid        Decimal           @default(0) @db.Decimal(12, 2)
+  paymentStatus  String            @default("UNPAID")
+  paymentMethod  String?
+  status         ApplicationStatus @default(APPLIED)
+  studentId      String?           @unique
+  student        Student?          @relation(fields: [studentId], references: [id])
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([campusId, applicationNo])
+  @@index([campusId, status])
+}
+
 model Student {
   id             String         @id @default(cuid())
   campusId       String
@@ -387,6 +425,7 @@ model Student {
   invoices       FeeInvoice[]
   attendances    StudentAttendance[]
   marks          ExamMark[]
+  application    Application?
 
   @@unique([campusId, admissionNo])
   @@index([campusId, enrollmentNo])
