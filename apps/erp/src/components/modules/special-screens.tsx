@@ -24,6 +24,7 @@ import CommsOps from "@/components/modules/comms-ops";
 import CertificateOps from "@/components/modules/certificate-ops";
 import FrontOfficeOps from "@/components/modules/front-office-ops";
 import LibraryOps from "@/components/modules/library-ops";
+import ExamFormOps from "@/components/modules/exam-form-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -118,6 +119,14 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/member": () => <LibraryOps mode="issue" />,
   "/staff/member/student": () => <LibraryOps mode="student-member" />,
   "/staff/member/teacher": () => <LibraryOps mode="staff-member" />,
+  "/staff/atkt-form/admissionsetting": () => <ExamFormOps mode="atkt-settings" />,
+  "/staff/revaluation-form/revaluationformsetting": () => (
+    <ExamFormOps mode="reval-settings" />
+  ),
+  "/staff/atkt-form/atkt-form-student": () => <ExamFormOps mode="atkt-apply" />,
+  "/staff/atkt-form/edit-atkt-form-student": () => <ExamFormOps mode="atkt-apply" />,
+  "/staff/examgroup/revaluation-form": () => <ExamFormOps mode="reval-apply" />,
+  "/staff/atkt-form/atkt-form-report": () => <ExamFormOps mode="report" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

@@ -136,6 +136,12 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/member": "students.profile.edit",
   "/staff/member/student": "students.profile.edit",
   "/staff/member/teacher": "students.profile.edit",
+  "/staff/atkt-form/atkt-form-student": "exams.group.create",
+  "/staff/atkt-form/edit-atkt-form-student": "exams.group.create",
+  "/staff/atkt-form/admissionsetting": "exams.group.create",
+  "/staff/atkt-form/atkt-form-report": "exams.group.view",
+  "/staff/examgroup/revaluation-form": "exams.group.create",
+  "/staff/revaluation-form/revaluationformsetting": "exams.group.create",
   "/staff/paymentsettings": "settings.campus.view",
 };
 
@@ -170,7 +176,7 @@ export function optionalModuleForItem(item: {
 }): string | null {
   if (item.href.includes("updater")) return "updater";
   if (item.href.includes("railway")) return "railway";
-  if (item.href.includes("atkt")) return "atkt";
+  if (item.href.includes("atkt") || item.href.includes("revaluation")) return "atkt";
   if (item.href.includes("seating-arrangement")) return "seating";
   if (item.href.includes("onlineexam")) return "onlineexam";
   if (item.href.startsWith("/staff/gmeet") || item.href.includes("/gmeet")) {

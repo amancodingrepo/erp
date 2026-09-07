@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePortal } from "@/lib/use-portal";
 
 export function DashboardView() {
@@ -169,6 +169,7 @@ export function ExamsView() {
       <div>
         <h1 className="font-display text-4xl">Exams</h1>
         <p className="mt-3 text-sm">Result withheld</p>
+        <ExamFormApply />
       </div>
     );
   }
@@ -191,6 +192,67 @@ export function ExamsView() {
           Marksheet PDF
         </a>
       ) : null}
+      <ExamFormApply />
+    </div>
+  );
+}
+
+function ExamFormApply() {
+  const [windows, setWindows] = useState<
+    Array<{
+      id: string;
+      kind: string;
+      feeAmount: string;
+      examGroup: { name: string; subjects: Array<{ id: string; exam: string }> };
+    }>
+  >([]);
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/v1/portal/exam-forms")
+      .then((r) => r.json())
+      .then((j) => setWindows(j.data ?? []));
+  }, []);
+  if (!windows.length) return null;
+  async function apply(windowId: string, subjectIds: string[]) {
+    const res = await fetch("/api/v1/portal/exam-forms", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ windowId, subjectIds }),
+    });
+    const json = await res.json();
+    setMessage(res.ok ? `Submitted, fee ₹${json.feeAmount}` : json.message ?? json.error);
+  }
+  return (
+    <div className="mt-6 space-y-3">
+      <h2 className="font-display text-2xl">ATKT / revaluation</h2>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      {windows.map((w) => (
+        <form
+          key={w.id}
+          className="space-y-2 text-sm"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const ids = new FormData(event.currentTarget)
+              .getAll("subjectIds")
+              .map(String);
+            apply(w.id, ids);
+          }}
+        >
+          <p>
+            {w.kind} · {w.examGroup.name} · ₹{w.feeAmount}
+          </p>
+          <select name="subjectIds" multiple required className="w-full border px-2 py-1">
+            {w.examGroup.subjects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.exam}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="underline">
+            Apply
+          </button>
+        </form>
+      ))}
     </div>
   );
 }

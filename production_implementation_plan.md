@@ -567,7 +567,7 @@ Order from `16-rebuild-blueprint.md`:
 6. ID cards / certificates templates — **done**
 7. Enquiry CRM (front office) — **done**
 8. Library issue/return — **done**
-9. ATKT + revaluation windows
+9. ATKT + revaluation windows — **done**
 
 ## Phase C (accreditation / university)
 

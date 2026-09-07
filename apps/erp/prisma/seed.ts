@@ -225,7 +225,8 @@ async function main() {
       id === "transport" ||
       id === "certificates" ||
       id === "front-office" ||
-      id === "library";
+      id === "library" ||
+      id === "atkt";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
       update: { value: enabled },
