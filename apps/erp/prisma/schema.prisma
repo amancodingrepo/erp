@@ -65,6 +65,7 @@ model Campus {
   books            Book[]
   libraryMembers   LibraryMember[]
   examFormWindows  ExamFormWindow[]
+  naacCriteria     NaacCriterion[]
 }
 
 model AcademicSession {
@@ -928,6 +929,54 @@ model ExamForm {
   @@unique([studentId, examGroupId, kind])
 }
 
+enum NaacAssignmentStatus {
+  OPEN
+  DONE
+}
+
+model NaacCriterion {
+  id       String     @id @default(cuid())
+  campusId String
+  campus   Campus     @relation(fields: [campusId], references: [id])
+  number   Int
+  title    String
+  tasks    NaacTask[]
+  @@unique([campusId, number])
+}
+
+model NaacTask {
+  id               String           @id @default(cuid())
+  campusId         String
+  criterionId      String
+  criterion        NaacCriterion    @relation(fields: [criterionId], references: [id])
+  title            String
+  keyIndicator     String?
+  dueOn            DateTime?        @db.Date
+  evidenceRequired Boolean          @default(true)
+  assignments      NaacAssignment[]
+  evidence         NaacEvidence[]
+  @@index([campusId, criterionId])
+}
+
+model NaacAssignment {
+  id        String                @id @default(cuid())
+  taskId    String
+  task      NaacTask              @relation(fields: [taskId], references: [id])
+  staffId   String
+  staff     Staff                 @relation(fields: [staffId], references: [id])
+  status    NaacAssignmentStatus  @default(OPEN)
+  @@unique([taskId, staffId])
+}
+
+model NaacEvidence {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      NaacTask @relation(fields: [taskId], references: [id])
+  note      String?
+  fileUrl   String
+  createdAt DateTime @default(now())
+}
+
 // ─── Staff ─────────────────────────────────────────────────
 
 model Designation {
@@ -958,6 +1007,7 @@ model Staff {
   photoUrl       String?
   attendances    StaffAttendance[]
   libraryMember  LibraryMember?
+  naacAssignments NaacAssignment[]
   @@unique([campusId, employeeId])
 }
 

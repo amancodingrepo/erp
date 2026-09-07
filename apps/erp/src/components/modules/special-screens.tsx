@@ -25,6 +25,7 @@ import CertificateOps from "@/components/modules/certificate-ops";
 import FrontOfficeOps from "@/components/modules/front-office-ops";
 import LibraryOps from "@/components/modules/library-ops";
 import ExamFormOps from "@/components/modules/exam-form-ops";
+import NaacOps from "@/components/modules/naac-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -127,6 +128,11 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/atkt-form/edit-atkt-form-student": () => <ExamFormOps mode="atkt-apply" />,
   "/staff/examgroup/revaluation-form": () => <ExamFormOps mode="reval-apply" />,
   "/staff/atkt-form/atkt-form-report": () => <ExamFormOps mode="report" />,
+  "/staff/naac/dashboard": () => <NaacOps mode="dashboard" />,
+  "/staff/naac": () => <NaacOps mode="tasks" />,
+  "/staff/naac/task-allocation": () => <NaacOps mode="allocate" />,
+  "/staff/naac/naac-report-master": () => <NaacOps mode="report" />,
+  "/staff/naac/naac-report": () => <NaacOps mode="report" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

@@ -571,7 +571,14 @@ Order from `16-rebuild-blueprint.md`:
 
 ## Phase C (accreditation / university)
 
-NAAC tasks + evidence, CO-PO mapping + attainment, feedback forms, Indian payroll statutory (PF/ESI/PT/TDS), seating arrangement, GMeet/Zoom as URL storage only.
+Order:
+
+1. NAAC tasks + evidence — **done**
+2. CO-PO mapping + attainment
+3. Feedback forms
+4. Indian payroll statutory (PF/ESI/PT/TDS)
+5. Seating arrangement
+6. GMeet/Zoom as URL storage only
 
 **Skip until a signed SOW:** canteen POS, railway concession, multi-branch, LMS/online course, system updater, visiting-staff payroll, chat.
 

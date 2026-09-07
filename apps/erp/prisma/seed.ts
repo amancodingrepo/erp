@@ -1,6 +1,7 @@
 import { ActorType, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { OPTIONAL_MODULES } from "../src/lib/catalog/nav-permissions";
+import { NAAC_CRITERIA } from "../src/lib/naac-criteria";
 import {
   PERMISSION_CATALOG,
   ROLE_GRANTS,
@@ -226,11 +227,19 @@ async function main() {
       id === "certificates" ||
       id === "front-office" ||
       id === "library" ||
-      id === "atkt";
+      id === "atkt" ||
+      id === "naac";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
       update: { value: enabled },
       create: { campusId: campus.id, key, value: enabled },
+    });
+  }
+  for (const row of NAAC_CRITERIA) {
+    await prisma.naacCriterion.upsert({
+      where: { campusId_number: { campusId: campus.id, number: row.number } },
+      update: { title: row.title },
+      create: { campusId: campus.id, number: row.number, title: row.title },
     });
   }
   await prisma.setting.upsert({

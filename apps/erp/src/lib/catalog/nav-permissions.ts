@@ -143,6 +143,11 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/examgroup/revaluation-form": "exams.group.create",
   "/staff/revaluation-form/revaluationformsetting": "exams.group.create",
   "/staff/paymentsettings": "settings.campus.view",
+  "/staff/naac/dashboard": "students.profile.view",
+  "/staff/naac": "students.profile.edit",
+  "/staff/naac/task-allocation": "students.profile.edit",
+  "/staff/naac/naac-report-master": "students.profile.view",
+  "/staff/naac/naac-report": "students.profile.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
