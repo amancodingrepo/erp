@@ -30,6 +30,7 @@ import CopoOps from "@/components/modules/copo-ops";
 import FeedbackOps from "@/components/modules/feedback-ops";
 import PayrollOps from "@/components/modules/payroll-ops";
 import SeatingOps from "@/components/modules/seating-ops";
+import LiveClassOps from "@/components/modules/live-class-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -165,6 +166,16 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/seating-arrangement": () => <SeatingOps mode="blocks" />,
   "/staff/seating-arrangement/assign-block": () => <SeatingOps mode="allocate" />,
   "/staff/seating-arrangement/report": () => <SeatingOps mode="report" />,
+  "/staff/gmeet/timetable": () => <LiveClassOps mode="gmeet" />,
+  "/staff/gmeet/meeting": () => <LiveClassOps mode="gmeet" />,
+  "/staff/gmeet/class-report": () => <LiveClassOps mode="gmeet-report" />,
+  "/staff/gmeet/meeting-report": () => <LiveClassOps mode="gmeet-report" />,
+  "/staff/gmeet": () => <LiveClassOps mode="settings" />,
+  "/staff/conference/timetable": () => <LiveClassOps mode="zoom" />,
+  "/staff/conference/meeting": () => <LiveClassOps mode="zoom" />,
+  "/staff/conference/class-report": () => <LiveClassOps mode="zoom-report" />,
+  "/staff/conference/meeting-report": () => <LiveClassOps mode="zoom-report" />,
+  "/staff/conference": () => <LiveClassOps mode="settings" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

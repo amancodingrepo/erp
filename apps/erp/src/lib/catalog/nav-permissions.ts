@@ -176,6 +176,16 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/seating-arrangement": "exams.group.create",
   "/staff/seating-arrangement/assign-block": "exams.group.create",
   "/staff/seating-arrangement/report": "exams.group.view",
+  "/staff/gmeet/timetable": "academics.class.create",
+  "/staff/gmeet/meeting": "academics.class.create",
+  "/staff/gmeet/class-report": "academics.class.view",
+  "/staff/gmeet/meeting-report": "academics.class.view",
+  "/staff/gmeet": "academics.class.view",
+  "/staff/conference/timetable": "academics.class.create",
+  "/staff/conference/meeting": "academics.class.create",
+  "/staff/conference/class-report": "academics.class.view",
+  "/staff/conference/meeting-report": "academics.class.view",
+  "/staff/conference": "academics.class.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
@@ -212,7 +222,11 @@ export function optionalModuleForItem(item: {
   if (item.href.includes("atkt") || item.href.includes("revaluation")) return "atkt";
   if (item.href.includes("seating-arrangement")) return "seating";
   if (item.href.includes("onlineexam")) return "onlineexam";
-  if (item.href.startsWith("/staff/gmeet") || item.href.includes("/gmeet")) {
+  if (
+    item.href.startsWith("/staff/gmeet") ||
+    item.href.includes("/gmeet") ||
+    item.href.startsWith("/staff/conference")
+  ) {
     return "gmeet";
   }
   if (item.href.startsWith("/staff/copo") || item.module === "outcomes") {

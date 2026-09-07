@@ -72,6 +72,7 @@ model Campus {
   payrollTaxSlabs  PayrollTaxSlab[]
   payrollRuns      PayrollRun[]
   seatingBlocks    SeatingBlock[]
+  liveClasses      LiveClass[]
 }
 
 model AcademicSession {
@@ -261,6 +262,7 @@ model Class {
   sections       Section[]
   enrollments    StudentEnrollment[]
   feedbackAssignments FeedbackAssignment[]
+  liveClasses    LiveClass[]
 }
 
 model Section {
@@ -283,6 +285,7 @@ model Subject {
   offerings  ClassSubject[]
   courseOutcomes CourseOutcome[]
   copoLessons    CopoLesson[]
+  liveClasses    LiveClass[]
 }
 
 model ClassSubject {
@@ -1145,6 +1148,29 @@ model FeedbackResponse {
   @@unique([assignmentId, respondentId])
 }
 
+enum LiveClassProvider {
+  GMEET
+  ZOOM
+}
+
+model LiveClass {
+  id           String            @id @default(cuid())
+  campusId     String
+  campus       Campus            @relation(fields: [campusId], references: [id])
+  provider     LiveClassProvider
+  title        String
+  meetingUrl   String
+  recordingUrl String?
+  startsAt     DateTime
+  classId      String?
+  class        Class?            @relation(fields: [classId], references: [id])
+  subjectId    String?
+  subject      Subject?          @relation(fields: [subjectId], references: [id])
+  staffId      String?
+  staff        Staff?            @relation(fields: [staffId], references: [id])
+  @@index([campusId, startsAt])
+}
+
 // ─── Staff ─────────────────────────────────────────────────
 
 model Designation {
@@ -1178,6 +1204,7 @@ model Staff {
   naacAssignments NaacAssignment[]
   payStructure    StaffPayStructure[]
   payrollSlips    PayrollSlip[]
+  liveClasses     LiveClass[]
   @@unique([campusId, employeeId])
 }
 
