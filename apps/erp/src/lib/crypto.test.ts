@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { decryptField, encryptField, maskId } from "./crypto";
+import {
+  decryptField,
+  encryptField,
+  fieldEncryptionKeyBytes,
+  maskId,
+} from "./crypto";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -16,5 +21,11 @@ describe("field encryption", () => {
   it("masks identifiers keeping last 4", () => {
     expect(maskId("123412341234")).toBe("********1234");
     expect(maskId(null)).toBeNull();
+  });
+
+  it("requires FIELD_ENCRYPTION_KEY in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("FIELD_ENCRYPTION_KEY", "");
+    expect(() => fieldEncryptionKeyBytes()).toThrow(/FIELD_ENCRYPTION_KEY/);
   });
 });

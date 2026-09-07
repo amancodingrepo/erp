@@ -1,9 +1,13 @@
 import { ActorType } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 import { forbidden, unauthenticated } from "./errors";
 import type { AuthPrincipal } from "./permissions";
 import { verifyAuthToken } from "./auth-token";
+import {
+  hashPassword,
+  passwordNeedsRehash,
+  verifyPassword,
+} from "./password";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
   staff: ActorType.STAFF,
@@ -67,13 +71,18 @@ export async function authenticateCredentials(input: {
   if (!user || !user.isActive) {
     throw unauthenticated();
   }
-  const matches = await bcrypt.compare(input.password, user.passwordHash);
+  const matches = await verifyPassword(input.password, user.passwordHash);
   if (!matches) {
     throw unauthenticated();
   }
   await prisma.user.update({
     where: { id: user.id },
-    data: { lastLoginAt: new Date() },
+    data: {
+      lastLoginAt: new Date(),
+      ...(passwordNeedsRehash(user.passwordHash)
+        ? { passwordHash: await hashPassword(input.password) }
+        : {}),
+    },
   });
   return loadPrincipal(user.id);
 }

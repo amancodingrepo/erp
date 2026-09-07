@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 11 hide-unwired implemented 2026-09-06. **Resume at Task 12 (security and ops hardening).** Branch `main`.
+**Execution:** Subagent-driven. Task 12 security/ops implemented 2026-09-06. **Resume at Task 13 (acceptance test suite).** Branch `main`.
 
 ### Progress
 
@@ -25,8 +25,9 @@
 | 8 Student and parent portals | **Done** | `fcd51d2` |
 | 9 Files, PDF letterhead, command palette | **Done** | `a13ad9c` |
 | 10 First-class reports | **Done** | `3934717` |
-| 11 Hide unwired screens | **Done** | — |
-| 12–13 Security and acceptance | Pending | — |
+| 11 Hide unwired screens | **Done** | `8b01ace` |
+| 12 Security and ops hardening | **Done** | — |
+| 13 Acceptance test suite | **Next** | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -499,7 +500,7 @@ it("student cannot collect fees", async () => {
 
 ---
 
-### Task 12: Security and ops hardening
+### Task 12: Security and ops hardening — DONE
 
 **Files:**
 - Create: `apps/erp/src/lib/rate-limit-db.ts` (table `LoginAttempt` or reuse existing map until table exists — prefer DB)
@@ -508,17 +509,17 @@ it("student cannot collect fees", async () => {
 - Create: `apps/erp/docs/ops-backup.md` (operator runs `pg_dump`; **do not** shell out `pg_dump` from a Next route)
 - Test: `src/test/login-rate-limit.test.ts`
 
-- [ ] **Step 1:** Failing test: 6th bad password → 429 (acceptance Auth). Persist attempts in DB so restart does not reset.
+- [x] **Step 1:** Failing test: 6th bad password → 429 (acceptance Auth). Persist attempts in DB so restart does not reset.
 
-- [ ] **Step 2:** Argon2id for new hashes; bcrypt.compare still accepted for seed admin until rehash on login.
+- [x] **Step 2:** Argon2id for new hashes; bcrypt.compare still accepted for seed admin until rehash on login.
 
-- [ ] **Step 3:** Security headers: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`.
+- [x] **Step 3:** Security headers: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`.
 
-- [ ] **Step 4:** `FIELD_ENCRYPTION_KEY` required when `NODE_ENV=production`.
+- [x] **Step 4:** `FIELD_ENCRYPTION_KEY` required when `NODE_ENV=production`.
 
-- [ ] **Step 5:** Backup runbook only. `/staff/updater` stays disabled forever.
+- [x] **Step 5:** Backup runbook only. `/staff/updater` stays disabled forever.
 
-- [ ] **Step 6:** Commit `chore: security ops hardening`
+- [x] **Step 6:** Commit `chore: security ops hardening`
 
 ---
 

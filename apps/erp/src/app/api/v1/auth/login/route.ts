@@ -3,8 +3,11 @@ import { signAuthToken } from "@/lib/auth-token";
 import { campusSummary } from "@/lib/campus";
 import { fail, ok, readJson } from "@/lib/http";
 import { authenticateCredentials } from "@/lib/principal";
-import { clearRateLimit, hitRateLimit } from "@/lib/rate-limit";
 import { rateLimited } from "@/lib/errors";
+import {
+  clearLoginRateLimit,
+  hitLoginRateLimit,
+} from "@/lib/rate-limit-db";
 
 const bodySchema = z.object({
   username: z.string().min(1),
@@ -17,11 +20,11 @@ export async function POST(request: Request) {
     const ip = request.headers.get("x-forwarded-for") ?? "local";
     const body = bodySchema.parse(await readJson(request));
     const key = `login:${body.username}:${ip}`;
-    if (hitRateLimit(key, 5)) {
+    if (await hitLoginRateLimit(key, 5)) {
       throw rateLimited();
     }
     const principal = await authenticateCredentials(body);
-    clearRateLimit(key);
+    await clearLoginRateLimit(key);
     const token = await signAuthToken(principal);
     const campus = await campusSummary(principal.campusId);
     const response = ok({

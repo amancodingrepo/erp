@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 import { notFound, validationError } from "./errors";
+import { hashPassword } from "./password";
 
 export const RESET_TTL_MS = 15 * 60 * 1000;
 
@@ -14,7 +14,7 @@ export function newResetToken() {
 }
 
 export async function randomPasswordHash() {
-  return bcrypt.hash(randomBytes(32).toString("hex"), 12);
+  return hashPassword(randomBytes(32).toString("hex"));
 }
 
 export async function issuePasswordReset(userId: string) {
@@ -41,7 +41,7 @@ export async function consumePasswordReset(token: string, nextPassword: string) 
     },
   });
   if (!row) throw notFound("reset token");
-  const passwordHash = await bcrypt.hash(nextPassword, 12);
+  const passwordHash = await hashPassword(nextPassword);
   await prisma.$transaction([
     prisma.user.update({
       where: { id: row.userId },

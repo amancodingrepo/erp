@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { rateLimited } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { issuePasswordReset } from "@/lib/password-reset";
-import { hitRateLimit } from "@/lib/rate-limit";
+import { hitLoginRateLimit } from "@/lib/rate-limit-db";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
   staff: ActorType.STAFF,
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for") ?? "local";
     const body = bodySchema.parse(await readJson(request));
-    if (hitRateLimit(`forgot:${body.username}:${ip}`, 5)) {
+    if (await hitLoginRateLimit(`forgot:${body.username}:${ip}`, 5)) {
       throw rateLimited();
     }
     const actorType = PORTAL_ACTOR[body.portal];

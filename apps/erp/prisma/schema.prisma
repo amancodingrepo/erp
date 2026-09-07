@@ -111,6 +111,12 @@ model User {
   @@index([campusId, email])
 }
 
+model LoginAttempt {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+}
+
 model Role {
   id       String  @id @default(cuid())
   campusId String?
