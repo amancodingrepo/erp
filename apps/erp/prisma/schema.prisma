@@ -59,6 +59,9 @@ model Campus {
   messageLogs      MessageLog[]
   printTemplates   PrintTemplate[]
   certificateIssues CertificateIssue[]
+  enquiries        Enquiry[]
+  visitors         Visitor[]
+  frontOfficeTypes FrontOfficeType[]
 }
 
 model AcademicSession {
@@ -999,6 +1002,48 @@ model MessageTemplate {
   body      String
   createdAt DateTime @default(now())
   @@unique([campusId, channel, name])
+}
+
+model FrontOfficeType {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  kind     String
+  name     String
+  @@unique([campusId, kind, name])
+}
+
+model Enquiry {
+  id             String    @id @default(cuid())
+  campusId       String
+  campus         Campus    @relation(fields: [campusId], references: [id])
+  name           String
+  phone          String?
+  email          String?
+  source         String?
+  classInterested String?
+  followUpOn     DateTime? @db.Date
+  remarks        String?
+  status         String    @default("UNASSIGNED")
+  assignedTo     String?
+  applicationId  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  @@index([campusId, status])
+}
+
+model Visitor {
+  id        String    @id @default(cuid())
+  campusId  String
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  name      String
+  phone     String?
+  purpose   String?
+  toMeet    String?
+  inAt      DateTime  @default(now())
+  outAt     DateTime?
+  note      String?
+  @@index([campusId, inAt])
 }
 
 model PrintTemplate {

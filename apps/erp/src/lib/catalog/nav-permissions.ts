@@ -129,6 +129,9 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/staffidcard": "hr.staff.view",
   "/staff/generatestaffidcard": "hr.staff.view",
   "/staff/certificate-report": "students.profile.view",
+  "/staff/enquiry": "students.profile.view",
+  "/staff/visitors": "students.profile.view",
+  "/staff/visitorspurpose": "students.profile.edit",
   "/staff/paymentsettings": "settings.campus.view",
 };
 
