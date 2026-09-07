@@ -7,7 +7,7 @@ import { studentMarksheet } from "@/lib/services/exams";
 import { studentLedger } from "@/lib/services/fees";
 
 export async function portalDashboard(user: AuthPrincipal, childId?: string) {
-  let studentId =
+  const studentId =
     user.actorType === ActorType.STUDENT
       ? user.studentId
       : childId && user.childIds?.includes(childId)

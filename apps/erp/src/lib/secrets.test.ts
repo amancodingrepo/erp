@@ -56,4 +56,11 @@ describe("requireAuthSecret", () => {
     vi.stubEnv("AUTH_SECRET", secret);
     expect(requireAuthSecret()).toBe(secret);
   });
+
+  it("allows next build to collect pages without AUTH_SECRET", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PHASE", "phase-production-build");
+    vi.stubEnv("AUTH_SECRET", "");
+    expect(requireAuthSecret()).toBe("dev-only-not-for-production");
+  });
 });

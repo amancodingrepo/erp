@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "ci": "vitest run && npm run build",
     "catalog": "node scripts/generate-catalog.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

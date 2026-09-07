@@ -9,7 +9,7 @@ import ExamsPage from "@/app/(staff)/staff/exams/page";
 import CollectFeesPage from "@/app/(staff)/staff/fees/collect/page";
 import RolesPage from "@/app/(staff)/staff/roles/page";
 import CreateStudentPage from "@/app/(staff)/staff/students/create/page";
-import StudentsPage from "@/app/(staff)/staff/students/page";
+import StudentsList from "@/components/modules/students-list";
 import UsersPage from "@/app/(staff)/staff/users/page";
 import StudentsOps from "@/components/modules/students-ops";
 import FeesOps from "@/components/modules/fees-ops";
@@ -21,10 +21,10 @@ import ReportView from "@/components/modules/report-view";
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
   "/staff/admin/dashboard": () => <DashboardPage />,
-  "/staff/student/search": () => <StudentsPage />,
+  "/staff/student/search": () => <StudentsList />,
   "/staff/student/create": () => <CreateStudentPage />,
   "/staff/student/disablestudentslist": () => (
-    <StudentsPage defaultStatus="DISABLED" />
+    <StudentsList defaultStatus="DISABLED" />
   ),
   "/staff/student/generaterollnumber": () => <StudentsOps mode="rolls" />,
   "/staff/student/student-bulk-upload": () => <StudentsOps mode="import" />,

@@ -183,7 +183,7 @@ async function replayInvoice(tx: Prisma.TransactionClient, invoiceId: string) {
     .filter((p) => !p.cancelledAt && dec(p.amount).gt(0))
     .sort((a, b) => a.paidAt.getTime() - b.paidAt.getTime() || a.createdAt.getTime() - b.createdAt.getTime());
 
-  let lines = invoice.lines.map((l) => ({
+  const lines = invoice.lines.map((l) => ({
     ...l,
     paid: ZERO,
     discount: ZERO,

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Task 12 security/ops implemented 2026-09-06. **Resume at Task 13 (acceptance test suite).** Branch `main`.
+**Execution:** Subagent-driven. Task 13 acceptance matrix implemented 2026-09-06. **v1 plan complete (Tasks 0–13).** Branch `main`.
 
 ### Progress
 
@@ -522,7 +522,7 @@ it("student cannot collect fees", async () => {
 
 ---
 
-### Task 13: Acceptance test suite (gate to call it production)
+### Task 13: Acceptance test suite (gate to call it production) — DONE
 
 **Files:** `apps/erp/src/app/api/acceptance/` or `apps/erp/src/test/acceptance/*.test.ts` using Prisma test DB.
 
@@ -549,9 +549,9 @@ Manual (still required):
 9. Disable student → cannot login
 10. Turn module hostel off → nav gone
 
-- [ ] **Step 1:** CI script `npm test && npm run build` documented in `apps/erp/README.md`.
+- [x] **Step 1:** CI script `npm test && npm run build` documented in `apps/erp/README.md`.
 
-- [ ] **Step 2:** Commit `test: production acceptance matrix`
+- [x] **Step 2:** Commit `test: production acceptance matrix`
 
 ---
 
