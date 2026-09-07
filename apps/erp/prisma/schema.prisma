@@ -49,6 +49,7 @@ model Campus {
   settings     Setting[]
   auditLogs    AuditLog[]
   applications Application[]
+  cutoffRules      CutoffRule[]
   paymentMerchants PaymentMerchant[]
   gatewayOrders    GatewayOrder[]
 }
@@ -215,6 +216,7 @@ model Program {
   classes      Class[]
   specializations Specialization[]
   applications Application[]
+  cutoffRules  CutoffRule[]
 }
 
 model Specialization {
@@ -359,11 +361,28 @@ model Application {
   studentId      String?           @unique
   student        Student?          @relation(fields: [studentId], references: [id])
   notes          String?
+  score          Decimal?          @db.Decimal(8, 2)
+  categoryCode   String?
+  meritRank      Int?
+  cutoffRound    Int?
+  selectionStatus String           @default("PENDING")
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   @@unique([campusId, applicationNo])
   @@index([campusId, status])
+}
+
+model CutoffRule {
+  id           String  @id @default(cuid())
+  campusId     String
+  campus       Campus  @relation(fields: [campusId], references: [id])
+  programId    String
+  program      Program @relation(fields: [programId], references: [id])
+  roundNo      Int
+  categoryCode String
+  minScore     Decimal @db.Decimal(8, 2)
+  @@unique([campusId, programId, roundNo, categoryCode])
 }
 
 model Student {

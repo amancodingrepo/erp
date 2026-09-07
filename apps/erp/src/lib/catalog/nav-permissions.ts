@@ -100,6 +100,10 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/module": "settings.modules.view",
   "/staff/onlinestudent": "students.profile.view",
   "/staff/onlineadmission/admissionsetting": "settings.campus.view",
+  "/staff/admission/cutofflist": "students.profile.edit",
+  "/staff/admission/importapplication": "students.profile.create",
+  "/staff/admission/generatemeritlist": "students.profile.edit",
+  "/staff/admission/manageadmission": "students.profile.edit",
   "/staff/paymentsettings": "settings.campus.view",
 };
 

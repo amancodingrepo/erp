@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
-type Mode = "inbox" | "settings";
+type Mode = "inbox" | "settings" | "cutoff" | "import" | "generate" | "manage";
 type Row = {
   id: string;
   applicationNo: string;
@@ -25,6 +25,10 @@ const SELECT =
 
 export default function AdmissionOps({ mode }: { mode: Mode }) {
   if (mode === "settings") return <SettingsPanel />;
+  if (mode === "cutoff") return <CutoffPanel />;
+  if (mode === "import") return <ImportPanel />;
+  if (mode === "generate") return <GeneratePanel />;
+  if (mode === "manage") return <ManagePanel />;
   return <InboxPanel />;
 }
 
@@ -226,5 +230,231 @@ function EnrollForm({
         Enroll
       </Button>
     </form>
+  );
+}
+
+function CutoffPanel() {
+  const [programs, setPrograms] = useState<Array<{ id: string; name: string }>>([]);
+  const [rows, setRows] = useState<
+    Array<{ id: string; program: string; roundNo: number; categoryCode: string; minScore: string }>
+  >([]);
+  const [message, setMessage] = useState<string | null>(null);
+  async function load() {
+    const [p, c] = await Promise.all([
+      fetch("/api/v1/programs").then((r) => r.json()),
+      fetch("/api/v1/admission/cutoffs").then((r) => r.json()),
+    ]);
+    setPrograms(p.data ?? []);
+    setRows(c.data ?? []);
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/admission/cutoffs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        programId: form.get("programId"),
+        roundNo: Number(form.get("roundNo")),
+        categoryCode: form.get("categoryCode"),
+        minScore: form.get("minScore"),
+      }),
+    });
+    setMessage(res.ok ? "Cutoff saved" : "Could not save");
+    load();
+  }
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Cutoff setup</h1>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid gap-3" onSubmit={onSubmit}>
+        <select name="programId" className={SELECT} required>
+          {programs.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <Input name="roundNo" type="number" min={1} defaultValue={1} required />
+        <Input name="categoryCode" placeholder="GEN / OBC / SC / ST / EWS" required />
+        <Input name="minScore" placeholder="Minimum score" required />
+        <Button type="submit">Save cutoff</Button>
+      </form>
+      <ul className="text-sm">
+        {rows.map((r) => (
+          <li key={r.id}>
+            {r.program} round {r.roundNo} {r.categoryCode} ≥ {r.minScore}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ImportPanel() {
+  const [message, setMessage] = useState<string | null>(null);
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/admission/import", { method: "POST", body: form });
+    const json = await res.json();
+    setMessage(
+      res.ok ? `Imported ${json.inserted}` : json.message ?? json.error ?? "Import failed",
+    );
+  }
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Import applicants</h1>
+      <p className="text-sm text-[var(--muted)]">
+        CSV columns: First Name, Last Name, Category, Score, Program, Mobile, Email.
+        One bad row rejects the file.
+      </p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form onSubmit={onSubmit}>
+        <Input name="file" type="file" accept=".csv,text/csv" required />
+        <Button className="mt-3" type="submit">
+          Import
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function GeneratePanel() {
+  const [programs, setPrograms] = useState<Array<{ id: string; name: string }>>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/v1/programs")
+      .then((r) => r.json())
+      .then((j) => setPrograms(j.data ?? []));
+  }, []);
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/admission/merit", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        programId: form.get("programId"),
+        roundNo: Number(form.get("roundNo")),
+      }),
+    });
+    const json = await res.json();
+    setMessage(
+      res.ok
+        ? `Ranked ${json.ranked}, rejected ${json.rejected}`
+        : json.message ?? json.error,
+    );
+  }
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Generate merit list</h1>
+      <p className="text-sm text-[var(--muted)]">
+        Ranks applicants who meet the category cutoff for this round. Runs as a
+        campus job, not a blocking browser wait beyond the request.
+      </p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid gap-3" onSubmit={onSubmit}>
+        <select name="programId" className={SELECT} required>
+          {programs.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <Input name="roundNo" type="number" min={1} defaultValue={1} required />
+        <Button type="submit">Generate</Button>
+      </form>
+    </div>
+  );
+}
+
+function ManagePanel() {
+  const [rows, setRows] = useState<
+    Array<{
+      id: string;
+      applicationNo: string;
+      name: string;
+      score: string | null;
+      meritRank: number | null;
+      selectionStatus: string;
+      categoryCode: string | null;
+    }>
+  >([]);
+  const [message, setMessage] = useState<string | null>(null);
+  async function load() {
+    const json = await fetch("/api/v1/admission/merit").then((r) => r.json());
+    setRows(json.data ?? []);
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  async function setStatus(id: string, status: string) {
+    const res = await fetch(`/api/v1/applications/${id}/selection`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    setMessage(res.ok ? `Updated ${status}` : "Could not update");
+    load();
+  }
+  return (
+    <div>
+      <h1 className="font-display text-4xl">Manage admission</h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">{message}</p>
+      <table className="mt-4 w-full min-w-[640px] text-left text-sm">
+        <thead className="bg-[var(--ink)] text-[var(--paper)]">
+          <tr>
+            <th className="px-3 py-2">Rank</th>
+            <th className="px-3 py-2">Applicant</th>
+            <th className="px-3 py-2">Score</th>
+            <th className="px-3 py-2">Status</th>
+            <th className="px-3 py-2"> </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} className="odd:bg-[var(--paper-2)]">
+              <td className="px-3 py-2">{r.meritRank ?? "—"}</td>
+              <td className="px-3 py-2">
+                {r.name}
+                <div className="text-[var(--muted)]">
+                  {r.applicationNo} · {r.categoryCode}
+                </div>
+              </td>
+              <td className="px-3 py-2">{r.score ?? "—"}</td>
+              <td className="px-3 py-2">{r.selectionStatus}</td>
+              <td className="px-3 py-2">
+                {r.selectionStatus === "MERIT" ||
+                r.selectionStatus === "WAITLISTED" ? (
+                  <span className="flex gap-2">
+                    <Button size="sm" onClick={() => setStatus(r.id, "SELECTED")}>
+                      Select
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setStatus(r.id, "WAITLISTED")}
+                    >
+                      Waitlist
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setStatus(r.id, "REJECTED")}
+                    >
+                      Reject
+                    </Button>
+                  </span>
+                ) : null}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

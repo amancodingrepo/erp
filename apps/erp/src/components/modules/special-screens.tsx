@@ -76,6 +76,10 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/onlineadmission/admissionsetting": () => (
     <AdmissionOps mode="settings" />
   ),
+  "/staff/admission/cutofflist": () => <AdmissionOps mode="cutoff" />,
+  "/staff/admission/importapplication": () => <AdmissionOps mode="import" />,
+  "/staff/admission/generatemeritlist": () => <AdmissionOps mode="generate" />,
+  "/staff/admission/manageadmission": () => <AdmissionOps mode="manage" />,
   "/staff/paymentsettings": () => <PaymentOps />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,

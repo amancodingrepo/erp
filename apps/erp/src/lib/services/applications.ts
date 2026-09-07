@@ -23,6 +23,8 @@ export const applicationCreateSchema = z.object({
   gender: z.nativeEnum(Gender).optional(),
   fatherName: optStr,
   programId: optStr,
+  categoryCode: optStr,
+  score: z.union([z.number(), z.string()]).optional(),
 });
 
 export const enrollSchema = z.object({
@@ -114,6 +116,11 @@ export async function submitApplication(
           gender: body.gender,
           fatherName: body.fatherName,
           programId: body.programId,
+          categoryCode: body.categoryCode?.toUpperCase(),
+          score:
+            body.score === undefined || body.score === ""
+              ? undefined
+              : new Prisma.Decimal(body.score),
           feeAmount,
           feePaid: new Prisma.Decimal(0),
           paymentStatus: "UNPAID",
@@ -167,6 +174,11 @@ export async function listApplications(campusId: string, q?: string) {
     feePaid: row.feePaid.toString(),
     enrolled: Boolean(row.studentId),
     admissionNo: row.student?.admissionNo ?? null,
+    score: row.score?.toString() ?? null,
+    categoryCode: row.categoryCode,
+    meritRank: row.meritRank,
+    cutoffRound: row.cutoffRound,
+    selectionStatus: row.selectionStatus,
     createdAt: row.createdAt.toISOString(),
   }));
 }
