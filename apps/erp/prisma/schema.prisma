@@ -49,6 +49,8 @@ model Campus {
   settings     Setting[]
   auditLogs    AuditLog[]
   applications Application[]
+  paymentMerchants PaymentMerchant[]
+  gatewayOrders    GatewayOrder[]
 }
 
 model AcademicSession {
@@ -564,6 +566,7 @@ model FeeType {
   code     String?
   isActive Boolean @default(true)
   lines    FeeMasterLine[]
+  merchants PaymentMerchant[]
 }
 
 model FeeGroup {
@@ -683,6 +686,43 @@ model Payment {
   collectedBy     String?
   cancelledAt     DateTime?
   createdAt       DateTime      @default(now())
+}
+
+model PaymentMerchant {
+  id                String   @id @default(cuid())
+  campusId          String
+  campus            Campus   @relation(fields: [campusId], references: [id])
+  name              String
+  provider          String
+  keyId             String
+  keySecretEnc      String
+  webhookSecretEnc  String
+  isDefault         Boolean  @default(false)
+  feeTypeId         String?
+  feeType           FeeType? @relation(fields: [feeTypeId], references: [id])
+  orders            GatewayOrder[]
+  createdAt         DateTime @default(now())
+  @@index([campusId, provider])
+}
+
+model GatewayOrder {
+  id              String   @id @default(cuid())
+  campusId        String
+  campus          Campus   @relation(fields: [campusId], references: [id])
+  merchantId      String?
+  merchant        PaymentMerchant? @relation(fields: [merchantId], references: [id])
+  provider        String
+  providerOrderId String   @unique
+  amount          Decimal  @db.Decimal(12, 2)
+  currency        String   @default("INR")
+  purpose         String
+  invoiceId       String?
+  enrollmentId    String?
+  applicationId   String?
+  studentId       String?
+  status          String   @default("CREATED")
+  createdAt       DateTime @default(now())
+  @@index([campusId, status])
 }
 
 // ─── Attendance ────────────────────────────────────────────

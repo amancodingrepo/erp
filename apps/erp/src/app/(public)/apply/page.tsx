@@ -15,6 +15,7 @@ export default function ApplyPage() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [ref, setRef] = useState<string | null>(null);
+  const [appId, setAppId] = useState<string | null>(null);
   const [lookup, setLookup] = useState("");
   const [status, setStatus] = useState<string | null>(null);
 
@@ -49,6 +50,7 @@ export default function ApplyPage() {
       return;
     }
     setRef(json.applicationNo);
+    setAppId(json.id);
     event.currentTarget.reset();
   }
 
@@ -78,6 +80,29 @@ export default function ApplyPage() {
       {ref ? (
         <p className="mt-4 border border-[var(--rule)] bg-[var(--paper-2)] p-4 text-sm">
           Submitted. Keep this reference number: <strong>{ref}</strong>
+          {appId ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                className="underline"
+                onClick={async () => {
+                  const res = await fetch(
+                    `/api/v1/public/applications/${appId}/pay-online`,
+                    { method: "POST" },
+                  );
+                  const json = await res.json();
+                  setMessage(
+                    res.ok
+                      ? `Pay ₹${json.amount} with order ${json.orderId}`
+                      : json.message ?? "Online pay unavailable",
+                  );
+                }}
+              >
+                Pay application fee online
+              </button>
+            </>
+          ) : null}
         </p>
       ) : null}
       {message ? (

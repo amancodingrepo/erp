@@ -18,6 +18,7 @@ import ExamsOps from "@/components/modules/exams-ops";
 import CampusOps from "@/components/modules/campus-ops";
 import ReportView from "@/components/modules/report-view";
 import AdmissionOps from "@/components/modules/admission-ops";
+import PaymentOps from "@/components/modules/payment-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -75,6 +76,7 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/onlineadmission/admissionsetting": () => (
     <AdmissionOps mode="settings" />
   ),
+  "/staff/paymentsettings": () => <PaymentOps />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

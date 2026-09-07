@@ -100,6 +100,7 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/module": "settings.modules.view",
   "/staff/onlinestudent": "students.profile.view",
   "/staff/onlineadmission/admissionsetting": "settings.campus.view",
+  "/staff/paymentsettings": "settings.campus.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePortal } from "@/lib/use-portal";
 
 export function DashboardView() {
@@ -64,20 +65,50 @@ export function ProfileView() {
 
 export function FeesView() {
   const { data, error } = usePortal();
+  const [orderMsg, setOrderMsg] = useState<string | null>(null);
   if (error) return <p>{error}</p>;
   if (!data) return <p>Loading…</p>;
+
+  async function payOnline() {
+    setOrderMsg(null);
+    const ledger = await fetch(`/api/v1/students/${data!.student.id}/ledger`).then(
+      (r) => r.json(),
+    );
+    const invoice = (ledger.invoices as Array<{ id: string; status: string }> | undefined)?.find(
+      (i) => i.status !== "PAID",
+    );
+    if (!invoice) {
+      setOrderMsg("No unpaid invoice");
+      return;
+    }
+    const res = await fetch("/api/v1/fees/online-order", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        studentId: data!.student.id,
+        invoiceId: invoice.id,
+      }),
+    });
+    const json = await res.json();
+    setOrderMsg(
+      res.ok
+        ? `Razorpay order ${json.orderId} · ₹${json.amount}. Complete checkout; webhook will post the receipt.`
+        : json.message ?? json.error ?? "Could not start payment",
+    );
+  }
+
   return (
     <div className="space-y-3">
       <h1 className="font-display text-4xl">Fees</h1>
       <p className="text-sm">
         Total {data.dues.total} · Paid {data.dues.paid} · Balance {data.dues.balance}
       </p>
-      <p className="text-sm text-[var(--muted)]">
-        Online pay is not enabled in v1. Pay at the campus counter, then download
-        receipts from the ledger.
-      </p>
+      <button type="button" className="text-sm underline" onClick={payOnline}>
+        Pay online
+      </button>
+      {orderMsg ? <p className="text-sm text-[var(--muted)]">{orderMsg}</p> : null}
       <a
-        className="text-sm underline"
+        className="block text-sm underline"
         href={`/api/v1/students/${data.student.id}/ledger`}
       >
         Open ledger JSON
