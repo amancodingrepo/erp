@@ -68,6 +68,9 @@ model Campus {
   naacCriteria     NaacCriterion[]
   programOutcomes  ProgramOutcome[]
   feedbackForms    FeedbackForm[]
+  payElements      PayElement[]
+  payrollTaxSlabs  PayrollTaxSlab[]
+  payrollRuns      PayrollRun[]
 }
 
 model AcademicSession {
@@ -1147,7 +1150,74 @@ model Staff {
   attendances    StaffAttendance[]
   libraryMember  LibraryMember?
   naacAssignments NaacAssignment[]
+  payStructure    StaffPayStructure[]
+  payrollSlips    PayrollSlip[]
   @@unique([campusId, employeeId])
+}
+
+enum PayElementKind {
+  EARNING
+  DEDUCTION
+}
+
+model PayElement {
+  id          String         @id @default(cuid())
+  campusId    String
+  campus      Campus         @relation(fields: [campusId], references: [id])
+  name        String
+  code        String
+  kind        PayElementKind
+  isStatutory Boolean        @default(false)
+  structures  StaffPayStructure[]
+  @@unique([campusId, code])
+}
+
+model StaffPayStructure {
+  id        String     @id @default(cuid())
+  staffId   String
+  staff     Staff      @relation(fields: [staffId], references: [id])
+  elementId String
+  element   PayElement @relation(fields: [elementId], references: [id])
+  amount    Decimal    @db.Decimal(12, 2)
+  @@unique([staffId, elementId])
+}
+
+model PayrollTaxSlab {
+  id        String  @id @default(cuid())
+  campusId  String
+  campus    Campus  @relation(fields: [campusId], references: [id])
+  kind      String
+  minAmount Decimal @db.Decimal(12, 2)
+  maxAmount Decimal? @db.Decimal(12, 2)
+  rate      Decimal? @db.Decimal(8, 4)
+  taxAmount Decimal? @db.Decimal(12, 2)
+}
+
+model PayrollRun {
+  id      String        @id @default(cuid())
+  campusId String
+  campus  Campus        @relation(fields: [campusId], references: [id])
+  year    Int
+  month   Int
+  status  String        @default("DRAFT")
+  slips   PayrollSlip[]
+  @@unique([campusId, year, month])
+}
+
+model PayrollSlip {
+  id     String      @id @default(cuid())
+  runId  String
+  run    PayrollRun  @relation(fields: [runId], references: [id])
+  staffId String
+  staff  Staff       @relation(fields: [staffId], references: [id])
+  gross  Decimal     @db.Decimal(12, 2)
+  pf     Decimal     @db.Decimal(12, 2)
+  esi    Decimal     @db.Decimal(12, 2)
+  pt     Decimal     @db.Decimal(12, 2)
+  tds    Decimal     @db.Decimal(12, 2)
+  net    Decimal     @db.Decimal(12, 2)
+  lines  Json
+  @@unique([runId, staffId])
 }
 
 model Book {

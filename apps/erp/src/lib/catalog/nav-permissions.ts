@@ -165,6 +165,14 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/feedbackreport": "communicate.notice.view",
   "/staff/naac/student-feedback-list": "communicate.notice.view",
   "/staff/naac/student-rating-form": "communicate.notice.view",
+  "/staff/staffpayroll/add-element": "fees.master.edit",
+  "/staff/staffpayroll/select-pay-element": "fees.master.edit",
+  "/staff/staffpayroll/manage-staff-payroll": "fees.master.view",
+  "/staff/staffpayroll/staff-payroll": "fees.master.edit",
+  "/staff/staffpayroll/add-income-tax-element": "fees.master.edit",
+  "/staff/staffpayroll/generate-income-tax": "fees.master.edit",
+  "/staff/staffpayroll/setup-tax-slab": "fees.master.edit",
+  "/staff/staffpayrollreports/staff-payroll": "fees.master.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {

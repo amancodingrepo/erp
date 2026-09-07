@@ -28,6 +28,7 @@ import ExamFormOps from "@/components/modules/exam-form-ops";
 import NaacOps from "@/components/modules/naac-ops";
 import CopoOps from "@/components/modules/copo-ops";
 import FeedbackOps from "@/components/modules/feedback-ops";
+import PayrollOps from "@/components/modules/payroll-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -152,6 +153,14 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/feedbackreport": () => <FeedbackOps mode="report" />,
   "/staff/naac/student-feedback-list": () => <FeedbackOps mode="submitted" />,
   "/staff/naac/student-rating-form": () => <FeedbackOps mode="fill" />,
+  "/staff/staffpayroll/add-element": () => <PayrollOps mode="elements" />,
+  "/staff/staffpayroll/select-pay-element": () => <PayrollOps mode="structure" />,
+  "/staff/staffpayroll/manage-staff-payroll": () => <PayrollOps mode="structure" />,
+  "/staff/staffpayroll/staff-payroll": () => <PayrollOps mode="run" />,
+  "/staff/staffpayroll/add-income-tax-element": () => <PayrollOps mode="slabs" />,
+  "/staff/staffpayroll/generate-income-tax": () => <PayrollOps mode="run" />,
+  "/staff/staffpayroll/setup-tax-slab": () => <PayrollOps mode="slabs" />,
+  "/staff/staffpayrollreports/staff-payroll": () => <PayrollOps mode="report" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

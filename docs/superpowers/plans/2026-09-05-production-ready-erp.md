@@ -577,7 +577,7 @@ Order:
 1. NAAC tasks + evidence — **done**
 2. CO-PO mapping + attainment — **done**
 3. Feedback forms — **done**
-4. Indian payroll statutory (PF/ESI/PT/TDS)
+4. Indian payroll statutory (PF/ESI/PT/TDS) — **done**
 5. Seating arrangement
 6. GMeet/Zoom as URL storage only
 
