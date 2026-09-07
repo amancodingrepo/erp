@@ -156,6 +156,15 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/copo/plan": "academics.class.create",
   "/staff/copo/tlp-approve-list": "academics.class.create",
   "/staff/outcome-basis-education": "academics.class.view",
+  "/staff/feedback/feedback-formname-master": "communicate.notice.create",
+  "/staff/feedback": "communicate.notice.create",
+  "/staff/feedback/assign-feedback-form": "communicate.notice.create",
+  "/staff/feedback/showview-feedback-form": "communicate.notice.view",
+  "/staff/feedback/submitted-forms": "communicate.notice.view",
+  "/staff/feedback/fill-feedback-form": "communicate.notice.view",
+  "/staff/feedbackreport": "communicate.notice.view",
+  "/staff/naac/student-feedback-list": "communicate.notice.view",
+  "/staff/naac/student-rating-form": "communicate.notice.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {

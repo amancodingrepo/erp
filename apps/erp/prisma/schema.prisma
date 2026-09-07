@@ -67,6 +67,7 @@ model Campus {
   examFormWindows  ExamFormWindow[]
   naacCriteria     NaacCriterion[]
   programOutcomes  ProgramOutcome[]
+  feedbackForms    FeedbackForm[]
 }
 
 model AcademicSession {
@@ -255,6 +256,7 @@ model Class {
   extraStaffId   String?
   sections       Section[]
   enrollments    StudentEnrollment[]
+  feedbackAssignments FeedbackAssignment[]
 }
 
 model Section {
@@ -1056,6 +1058,62 @@ model CopoLesson {
   courseOutcome   CourseOutcome?   @relation(fields: [courseOutcomeId], references: [id])
   title           String
   status          CopoLessonStatus @default(SUBMITTED)
+}
+
+enum FeedbackFieldKind {
+  RATING
+  TEXT
+  MCQ
+}
+
+enum FeedbackAudience {
+  STUDENT
+  STAFF
+  ALL
+}
+
+model FeedbackForm {
+  id           String                 @id @default(cuid())
+  campusId     String
+  campus       Campus                 @relation(fields: [campusId], references: [id])
+  name         String
+  fields       FeedbackField[]
+  assignments  FeedbackAssignment[]
+  responses    FeedbackResponse[]
+}
+
+model FeedbackField {
+  id        String            @id @default(cuid())
+  formId    String
+  form      FeedbackForm      @relation(fields: [formId], references: [id])
+  label     String
+  kind      FeedbackFieldKind
+  options   Json?
+  sortOrder Int               @default(0)
+}
+
+model FeedbackAssignment {
+  id        String            @id @default(cuid())
+  formId    String
+  form      FeedbackForm      @relation(fields: [formId], references: [id])
+  classId   String?
+  class     Class?            @relation(fields: [classId], references: [id])
+  audience  FeedbackAudience  @default(STUDENT)
+  opensAt   DateTime
+  closesAt  DateTime
+  responses FeedbackResponse[]
+}
+
+model FeedbackResponse {
+  id            String              @id @default(cuid())
+  assignmentId  String
+  assignment    FeedbackAssignment  @relation(fields: [assignmentId], references: [id])
+  formId        String
+  form          FeedbackForm        @relation(fields: [formId], references: [id])
+  respondentId  String
+  answers       Json
+  createdAt     DateTime            @default(now())
+  @@unique([assignmentId, respondentId])
 }
 
 // ─── Staff ─────────────────────────────────────────────────

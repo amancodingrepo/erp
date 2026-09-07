@@ -27,6 +27,7 @@ import LibraryOps from "@/components/modules/library-ops";
 import ExamFormOps from "@/components/modules/exam-form-ops";
 import NaacOps from "@/components/modules/naac-ops";
 import CopoOps from "@/components/modules/copo-ops";
+import FeedbackOps from "@/components/modules/feedback-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -142,6 +143,15 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/copo/plan": () => <CopoOps mode="lesson" />,
   "/staff/copo/tlp-approve-list": () => <CopoOps mode="tlp" />,
   "/staff/outcome-basis-education": () => <CopoOps mode="attainment" />,
+  "/staff/feedback/feedback-formname-master": () => <FeedbackOps mode="forms" />,
+  "/staff/feedback": () => <FeedbackOps mode="fields" />,
+  "/staff/feedback/assign-feedback-form": () => <FeedbackOps mode="assign" />,
+  "/staff/feedback/showview-feedback-form": () => <FeedbackOps mode="forms" />,
+  "/staff/feedback/submitted-forms": () => <FeedbackOps mode="submitted" />,
+  "/staff/feedback/fill-feedback-form": () => <FeedbackOps mode="fill" />,
+  "/staff/feedbackreport": () => <FeedbackOps mode="report" />,
+  "/staff/naac/student-feedback-list": () => <FeedbackOps mode="submitted" />,
+  "/staff/naac/student-rating-form": () => <FeedbackOps mode="fill" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (
