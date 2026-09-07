@@ -23,6 +23,7 @@ import HousingOps from "@/components/modules/housing-ops";
 import CommsOps from "@/components/modules/comms-ops";
 import CertificateOps from "@/components/modules/certificate-ops";
 import FrontOfficeOps from "@/components/modules/front-office-ops";
+import LibraryOps from "@/components/modules/library-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -113,6 +114,10 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/enquiry": () => <FrontOfficeOps mode="enquiry" />,
   "/staff/visitors": () => <FrontOfficeOps mode="visitors" />,
   "/staff/visitorspurpose": () => <FrontOfficeOps mode="setup" />,
+  "/staff/book/getall": () => <LibraryOps mode="books" />,
+  "/staff/member": () => <LibraryOps mode="issue" />,
+  "/staff/member/student": () => <LibraryOps mode="student-member" />,
+  "/staff/member/teacher": () => <LibraryOps mode="staff-member" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

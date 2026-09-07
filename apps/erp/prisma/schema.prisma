@@ -62,6 +62,8 @@ model Campus {
   enquiries        Enquiry[]
   visitors         Visitor[]
   frontOfficeTypes FrontOfficeType[]
+  books            Book[]
+  libraryMembers   LibraryMember[]
 }
 
 model AcademicSession {
@@ -459,6 +461,7 @@ model Student {
   application    Application?
   hostelAllocations HostelAllocation[]
   transport         StudentTransport?
+  libraryMember     LibraryMember?
 
   @@unique([campusId, admissionNo])
   @@index([campusId, enrollmentNo])
@@ -914,7 +917,49 @@ model Staff {
   isActive       Boolean  @default(true)
   photoUrl       String?
   attendances    StaffAttendance[]
+  libraryMember  LibraryMember?
   @@unique([campusId, employeeId])
+}
+
+model Book {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  isbn       String?
+  title      String
+  author     String?
+  publisher  String?
+  qty        Int    @default(1)
+  rack       String?
+  price      Decimal @default(0) @db.Decimal(12, 2)
+  issues     BookIssue[]
+  @@index([campusId, title])
+}
+
+model LibraryMember {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  memberNo  String
+  studentId String? @unique
+  student   Student? @relation(fields: [studentId], references: [id])
+  staffId   String? @unique
+  staff     Staff? @relation(fields: [staffId], references: [id])
+  issues    BookIssue[]
+  @@unique([campusId, memberNo])
+}
+
+model BookIssue {
+  id         String    @id @default(cuid())
+  bookId     String
+  book       Book      @relation(fields: [bookId], references: [id])
+  memberId   String
+  member     LibraryMember @relation(fields: [memberId], references: [id])
+  issuedAt   DateTime  @default(now())
+  dueOn      DateTime  @db.Date
+  returnedAt DateTime?
+  fine       Decimal   @default(0) @db.Decimal(12, 2)
+  @@index([memberId, returnedAt])
 }
 
 model Hostel {

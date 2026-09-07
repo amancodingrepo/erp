@@ -132,6 +132,10 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/enquiry": "students.profile.view",
   "/staff/visitors": "students.profile.view",
   "/staff/visitorspurpose": "students.profile.edit",
+  "/staff/book/getall": "students.profile.view",
+  "/staff/member": "students.profile.edit",
+  "/staff/member/student": "students.profile.edit",
+  "/staff/member/teacher": "students.profile.edit",
   "/staff/paymentsettings": "settings.campus.view",
 };
 
