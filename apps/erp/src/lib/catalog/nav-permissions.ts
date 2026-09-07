@@ -115,6 +115,13 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/vehroute": "students.profile.view",
   "/staff/pickuppoint/student-fees": "students.profile.edit",
   "/staff/transport/feemaster": "students.profile.view",
+  "/staff/mailsms/email-template": "communicate.notice.edit",
+  "/staff/mailsms/sms-template": "communicate.notice.edit",
+  "/staff/mailsms/compose": "communicate.notice.edit",
+  "/staff/mailsms/compose-sms": "communicate.notice.edit",
+  "/staff/mailsms": "communicate.notice.view",
+  "/staff/mailsms/schedule": "communicate.notice.view",
+  "/staff/feereminder/setting": "fees.collect.view",
   "/staff/paymentsettings": "settings.campus.view",
 };
 

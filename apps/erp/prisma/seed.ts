@@ -237,6 +237,39 @@ async function main() {
       value: 500,
     },
   });
+  await prisma.messageTemplate.upsert({
+    where: {
+      campusId_channel_name: {
+        campusId: campus.id,
+        channel: "SMS",
+        name: "fee_due",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      channel: "SMS",
+      name: "fee_due",
+      body: "Dear {{name}}, fee due {{balance}} at {{campus}}. ID {{admissionNo}}.",
+    },
+  });
+  await prisma.messageTemplate.upsert({
+    where: {
+      campusId_channel_name: {
+        campusId: campus.id,
+        channel: "EMAIL",
+        name: "fee_due",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      channel: "EMAIL",
+      name: "fee_due",
+      subject: "Fee reminder — {{campus}}",
+      body: "Dear {{name}}, your outstanding balance is {{balance}}.",
+    },
+  });
 
   const demoDept = await prisma.department.upsert({
     where: { id: "seed-dept-demo" },

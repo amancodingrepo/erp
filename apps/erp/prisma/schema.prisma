@@ -55,6 +55,8 @@ model Campus {
   hostels          Hostel[]
   transportRoutes  TransportRoute[]
   vehicles         Vehicle[]
+  messageTemplates MessageTemplate[]
+  messageLogs      MessageLog[]
 }
 
 model AcademicSession {
@@ -984,6 +986,33 @@ model StudentTransport {
 }
 
 // ─── Comms ─────────────────────────────────────────────────
+
+model MessageTemplate {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  channel   String
+  name      String
+  subject   String?
+  body      String
+  createdAt DateTime @default(now())
+  @@unique([campusId, channel, name])
+}
+
+model MessageLog {
+  id         String   @id @default(cuid())
+  campusId   String
+  campus     Campus   @relation(fields: [campusId], references: [id])
+  channel    String
+  templateId String?
+  studentId  String?
+  toAddress  String
+  subject    String?
+  body       String
+  status     String
+  createdAt  DateTime @default(now())
+  @@index([campusId, createdAt])
+}
 
 model Notice {
   id          String   @id @default(cuid())

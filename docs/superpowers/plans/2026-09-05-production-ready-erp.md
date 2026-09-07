@@ -564,7 +564,7 @@ Order from `16-rebuild-blueprint.md`:
 2. Razorpay/Cashfree webhook + multi-merchant mapping — **done**
 3. Merit/cutoff batch job (only if government college) — **done**
 4. Hostel + transport + fee heads — **done**
-5. SMS/email templates + reminders
+5. SMS/email templates + reminders — **done**
 6. ID cards / certificates templates
 7. Enquiry CRM (front office)
 8. Library issue/return
