@@ -1,0 +1,15 @@
+{"ts": 1788666013.4508672, "iso": "2026-09-06T09:10:13", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9204"}
+{"ts": 1788667394.2916636, "iso": "2026-09-06T09:33:14", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788667465.8615825, "iso": "2026-09-06T09:34:25", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9277"}
+{"ts": 1788668291.486863, "iso": "2026-09-06T09:48:11", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788668440.303275, "iso": "2026-09-06T09:50:40", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9274"}
+{"ts": 1788668856.9108887, "iso": "2026-09-06T09:57:36", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788669077.907707, "iso": "2026-09-06T10:01:17", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9195"}
+{"ts": 1788669601.4696982, "iso": "2026-09-06T10:10:01", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788669698.317224, "iso": "2026-09-06T10:11:38", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9204"}
+{"ts": 1788670171.2467227, "iso": "2026-09-06T10:19:31", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788685660.948853, "iso": "2026-09-06T14:37:40", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9268"}
+{"ts": 1788686254.9894044, "iso": "2026-09-06T14:47:34", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788686607.4005084, "iso": "2026-09-06T14:53:27", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9167"}
+{"ts": 1788686981.4355845, "iso": "2026-09-06T14:59:41", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
+{"ts": 1788689996.854094, "iso": "2026-09-06T15:49:56", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9161"}
