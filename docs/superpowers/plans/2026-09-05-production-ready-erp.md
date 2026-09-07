@@ -575,7 +575,7 @@ Order from `16-rebuild-blueprint.md`:
 Order:
 
 1. NAAC tasks + evidence — **done**
-2. CO-PO mapping + attainment
+2. CO-PO mapping + attainment — **done**
 3. Feedback forms
 4. Indian payroll statutory (PF/ESI/PT/TDS)
 5. Seating arrangement

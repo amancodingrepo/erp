@@ -26,6 +26,7 @@ import FrontOfficeOps from "@/components/modules/front-office-ops";
 import LibraryOps from "@/components/modules/library-ops";
 import ExamFormOps from "@/components/modules/exam-form-ops";
 import NaacOps from "@/components/modules/naac-ops";
+import CopoOps from "@/components/modules/copo-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -133,6 +134,14 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/naac/task-allocation": () => <NaacOps mode="allocate" />,
   "/staff/naac/naac-report-master": () => <NaacOps mode="report" />,
   "/staff/naac/naac-report": () => <NaacOps mode="report" />,
+  "/staff/copo/program-outcomes": () => <CopoOps mode="po" />,
+  "/staff/copo/course-outcomes": () => <CopoOps mode="co" />,
+  "/staff/copo/co-po-mapping": () => <CopoOps mode="mapping" />,
+  "/staff/copo/indirect-po-mapping": () => <CopoOps mode="indirect" />,
+  "/staff/copo/lesson": () => <CopoOps mode="lesson" />,
+  "/staff/copo/plan": () => <CopoOps mode="lesson" />,
+  "/staff/copo/tlp-approve-list": () => <CopoOps mode="tlp" />,
+  "/staff/outcome-basis-education": () => <CopoOps mode="attainment" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

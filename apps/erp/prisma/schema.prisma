@@ -66,6 +66,7 @@ model Campus {
   libraryMembers   LibraryMember[]
   examFormWindows  ExamFormWindow[]
   naacCriteria     NaacCriterion[]
+  programOutcomes  ProgramOutcome[]
 }
 
 model AcademicSession {
@@ -231,6 +232,7 @@ model Program {
   specializations Specialization[]
   applications Application[]
   cutoffRules  CutoffRule[]
+  outcomes     ProgramOutcome[]
 }
 
 model Specialization {
@@ -273,6 +275,8 @@ model Subject {
   kind     String  @default("theory") // theory | practical | optional
   isOptional Boolean @default(false)
   offerings  ClassSubject[]
+  courseOutcomes CourseOutcome[]
+  copoLessons    CopoLesson[]
 }
 
 model ClassSubject {
@@ -867,6 +871,7 @@ model ExamSubject {
   maxMarks  Decimal  @db.Decimal(8, 2)
   minMarks  Decimal  @db.Decimal(8, 2)
   marks     ExamMark[]
+  coAssessments CoAssessment[]
 }
 
 model Grade {
@@ -975,6 +980,82 @@ model NaacEvidence {
   note      String?
   fileUrl   String
   createdAt DateTime @default(now())
+}
+
+enum ProgramOutcomeKind {
+  PO
+  PSO
+}
+
+enum CopoLessonStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+model ProgramOutcome {
+  id         String             @id @default(cuid())
+  campusId   String
+  campus     Campus             @relation(fields: [campusId], references: [id])
+  programId  String
+  program    Program            @relation(fields: [programId], references: [id])
+  code       String
+  title      String
+  kind       ProgramOutcomeKind @default(PO)
+  mappings   CoPoMapping[]
+  indirect   IndirectPoScore?
+  @@unique([programId, code])
+}
+
+model CourseOutcome {
+  id          String         @id @default(cuid())
+  campusId    String
+  subjectId   String
+  subject     Subject        @relation(fields: [subjectId], references: [id])
+  code        String
+  title       String
+  mappings    CoPoMapping[]
+  assessments CoAssessment[]
+  lessons     CopoLesson[]
+  @@unique([subjectId, code])
+}
+
+model CoPoMapping {
+  id               String         @id @default(cuid())
+  courseOutcomeId  String
+  courseOutcome    CourseOutcome  @relation(fields: [courseOutcomeId], references: [id])
+  programOutcomeId String
+  programOutcome   ProgramOutcome @relation(fields: [programOutcomeId], references: [id])
+  weight           Int
+  @@unique([courseOutcomeId, programOutcomeId])
+}
+
+model CoAssessment {
+  id              String        @id @default(cuid())
+  courseOutcomeId String
+  courseOutcome   CourseOutcome @relation(fields: [courseOutcomeId], references: [id])
+  examSubjectId   String
+  examSubject     ExamSubject   @relation(fields: [examSubjectId], references: [id])
+  @@unique([courseOutcomeId, examSubjectId])
+}
+
+model IndirectPoScore {
+  id               String         @id @default(cuid())
+  programOutcomeId String         @unique
+  programOutcome   ProgramOutcome @relation(fields: [programOutcomeId], references: [id])
+  percent          Decimal        @db.Decimal(5, 2)
+}
+
+model CopoLesson {
+  id              String           @id @default(cuid())
+  campusId        String
+  subjectId       String
+  subject         Subject          @relation(fields: [subjectId], references: [id])
+  courseOutcomeId String?
+  courseOutcome   CourseOutcome?   @relation(fields: [courseOutcomeId], references: [id])
+  title           String
+  status          CopoLessonStatus @default(SUBMITTED)
 }
 
 // ─── Staff ─────────────────────────────────────────────────

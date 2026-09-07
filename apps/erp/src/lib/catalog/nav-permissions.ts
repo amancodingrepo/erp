@@ -148,6 +148,14 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/naac/task-allocation": "students.profile.edit",
   "/staff/naac/naac-report-master": "students.profile.view",
   "/staff/naac/naac-report": "students.profile.view",
+  "/staff/copo/program-outcomes": "academics.class.create",
+  "/staff/copo/course-outcomes": "academics.class.create",
+  "/staff/copo/co-po-mapping": "academics.class.create",
+  "/staff/copo/indirect-po-mapping": "academics.class.create",
+  "/staff/copo/lesson": "academics.class.create",
+  "/staff/copo/plan": "academics.class.create",
+  "/staff/copo/tlp-approve-list": "academics.class.create",
+  "/staff/outcome-basis-education": "academics.class.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
