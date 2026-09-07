@@ -578,7 +578,7 @@ Order:
 2. CO-PO mapping + attainment — **done**
 3. Feedback forms — **done**
 4. Indian payroll statutory (PF/ESI/PT/TDS) — **done**
-5. Seating arrangement
+5. Seating arrangement — **done**
 6. GMeet/Zoom as URL storage only
 
 **Skip until a signed SOW:** canteen POS, railway concession, multi-branch, LMS/online course, system updater, visiting-staff payroll, chat.

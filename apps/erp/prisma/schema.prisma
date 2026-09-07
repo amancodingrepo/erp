@@ -71,6 +71,7 @@ model Campus {
   payElements      PayElement[]
   payrollTaxSlabs  PayrollTaxSlab[]
   payrollRuns      PayrollRun[]
+  seatingBlocks    SeatingBlock[]
 }
 
 model AcademicSession {
@@ -469,6 +470,7 @@ model Student {
   invoices       FeeInvoice[]
   attendances    StudentAttendance[]
   marks          ExamMark[]
+  seatAssignments SeatAssignment[]
   application    Application?
   hostelAllocations HostelAllocation[]
   transport         StudentTransport?
@@ -877,6 +879,7 @@ model ExamSubject {
   minMarks  Decimal  @db.Decimal(8, 2)
   marks     ExamMark[]
   coAssessments CoAssessment[]
+  seatAssignments SeatAssignment[]
 }
 
 model Grade {
@@ -901,6 +904,29 @@ model ExamMark {
   isBlocked     Boolean     @default(false)
   finalizedAt   DateTime?
   @@unique([examSubjectId, studentId])
+}
+
+model SeatingBlock {
+  id          String           @id @default(cuid())
+  campusId    String
+  campus      Campus           @relation(fields: [campusId], references: [id])
+  name        String
+  capacity    Int
+  assignments SeatAssignment[]
+  @@unique([campusId, name])
+}
+
+model SeatAssignment {
+  id            String       @id @default(cuid())
+  blockId       String
+  block         SeatingBlock @relation(fields: [blockId], references: [id])
+  examSubjectId String
+  examSubject   ExamSubject  @relation(fields: [examSubjectId], references: [id])
+  studentId     String
+  student       Student      @relation(fields: [studentId], references: [id])
+  seatNo        String
+  @@unique([examSubjectId, studentId])
+  @@unique([examSubjectId, blockId, seatNo])
 }
 
 enum ExamFormKind {

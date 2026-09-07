@@ -173,6 +173,9 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/staffpayroll/generate-income-tax": "fees.master.edit",
   "/staff/staffpayroll/setup-tax-slab": "fees.master.edit",
   "/staff/staffpayrollreports/staff-payroll": "fees.master.view",
+  "/staff/seating-arrangement": "exams.group.create",
+  "/staff/seating-arrangement/assign-block": "exams.group.create",
+  "/staff/seating-arrangement/report": "exams.group.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {

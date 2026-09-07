@@ -29,6 +29,7 @@ import NaacOps from "@/components/modules/naac-ops";
 import CopoOps from "@/components/modules/copo-ops";
 import FeedbackOps from "@/components/modules/feedback-ops";
 import PayrollOps from "@/components/modules/payroll-ops";
+import SeatingOps from "@/components/modules/seating-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -161,6 +162,9 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/staffpayroll/generate-income-tax": () => <PayrollOps mode="run" />,
   "/staff/staffpayroll/setup-tax-slab": () => <PayrollOps mode="slabs" />,
   "/staff/staffpayrollreports/staff-payroll": () => <PayrollOps mode="report" />,
+  "/staff/seating-arrangement": () => <SeatingOps mode="blocks" />,
+  "/staff/seating-arrangement/assign-block": () => <SeatingOps mode="allocate" />,
+  "/staff/seating-arrangement/report": () => <SeatingOps mode="report" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (
