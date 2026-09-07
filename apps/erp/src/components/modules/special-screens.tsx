@@ -19,6 +19,7 @@ import CampusOps from "@/components/modules/campus-ops";
 import ReportView from "@/components/modules/report-view";
 import AdmissionOps from "@/components/modules/admission-ops";
 import PaymentOps from "@/components/modules/payment-ops";
+import HousingOps from "@/components/modules/housing-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -81,6 +82,17 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/admission/generatemeritlist": () => <AdmissionOps mode="generate" />,
   "/staff/admission/manageadmission": () => <AdmissionOps mode="manage" />,
   "/staff/paymentsettings": () => <PaymentOps />,
+  "/staff/hostel": () => <HousingOps mode="hostels" />,
+  "/staff/hostelroom": () => <HousingOps mode="rooms" />,
+  "/staff/hostel/assign-room": () => <HousingOps mode="assign" />,
+  "/staff/hostel/change-room": () => <HousingOps mode="assign" />,
+  "/staff/hostel/vacancy-status": () => <HousingOps mode="vacancy" />,
+  "/staff/route": () => <HousingOps mode="routes" />,
+  "/staff/pickuppoint": () => <HousingOps mode="routes" />,
+  "/staff/vehicle": () => <HousingOps mode="vehicles" />,
+  "/staff/vehroute": () => <HousingOps mode="vehicles" />,
+  "/staff/pickuppoint/student-fees": () => <HousingOps mode="transport-fees" />,
+  "/staff/transport/feemaster": () => <HousingOps mode="routes" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

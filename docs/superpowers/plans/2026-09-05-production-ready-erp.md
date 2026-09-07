@@ -563,7 +563,7 @@ Order from `16-rebuild-blueprint.md`:
 1. Online admission public form + application fee (`05-admissions.md`) — **in progress**
 2. Razorpay/Cashfree webhook + multi-merchant mapping — **done**
 3. Merit/cutoff batch job (only if government college) — **done**
-4. Hostel + transport + fee heads
+4. Hostel + transport + fee heads — **done**
 5. SMS/email templates + reminders
 6. ID cards / certificates templates
 7. Enquiry CRM (front office)

@@ -104,6 +104,17 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/admission/importapplication": "students.profile.create",
   "/staff/admission/generatemeritlist": "students.profile.edit",
   "/staff/admission/manageadmission": "students.profile.edit",
+  "/staff/hostel": "students.profile.view",
+  "/staff/hostelroom": "students.profile.view",
+  "/staff/hostel/assign-room": "students.profile.edit",
+  "/staff/hostel/change-room": "students.profile.edit",
+  "/staff/hostel/vacancy-status": "students.profile.view",
+  "/staff/route": "students.profile.view",
+  "/staff/pickuppoint": "students.profile.view",
+  "/staff/vehicle": "students.profile.view",
+  "/staff/vehroute": "students.profile.view",
+  "/staff/pickuppoint/student-fees": "students.profile.edit",
+  "/staff/transport/feemaster": "students.profile.view",
   "/staff/paymentsettings": "settings.campus.view",
 };
 
