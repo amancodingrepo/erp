@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { HttpError } from "./errors";
+import { HttpError, prismaErrorCode } from "./errors";
 import { ZodError } from "zod";
 
 export function ok<T>(data: T, status = 200) {
@@ -20,6 +20,18 @@ export function fail(error: unknown) {
         ...(error.errors ? { errors: error.errors } : {}),
       },
       { status: error.status },
+    );
+  }
+  if (prismaErrorCode(error) === "P2002") {
+    return NextResponse.json(
+      { error: "conflict", message: "duplicate" },
+      { status: 409 },
+    );
+  }
+  if (prismaErrorCode(error) === "P2025") {
+    return NextResponse.json(
+      { error: "not_found", message: "not found" },
+      { status: 404 },
     );
   }
   if (error instanceof ZodError) {

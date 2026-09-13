@@ -41,3 +41,25 @@ export function validationError(fields: Record<string, string>) {
 export function rateLimited() {
   return new HttpError(429, "rate_limited");
 }
+
+/** Duck-type Prisma errors so unique/not-found still map if client copies differ. */
+export function prismaErrorCode(error: unknown): string | null {
+  let current: unknown = error;
+  for (let i = 0; i < 5 && current; i++) {
+    if (typeof current === "object" && current && "code" in current) {
+      const code = (current as { code?: unknown }).code;
+      if (typeof code === "string" && /^P\d{4}$/.test(code)) return code;
+    }
+    current =
+      typeof current === "object" && current && "cause" in current
+        ? (current as { cause: unknown }).cause
+        : null;
+  }
+  if (
+    error instanceof Error &&
+    /unique constraint/i.test(error.message)
+  ) {
+    return "P2002";
+  }
+  return null;
+}

@@ -8,7 +8,12 @@ import {
 } from "@/lib/campus";
 import { encryptField, decryptField, maskId } from "@/lib/crypto";
 import { prisma } from "@/lib/db";
-import { conflict, notFound, validationError } from "@/lib/errors";
+import {
+  conflict,
+  notFound,
+  prismaErrorCode,
+  validationError,
+} from "@/lib/errors";
 import type { AuthPrincipal } from "@/lib/permissions";
 
 const emptyToUndef = (value: unknown) =>
@@ -480,8 +485,7 @@ export async function createStudent(input: {
     return prisma.$transaction(run);
   } catch (error) {
     if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
+      prismaErrorCode(error) === "P2002"
     ) {
       throw conflict("duplicate admissionNo");
     }
@@ -856,8 +860,7 @@ export async function importStudentsCsv(input: {
     return { inserted: ids.length, ids };
   } catch (error) {
     if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
+      prismaErrorCode(error) === "P2002"
     ) {
       throw conflict("duplicate admissionNo");
     }
