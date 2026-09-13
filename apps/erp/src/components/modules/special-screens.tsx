@@ -33,6 +33,7 @@ import SeatingOps from "@/components/modules/seating-ops";
 import LiveClassOps from "@/components/modules/live-class-ops";
 import TenantOps from "@/components/modules/tenant-ops";
 import { REMAINING_LIVE } from "@/components/modules/remaining-screens";
+import { LEFTOVER_LIVE } from "@/components/modules/leftover-screens";
 import BackupOps from "@/components/modules/backup-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
@@ -207,7 +208,9 @@ export function SpecialScreen({
     LIVE[href] ??
     LIVE[screen.href] ??
     REMAINING_LIVE[href] ??
-    REMAINING_LIVE[screen.href];
+    REMAINING_LIVE[screen.href] ??
+    LEFTOVER_LIVE[href] ??
+    LEFTOVER_LIVE[screen.href];
   if (!render) return null;
   return (
     <div>

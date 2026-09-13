@@ -40,7 +40,7 @@ Uploads: volume at `/app/uploads`, `UPLOAD_DIR=/app/uploads`.
 - In-app: SuperAdmin `/staff/admin/backup` (snapshot JSON + `pg_dump` onto the uploads volume, last 7 files). Production also dumps ~1 minute after boot, then daily.
 - Scheduled: `.github/workflows/backup.yml` at 02:15 UTC POSTs to `/api/v1/backup/job` with `BACKUP_JOB_TOKEN`.
 - GitHub secrets: `ERP_BACKUP_URL` = `https://<domain>/api/v1/backup/job`, `ERP_BACKUP_TOKEN` = same value as Railway `BACKUP_JOB_TOKEN`.
-- Restore: `pg_restore` against Postgres. Not an in-app button.
+- Restore: SuperAdmin Backup screen — type `RESTORE`, then Restore on a dump. This replaces the live database.
 
 ## CLI (only when you want a deploy)
 

@@ -34,6 +34,45 @@ async function prune() {
   }
 }
 
+export function safeDumpName(raw: string) {
+  const name = raw.trim().replace(/\\/g, "/").split("/").pop() ?? "";
+  if (!/^[A-Za-z0-9._-]+\.(dump|sql)$/.test(name)) {
+    throw new Error("invalid dump name");
+  }
+  return name;
+}
+
+export async function restoreDbDump(rawName: string) {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL missing");
+  const name = safeDumpName(rawName);
+  const file = path.join(backupDir(), name);
+  await stat(file);
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(
+      "pg_restore",
+      ["--clean", "--if-exists", "--no-owner", "--no-acl", `--dbname=${url}`, file],
+      { env: process.env, windowsHide: true },
+    );
+    let err = "";
+    child.stderr?.on("data", (chunk) => {
+      err += String(chunk);
+    });
+    child.on("error", (error) => {
+      reject(
+        new Error(
+          `pg_restore not available (${error.message}). Install postgresql-client.`,
+        ),
+      );
+    });
+    child.on("close", (code) => {
+      if (code === 0 || code === 1) resolve();
+      else reject(new Error(err.trim() || `pg_restore exited ${code}`));
+    });
+  });
+  return { name };
+}
+
 export async function createDbDump() {
   const url = process.env.DATABASE_URL;
   if (!url) {
