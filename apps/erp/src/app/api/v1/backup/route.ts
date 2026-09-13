@@ -1,4 +1,6 @@
+import { requestIp, writeAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
+import { createDbDump, listDbDumps } from "@/lib/db-backup";
 import { fail, ok } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
@@ -10,6 +12,7 @@ export async function GET(request: Request) {
       "backup",
       "edit",
     );
+    const dumps = await listDbDumps();
     const campusId = user.campusId;
     const [
       campus,
@@ -59,8 +62,33 @@ export async function GET(request: Request) {
         : null,
       counts: { students, staff, invoices, payments, applications },
       recentAudit: audit,
-      note: "This is a campus snapshot, not a Postgres dump. Keep Railway volume backups for the database.",
+      dumps,
+      dumpJob:
+        "pg_dump custom format on the uploads volume; keeps last 7; also runs daily in production",
     });
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const user = await requireApiPermission(
+      request,
+      "settings",
+      "backup",
+      "edit",
+    );
+    const dump = await createDbDump();
+    await writeAudit({
+      userId: user.id,
+      campusId: user.campusId,
+      action: "backup",
+      entity: "database",
+      entityId: dump.name,
+      ip: requestIp(request),
+    });
+    return ok({ ok: true, dump });
   } catch (error) {
     return fail(error);
   }

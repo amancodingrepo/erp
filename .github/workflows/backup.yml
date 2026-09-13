@@ -1,0 +1,24 @@
+name: backup
+
+on:
+  schedule:
+    - cron: "15 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  dump:
+    name: trigger-pg-dump
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run production database dump
+        env:
+          BACKUP_URL: ${{ secrets.ERP_BACKUP_URL }}
+          BACKUP_TOKEN: ${{ secrets.ERP_BACKUP_TOKEN }}
+        run: |
+          if [ -z "$BACKUP_URL" ] || [ -z "$BACKUP_TOKEN" ]; then
+            echo "Set GitHub secrets ERP_BACKUP_URL and ERP_BACKUP_TOKEN"
+            exit 1
+          fi
+          curl -fsS -X POST "$BACKUP_URL" \
+            -H "authorization: Bearer $BACKUP_TOKEN" \
+            -H "content-type: application/json"

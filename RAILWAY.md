@@ -30,8 +30,17 @@ That runs `prisma migrate deploy`, seed, then `next start`.
 
 Health: `GET /api/health` → `{ "ok": true, "db": "up" }`.
 
-Uploads: mount a volume at `/app/uploads` and set `UPLOAD_DIR=/app/uploads` on **web**.
-Staff SuperAdmin can download a campus snapshot at `/staff/admin/backup`. Postgres itself is on the Railway volume — take snapshots there for a real restore.
+Uploads: volume at `/app/uploads`, `UPLOAD_DIR=/app/uploads`.
+
+Uploads: volume at `/app/uploads`, `UPLOAD_DIR=/app/uploads`.
+
+**CI** (`.github/workflows/ci.yml`): on push/PR to `apps/erp` — unit tests + `tsc`, then integration tests against Postgres 16. Push to GitHub to start it.
+
+**Backup job**
+- In-app: SuperAdmin `/staff/admin/backup` (snapshot JSON + `pg_dump` onto the uploads volume, last 7 files). Production also dumps ~1 minute after boot, then daily.
+- Scheduled: `.github/workflows/backup.yml` at 02:15 UTC POSTs to `/api/v1/backup/job` with `BACKUP_JOB_TOKEN`.
+- GitHub secrets: `ERP_BACKUP_URL` = `https://<domain>/api/v1/backup/job`, `ERP_BACKUP_TOKEN` = same value as Railway `BACKUP_JOB_TOKEN`.
+- Restore: `pg_restore` against Postgres. Not an in-app button.
 
 ## CLI (only when you want a deploy)
 
