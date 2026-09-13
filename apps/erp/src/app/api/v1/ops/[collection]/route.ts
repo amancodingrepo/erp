@@ -20,10 +20,6 @@ type Handler = {
   create: (campusId: string, userId: string, body: unknown) => Promise<unknown>;
 };
 
-function str(v: unknown) {
-  return String(v ?? "").trim();
-}
-
 const HANDLERS: Record<string, Handler> = {
   "canteen-outlets": {
     perm: ["students", "profile", "view"],

@@ -15,9 +15,13 @@ function ops(
     optionLabel?: string;
   }>,
 ) {
-  return () => (
-    <RemainingOps title={title} collection={collection} fields={fields} />
-  );
+  function OpsPanel() {
+    return (
+      <RemainingOps title={title} collection={collection} fields={fields} />
+    );
+  }
+  OpsPanel.displayName = `Ops:${collection}`;
+  return OpsPanel;
 }
 
 const students = {
