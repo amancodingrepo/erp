@@ -1,73 +1,103 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { usePortal } from "@/lib/use-portal";
+
+function Status({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-[var(--muted)]">{children}</p>;
+}
+
+function Card({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-[var(--rule)] bg-[var(--paper-2)] p-5 shadow-[4px_4px_0_#1b2a22]">
+      {children}
+    </div>
+  );
+}
+
+function Page({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="space-y-5">
+      <h1 className="font-display text-3xl sm:text-4xl">{title}</h1>
+      {children}
+    </div>
+  );
+}
 
 export function DashboardView() {
   const { data, error } = usePortal();
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
   return (
-    <div className="space-y-4">
-      <h1 className="font-display text-4xl">{data.student.name}</h1>
+    <Page title={`Hello, ${data.student.name}`}>
       <p className="text-sm text-[var(--muted)]">
         {data.student.admissionNo} · {data.student.class} / {data.student.section}
       </p>
-      <dl className="grid gap-3 sm:grid-cols-3 text-sm">
-        <div className="border border-[var(--rule)] p-3">
-          <dt className="text-[var(--muted)]">Fee balance</dt>
-          <dd className="text-xl">{data.dues.balance}</dd>
-        </div>
-        <div className="border border-[var(--rule)] p-3">
-          <dt className="text-[var(--muted)]">Attendance</dt>
-          <dd className="text-xl">{data.attendancePercent}%</dd>
-        </div>
-        <div className="border border-[var(--rule)] p-3">
-          <dt className="text-[var(--muted)]">Next class</dt>
-          <dd className="text-xl">{data.timetable.nextClass ?? "—"}</dd>
-        </div>
-      </dl>
-      <ul className="text-sm">
-        {data.notices.map((n) => (
-          <li key={n.id}>{n.title}</li>
-        ))}
-      </ul>
-    </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Fee balance</p>
+          <p className="mt-1 font-display text-3xl">₹{data.dues.balance}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Attendance</p>
+          <p className="mt-1 font-display text-3xl">{data.attendancePercent}%</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Class</p>
+          <p className="mt-1 font-display text-2xl">
+            {data.timetable.nextClass ?? "—"}
+          </p>
+        </Card>
+      </div>
+      <Card>
+        <p className="text-sm font-semibold">Notices</p>
+        <ul className="mt-2 space-y-1 text-sm">
+          {data.notices.map((n) => (
+            <li key={n.id}>{n.title}</li>
+          ))}
+          {!data.notices.length ? (
+            <li className="text-[var(--muted)]">No notices yet.</li>
+          ) : null}
+        </ul>
+      </Card>
+    </Page>
   );
 }
 
 export function ProfileView() {
   const { data, error } = usePortal();
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
   return (
-    <div>
-      <h1 className="font-display text-4xl">Profile</h1>
-      <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-[var(--muted)]">Student ID</dt>
-          <dd>{data.student.admissionNo}</dd>
-        </div>
-        <div>
-          <dt className="text-[var(--muted)]">Name</dt>
-          <dd>{data.student.name}</dd>
-        </div>
-        <div>
-          <dt className="text-[var(--muted)]">Class</dt>
-          <dd>
-            {data.student.class} / {data.student.section}
-          </dd>
-        </div>
-      </dl>
-    </div>
+    <Page title="Profile">
+      <Card>
+        <dl className="grid gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-[var(--muted)]">Student ID</dt>
+            <dd className="mt-1 font-medium">{data.student.admissionNo}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--muted)]">Name</dt>
+            <dd className="mt-1 font-medium">{data.student.name}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--muted)]">Class</dt>
+            <dd className="mt-1 font-medium">
+              {data.student.class} / {data.student.section}
+            </dd>
+          </div>
+        </dl>
+      </Card>
+    </Page>
   );
 }
 
 export function FeesView() {
   const { data, error } = usePortal();
   const [orderMsg, setOrderMsg] = useState<string | null>(null);
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
 
   async function payOnline() {
     setOrderMsg(null);
@@ -98,102 +128,132 @@ export function FeesView() {
   }
 
   return (
-    <div className="space-y-3">
-      <h1 className="font-display text-4xl">Fees</h1>
-      <p className="text-sm">
-        Total {data.dues.total} · Paid {data.dues.paid} · Balance {data.dues.balance}
-      </p>
-      <button type="button" className="text-sm underline" onClick={payOnline}>
-        Pay online
-      </button>
-      {orderMsg ? <p className="text-sm text-[var(--muted)]">{orderMsg}</p> : null}
-      <a
-        className="block text-sm underline"
-        href={`/api/v1/students/${data.student.id}/ledger`}
-      >
-        Open ledger JSON
-      </a>
-    </div>
+    <Page title="Fees">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Total</p>
+          <p className="mt-1 text-2xl">₹{data.dues.total}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Paid</p>
+          <p className="mt-1 text-2xl">₹{data.dues.paid}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Balance</p>
+          <p className="mt-1 text-2xl">₹{data.dues.balance}</p>
+        </Card>
+      </div>
+      <Card>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" onClick={payOnline}>
+            Pay online
+          </Button>
+          <a
+            className="text-sm underline underline-offset-4"
+            href={`/api/v1/students/${data.student.id}/ledger`}
+          >
+            Open ledger
+          </a>
+        </div>
+        {orderMsg ? <p className="mt-3 text-sm text-[var(--muted)]">{orderMsg}</p> : null}
+      </Card>
+    </Page>
   );
 }
 
 export function AttendanceView() {
   const { data, error } = usePortal();
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
   return (
-    <div>
-      <h1 className="font-display text-4xl">Attendance</h1>
-      <p className="mt-3 text-3xl">{data.attendancePercent}%</p>
-    </div>
+    <Page title="Attendance">
+      <Card>
+        <p className="text-sm text-[var(--muted)]">This month</p>
+        <p className="mt-1 font-display text-5xl">{data.attendancePercent}%</p>
+      </Card>
+    </Page>
   );
 }
 
 export function TimetableView() {
   const { data, error } = usePortal();
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
   return (
-    <div>
-      <h1 className="font-display text-4xl">Timetable</h1>
-      <p className="mt-3 text-sm text-[var(--muted)]">
-        Class timetable placeholder for {data.timetable.nextClass ?? "your section"}.
-      </p>
-    </div>
+    <Page title="Timetable">
+      <Card>
+        <p className="text-sm text-[var(--muted)]">
+          Class timetable for {data.timetable.nextClass ?? "your section"} will
+          show here when the weekly grid is published.
+        </p>
+      </Card>
+    </Page>
   );
 }
 
 export function NoticesView() {
   const { data, error } = usePortal();
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
   return (
-    <div>
-      <h1 className="font-display text-4xl">Notices</h1>
-      <ul className="mt-4 space-y-2 text-sm">
-        {data.notices.map((n) => (
-          <li key={n.id}>{n.title}</li>
-        ))}
-        {!data.notices.length ? <li>No notices.</li> : null}
-      </ul>
-    </div>
+    <Page title="Notices">
+      <Card>
+        <ul className="space-y-3 text-sm">
+          {data.notices.map((n) => (
+            <li key={n.id} className="border-b border-[var(--rule)] pb-2 last:border-0">
+              {n.title}
+            </li>
+          ))}
+          {!data.notices.length ? (
+            <li className="text-[var(--muted)]">No notices.</li>
+          ) : null}
+        </ul>
+      </Card>
+    </Page>
   );
 }
 
 export function ExamsView() {
   const { data, error } = usePortal();
-  if (error) return <p>{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (error) return <Status>{error}</Status>;
+  if (!data) return <Status>Loading…</Status>;
   if (data.exams.status === "withheld") {
     return (
-      <div>
-        <h1 className="font-display text-4xl">Exams</h1>
-        <p className="mt-3 text-sm">Result withheld</p>
+      <Page title="Exams">
+        <Card>
+          <p className="text-sm">Result withheld. Contact the college office.</p>
+        </Card>
         <ExamFormApply />
-      </div>
+      </Page>
     );
   }
   return (
-    <div>
-      <h1 className="font-display text-4xl">Exams</h1>
-      <ul className="mt-4 text-sm">
-        {data.exams.marks.map((m, i) => (
-          <li key={i}>
-            {m.exam}: {m.isAbsent ? "AB" : String(m.marks ?? "—")}
-          </li>
-        ))}
-        {!data.exams.marks.length ? <li>No published marks.</li> : null}
-      </ul>
-      {data.student.id ? (
-        <a
-          className="mt-3 inline-block text-sm underline"
-          href={`/api/v1/students/${data.student.id}/marksheet?format=pdf`}
-        >
-          Marksheet PDF
-        </a>
-      ) : null}
+    <Page title="Exams">
+      <Card>
+        <ul className="space-y-2 text-sm">
+          {data.exams.marks.map((m, i) => (
+            <li key={i} className="flex justify-between gap-4">
+              <span>{m.exam}</span>
+              <span className="font-medium">
+                {m.isAbsent ? "Absent" : String(m.marks ?? "—")}
+              </span>
+            </li>
+          ))}
+          {!data.exams.marks.length ? (
+            <li className="text-[var(--muted)]">No published marks.</li>
+          ) : null}
+        </ul>
+        {data.student.id ? (
+          <a
+            className="mt-4 inline-block text-sm underline underline-offset-4"
+            href={`/api/v1/students/${data.student.id}/marksheet?format=pdf`}
+          >
+            Download marksheet PDF
+          </a>
+        ) : null}
+      </Card>
       <ExamFormApply />
-    </div>
+    </Page>
   );
 }
 
@@ -223,13 +283,13 @@ function ExamFormApply() {
     setMessage(res.ok ? `Submitted, fee ₹${json.feeAmount}` : json.message ?? json.error);
   }
   return (
-    <div className="mt-6 space-y-3">
+    <Card>
       <h2 className="font-display text-2xl">ATKT / revaluation</h2>
-      <p className="text-sm text-[var(--muted)]">{message}</p>
+      {message ? <p className="mt-2 text-sm text-[var(--muted)]">{message}</p> : null}
       {windows.map((w) => (
         <form
           key={w.id}
-          className="space-y-2 text-sm"
+          className="mt-4 space-y-2 text-sm"
           onSubmit={(event) => {
             event.preventDefault();
             const ids = new FormData(event.currentTarget)
@@ -241,18 +301,23 @@ function ExamFormApply() {
           <p>
             {w.kind} · {w.examGroup.name} · ₹{w.feeAmount}
           </p>
-          <select name="subjectIds" multiple required className="w-full border px-2 py-1">
+          <select
+            name="subjectIds"
+            multiple
+            required
+            className="h-24 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-2 py-1"
+          >
             {w.examGroup.subjects.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.exam}
               </option>
             ))}
           </select>
-          <button type="submit" className="underline">
+          <Button type="submit" size="sm">
             Apply
-          </button>
+          </Button>
         </form>
       ))}
-    </div>
+    </Card>
   );
 }

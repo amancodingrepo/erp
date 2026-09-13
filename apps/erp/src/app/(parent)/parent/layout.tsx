@@ -39,7 +39,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       extra={
         childrenList.length ? (
           <select
-            className="h-10 rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
+            className="h-9 rounded-md border border-white/20 bg-white/10 px-3 text-sm text-[var(--paper)]"
             value={childId}
             onChange={(e) => {
               setChildId(e.target.value);

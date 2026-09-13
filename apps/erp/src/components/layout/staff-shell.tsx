@@ -5,8 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { NAV } from "@/lib/catalog/nav";
 import { filterNav, screenIsVisible } from "@/lib/catalog/nav-permissions";
-import { SCREEN_COUNT, SCREENS } from "@/lib/catalog/screens";
+import { SCREENS } from "@/lib/catalog/screens";
 import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button";
 import type { AuthPrincipal } from "@/lib/permissions";
 
 type Me = {
@@ -118,7 +119,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             College ERP
           </p>
           <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--brass)]">
-            {me?.campus.name ?? "Campus"} · {SCREEN_COUNT} screens
+            {me?.campus.name ?? "Campus"}
           </p>
           <label className="mt-4 block">
             <span className="sr-only">Filter menu</span>
@@ -169,25 +170,28 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           <p className="text-[var(--paper)]/70">
             {me?.campus.session?.name ?? "Session"}
           </p>
-          <p className="mt-1 font-medium">{me?.user.roles.join(", ")}</p>
-        </div>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between gap-4 border-b border-[var(--rule)] bg-[var(--paper-2)] px-6">
-          <button
-            type="button"
-            className="text-sm text-[var(--muted)]"
-            onClick={() => setPalette(true)}
-          >
-            Staff desk · Ctrl+K to jump screens
-          </button>
+          <p className="mt-1 font-medium">{me?.user.roles.join(", ") || "Staff"}</p>
           <button
             type="button"
             onClick={logout}
-            className="text-sm underline-offset-4 hover:underline"
+            className="mt-3 w-full rounded-md bg-[var(--brass)] px-3 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[#b07c36]"
           >
             Sign out
           </button>
+        </div>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 items-center justify-between gap-4 border-b border-[var(--rule)] bg-[var(--paper-2)] px-4 sm:px-6">
+          <button
+            type="button"
+            className="truncate text-sm text-[var(--muted)]"
+            onClick={() => setPalette(true)}
+          >
+            Staff desk · Ctrl+K
+          </button>
+          <Button type="button" variant="primary" size="sm" onClick={logout}>
+            Sign out
+          </Button>
         </header>
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
