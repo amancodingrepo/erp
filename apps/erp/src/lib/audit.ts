@@ -9,7 +9,7 @@ export function requestIp(request: Request) {
 
 export async function writeAudit(input: {
   userId?: string | null;
-  campusId: string;
+  campusId?: string | null;
   action: string;
   entity: string;
   entityId?: string | null;

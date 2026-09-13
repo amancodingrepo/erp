@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
     const dump = await createDbDump();
     await writeAudit({
-      campusId: "system",
+      campusId: null,
       action: "backup",
       entity: "database",
       entityId: dump.name,
