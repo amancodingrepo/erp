@@ -1,0 +1,11 @@
+{
+  "ts": 1789288337.039481,
+  "iso": "2026-09-13T14:02:17",
+  "event": "session_start",
+  "channel": "hook-grok",
+  "ok": true,
+  "detail": "grok-fast-path digests",
+  "project_id": "visha-90fc8883",
+  "cwd": "C:\\Users\\visha\\Downloads\\erp\\erp",
+  "pid": 25804
+}

@@ -13,3 +13,4 @@
 {"ts": 1788686607.4005084, "iso": "2026-09-06T14:53:27", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9167"}
 {"ts": 1788686981.4355845, "iso": "2026-09-06T14:59:41", "event": "capture", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "skipped (importance=0.35 below threshold)", "importance": 0.35, "memory_id": 0}
 {"ts": 1788689996.854094, "iso": "2026-09-06T15:49:56", "event": "inject", "channel": "mcp", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "chars=9161"}
+{"ts": 1789288337.0439932, "iso": "2026-09-13T14:02:17", "event": "session_start", "channel": "hook-grok", "project_id": "visha-90fc8883", "branch": "", "ok": true, "detail": "session_start: grok-fast-path digests"}

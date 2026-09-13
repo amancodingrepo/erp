@@ -3,7 +3,7 @@
 > Auto-managed digest for Aider and other CLIs that `read:` this file. Your notes above the markers are safe.
 
 <!-- SKILLGOD:START v1.1 -->
-# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-06 14:59)
+# SkillGod Project Memory (auto-generated — do not edit; updated 2026-09-13 14:02)
 
 # SkillGod Active
 
@@ -22,7 +22,7 @@ After completing **meaningful** work (decisions, architecture, non-obvious fixes
 ## SkillGod health
 - version: 1.0.1+794a995
 - project_id: `visha-90fc8883`
-- last inject: never (-)
+- last inject: 2026-09-08T23:31:59 (runtime)
 - last capture: never (-)
 - markers: SKILLGOD:START v1.1
 
