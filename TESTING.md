@@ -20,14 +20,16 @@ https://web-production-99e97.up.railway.app/login
 
 1. Open **Chrome** or **Edge** (preferred).  
 2. Paste the link above.  
-3. You should see **Sign in** with Portal, Username, Password.
+3. You should see **Sign in** with Campus, Portal, Username, Password.
 
 | Check | Pass | Fail |
 |---|---|---|
 | Login page loads | ☐ | ☐ |
+| Campus dropdown shows at least Main Campus (MAIN) and East Campus (EAST) | ☐ | ☐ |
 | You can type in username and password | ☐ | ☐ |
 
 If the page does not load: wait 30 seconds and refresh. If it still fails, note the error and stop this round.
+report -- student login does not have logout button add one and the ui screen is not looking good 
 
 ---
 
@@ -35,14 +37,17 @@ If the page does not load: wait 30 seconds and refresh. If it still fails, note 
 
 Password for **all** demo users: `Admin@12345`
 
-On the login screen, first choose **Portal**, then username.
+On the login screen, first choose **Campus**, then **Portal**, then username.
 
-| Who | Portal dropdown | Username | Password | Should land on |
-|---|---|---|---|---|
-| Campus admin | Staff | `admin` | `Admin@12345` | Staff dashboard |
-| Teacher | Staff | `teacher` | `Admin@12345` | Staff dashboard (fewer menus) |
-| Student | Student | `student1` | `Admin@12345` | Student dashboard |
-| Parent | Parent | `parent1` | `Admin@12345` | Parent dashboard |
+| Who | Campus | Portal dropdown | Username | Password | Should land on |
+|---|---|---|---|---|---|
+| Main campus admin | MAIN | Staff | `admin` | `Admin@12345` | Staff dashboard |
+| Main campus teacher | MAIN | Staff | `teacher` | `Admin@12345` | Staff dashboard (fewer menus) |
+| Main campus student | MAIN | Student | `student1` | `Admin@12345` | Student dashboard |
+| Main campus parent | MAIN | Parent | `parent1` | `Admin@12345` | Parent dashboard |
+| East campus admin | EAST | Staff | `admin` | `Admin@12345` | Staff dashboard for East only |
+
+Wrong campus + right username usually **fails** (except the Main campus admin, who can also open **Multi Branch** and switch). That is correct.
 
 Wrong portal + right username usually **fails**. That is correct.
 
@@ -70,15 +75,35 @@ The left menu still lists many old college-software names. **Only follow the scr
 
 ## A. Staff admin — first login
 
-1. Portal = **Staff**  
-2. Username `admin` / password `Admin@12345`  
-3. Click **Enter desk**
+1. Campus = **MAIN** (Main Campus)  
+2. Portal = **Staff**  
+3. Username `admin` / password `Admin@12345`  
+4. Click **Enter desk**
 
 | Check | Pass | Fail |
 |---|---|---|
 | You reach a staff home / dashboard | ☐ | ☐ |
 | Left menu shows groups (Students, Fees, Exams, etc.) | ☐ | ☐ |
 | Your name or campus feels like a college desk, not a crash | ☐ | ☐ |
+
+---
+
+## A2. Two campuses (multi-tenant)
+
+**Goal:** prove Main and East do not share student lists.
+
+1. Still on Main campus admin, open **Multi Branch** → **Overview** (`/staff/multibranch/branch/overview`).  
+2. You should see **Main Campus** and **East Campus**.  
+3. Sign out. Login as Campus **EAST**, Portal **Staff**, username `admin`.  
+4. Open **Student Details**. You should **not** see a student you created on Main (for example `TEST-101`).  
+5. Sign out. Login Main admin again. Use the campus switcher in the left sidebar (if shown) or Multi Branch → **Work in this campus** on East, then check students, then switch back.
+
+| Check | Pass | Fail | Skip |
+|---|---|---|---|
+| Multi Branch page lists MAIN and EAST | ☐ | ☐ | ☐ |
+| East admin login works | ☐ | ☐ | ☐ |
+| East student list is not the same as Main | ☐ | ☐ | ☐ |
+| Online admission `/apply` has a campus dropdown | ☐ | ☐ | ☐ |
 
 ---
 

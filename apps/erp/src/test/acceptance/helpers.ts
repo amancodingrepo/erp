@@ -31,12 +31,18 @@ export async function login(
   username: string,
   portal: "staff" | "student" | "parent" = "staff",
   password = SEED_PASSWORD,
+  campusCode?: string,
 ) {
   const res = await loginPost(
     new Request("http://local/api/v1/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ username, password, portal }),
+      body: JSON.stringify({
+        username,
+        password,
+        portal,
+        ...(campusCode ? { campusCode } : {}),
+      }),
     }),
   );
   const body = (await res.json()) as { token?: string; error?: string };

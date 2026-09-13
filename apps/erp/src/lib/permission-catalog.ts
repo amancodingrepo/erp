@@ -50,10 +50,14 @@ export const PERMISSION_CATALOG: Array<{
   { module: "settings", feature: "campus", action: "view" },
   { module: "settings", feature: "campus", action: "edit" },
   { module: "settings", feature: "backup", action: "edit" },
+  { module: "tenants", feature: "campus", action: "view" },
+  { module: "tenants", feature: "campus", action: "create" },
+  { module: "tenants", feature: "campus", action: "edit" },
 ];
 
 export type RoleName =
   | "SuperAdmin"
+  | "PlatformAdmin"
   | "Registrar"
   | "Accountant"
   | "Teacher"
@@ -64,6 +68,7 @@ export type RoleName =
 
 export const SYSTEM_ROLES: RoleName[] = [
   "SuperAdmin",
+  "PlatformAdmin",
   "Registrar",
   "Accountant",
   "Teacher",
@@ -74,7 +79,10 @@ export const SYSTEM_ROLES: RoleName[] = [
 ];
 
 /** Role packs from erp-spec/production/permissions.md */
-export const ROLE_GRANTS: Record<Exclude<RoleName, "SuperAdmin">, string[]> = {
+export const ROLE_GRANTS: Record<
+  Exclude<RoleName, "SuperAdmin" | "PlatformAdmin">,
+  string[]
+> = {
   Teacher: [
     "dashboard.home.view",
     "students.profile.view",

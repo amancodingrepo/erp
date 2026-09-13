@@ -1,33 +1,32 @@
 import { z } from "zod";
 import { signAuthToken } from "@/lib/auth-token";
 import { campusSummary } from "@/lib/campus";
+import { validationError } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
-import { authenticateCredentials } from "@/lib/principal";
-import { rateLimited } from "@/lib/errors";
+import { loadPrincipal, principalFromRequest } from "@/lib/principal";
 import {
-  clearLoginRateLimit,
-  hitLoginRateLimit,
-} from "@/lib/rate-limit-db";
+  assertPlatformAdmin,
+  campusInOrg,
+  homeCampusForUser,
+} from "@/lib/services/tenants";
 
 const bodySchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(1),
-  portal: z.enum(["staff", "student", "parent"]).default("staff"),
+  campusId: z.string().min(1).optional(),
   campusCode: z.string().min(2).optional(),
 });
 
 export async function POST(request: Request) {
   try {
-    const ip = request.headers.get("x-forwarded-for") ?? "local";
+    const user = await principalFromRequest(request);
+    assertPlatformAdmin(user);
     const body = bodySchema.parse(await readJson(request));
-    const key = `login:${body.username}:${ip}`;
-    if (await hitLoginRateLimit(key, 5)) {
-      throw rateLimited();
-    }
-    const principal = await authenticateCredentials(body);
-    await clearLoginRateLimit(key);
+    const key = body.campusId ?? body.campusCode;
+    if (!key) throw validationError({ campusId: "required" });
+    const home = await homeCampusForUser(user.id);
+    const campus = await campusInOrg(home.orgId, key);
+    const principal = await loadPrincipal(user.id, campus.id);
     const token = await signAuthToken(principal);
-    const campus = await campusSummary(principal.campusId);
+    const summary = await campusSummary(principal.campusId);
     const response = ok({
       token,
       user: {
@@ -35,12 +34,8 @@ export async function POST(request: Request) {
         campusId: principal.campusId,
         actorType: principal.actorType,
         roles: principal.roles,
-        permissions: principal.permissions,
-        studentId: principal.studentId,
-        guardianId: principal.guardianId,
-        childIds: principal.childIds,
       },
-      campus,
+      campus: summary,
     });
     response.cookies.set("erp_token", token, {
       httpOnly: true,

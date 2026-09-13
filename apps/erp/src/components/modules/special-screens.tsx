@@ -31,6 +31,7 @@ import FeedbackOps from "@/components/modules/feedback-ops";
 import PayrollOps from "@/components/modules/payroll-ops";
 import SeatingOps from "@/components/modules/seating-ops";
 import LiveClassOps from "@/components/modules/live-class-ops";
+import TenantOps from "@/components/modules/tenant-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -176,6 +177,9 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/conference/class-report": () => <LiveClassOps mode="zoom-report" />,
   "/staff/conference/meeting-report": () => <LiveClassOps mode="zoom-report" />,
   "/staff/conference": () => <LiveClassOps mode="settings" />,
+  "/staff/multibranch/branch/overview": () => <TenantOps mode="overview" />,
+  "/staff/multibranch/finance": () => <TenantOps mode="report" />,
+  "/staff/tenants": () => <TenantOps mode="overview" />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

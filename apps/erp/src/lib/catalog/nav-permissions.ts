@@ -186,6 +186,9 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/conference/class-report": "academics.class.view",
   "/staff/conference/meeting-report": "academics.class.view",
   "/staff/conference": "academics.class.view",
+  "/staff/multibranch/branch/overview": "tenants.campus.view",
+  "/staff/multibranch/finance": "tenants.campus.view",
+  "/staff/tenants": "tenants.campus.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
@@ -259,6 +262,9 @@ function itemVisible(
   flags: Record<string, boolean>,
 ): boolean {
   const optional = optionalModuleForItem(item);
+  if (optional === "multi-campus") {
+    return Boolean(user?.roles.includes("PlatformAdmin"));
+  }
   if (optional && !isModuleEnabled(flags, optional)) return false;
   if (!isV1WiredHref(item.href)) {
     if (!optional || !isModuleEnabled(flags, optional)) return false;

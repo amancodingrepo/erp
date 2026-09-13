@@ -25,7 +25,7 @@ model Campus {
   orgId          String
   org            Organization @relation(fields: [orgId], references: [id])
   name           String // LIVE sch_name
-  code           String? // LIVE sch_dise_code
+  code           String? @unique // LIVE sch_dise_code — login / public apply key
   address        String? // LIVE sch_address
   phone          String? // LIVE sch_phone
   email          String? // LIVE sch_email

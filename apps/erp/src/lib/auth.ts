@@ -15,17 +15,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
         portal: { label: "Portal", type: "text" },
+        campusCode: { label: "Campus", type: "text" },
       },
       async authorize(credentials) {
         const username = String(credentials?.username ?? "");
         const password = String(credentials?.password ?? "");
         const portal = String(credentials?.portal ?? "staff");
+        const campusCode = String(credentials?.campusCode ?? "");
         if (!username || !password) return null;
         try {
           const principal = await authenticateCredentials({
             username,
             password,
             portal,
+            campusCode: campusCode || undefined,
           });
           return {
             id: principal.id,

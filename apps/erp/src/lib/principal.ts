@@ -15,10 +15,14 @@ const PORTAL_ACTOR: Record<string, ActorType> = {
   parent: ActorType.GUARDIAN,
 };
 
-export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
+export async function loadPrincipal(
+  userId: string,
+  activeCampusId?: string,
+): Promise<AuthPrincipal> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
+      campus: true,
       student: true,
       guardian: { include: { links: true } },
       roles: {
@@ -44,9 +48,22 @@ export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
       ),
     ),
   ];
+  let campusId = user.campusId;
+  if (
+    roles.includes("PlatformAdmin") &&
+    activeCampusId &&
+    activeCampusId !== user.campusId
+  ) {
+    const target = await prisma.campus.findUnique({
+      where: { id: activeCampusId },
+    });
+    if (target && target.orgId === user.campus.orgId) {
+      campusId = target.id;
+    }
+  }
   return {
     id: user.id,
-    campusId: user.campusId,
+    campusId,
     actorType: user.actorType,
     roles,
     permissions,
@@ -60,14 +77,44 @@ export async function authenticateCredentials(input: {
   username: string;
   password: string;
   portal: string;
+  campusCode?: string | null;
 }): Promise<AuthPrincipal> {
   const actorType = PORTAL_ACTOR[input.portal];
   if (!actorType) {
     throw unauthenticated();
   }
-  const user = await prisma.user.findFirst({
-    where: { username: input.username, actorType },
+  const { DEFAULT_CAMPUS_CODE, normalizeCampusCode } = await import(
+    "./services/tenants"
+  );
+  let campusCode = DEFAULT_CAMPUS_CODE;
+  try {
+    if (input.campusCode?.trim()) {
+      campusCode = normalizeCampusCode(input.campusCode);
+    }
+  } catch {
+    throw unauthenticated();
+  }
+  const campus = await prisma.campus.findFirst({
+    where: { code: campusCode },
   });
+  if (!campus) {
+    throw unauthenticated();
+  }
+  let user = await prisma.user.findFirst({
+    where: { username: input.username, actorType, campusId: campus.id },
+  });
+  if (!user) {
+    const platform = await prisma.user.findFirst({
+      where: {
+        username: input.username,
+        actorType,
+        isActive: true,
+        roles: { some: { role: { name: "PlatformAdmin" } } },
+        campus: { orgId: campus.orgId },
+      },
+    });
+    user = platform;
+  }
   if (!user || !user.isActive) {
     throw unauthenticated();
   }
@@ -84,7 +131,7 @@ export async function authenticateCredentials(input: {
         : {}),
     },
   });
-  return loadPrincipal(user.id);
+  return loadPrincipal(user.id, campus.id);
 }
 
 export async function principalFromRequest(
@@ -102,7 +149,7 @@ export async function principalFromRequest(
   if (!token) throw unauthenticated();
   const parsed = await verifyAuthToken(decodeURIComponent(token));
   if (!parsed) throw unauthenticated();
-  return loadPrincipal(parsed.id);
+  return loadPrincipal(parsed.id, parsed.campusId);
 }
 
 export async function requireApiPermission(

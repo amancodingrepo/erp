@@ -6,13 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
 type Catalog = {
-  campus: { name: string };
+  campus: { name: string; code?: string | null };
   applicationFee: string;
   programs: Array<{ id: string; name: string; level: string }>;
 };
 
 export default function ApplyPage() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [campuses, setCampuses] = useState<Array<{ name: string; code: string | null }>>(
+    [],
+  );
+  const [campusCode, setCampusCode] = useState("MAIN");
   const [message, setMessage] = useState<string | null>(null);
   const [ref, setRef] = useState<string | null>(null);
   const [appId, setAppId] = useState<string | null>(null);
@@ -20,11 +24,18 @@ export default function ApplyPage() {
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/v1/public/apply")
+    fetch("/api/v1/public/campuses")
+      .then((r) => r.json())
+      .then((json) => setCampuses(json.data ?? []))
+      .catch(() => setCampuses([]));
+  }, []);
+
+  useEffect(() => {
+    fetch(`/api/v1/public/apply?campus=${encodeURIComponent(campusCode)}`)
       .then((r) => r.json())
       .then(setCatalog)
       .catch(() => setCatalog(null));
-  }, []);
+  }, [campusCode]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,6 +53,7 @@ export default function ApplyPage() {
         gender: form.get("gender") || undefined,
         fatherName: form.get("fatherName"),
         programId: form.get("programId") || undefined,
+        campusCode,
       }),
     });
     const json = await res.json();
@@ -57,7 +69,7 @@ export default function ApplyPage() {
   async function onLookup(event: FormEvent) {
     event.preventDefault();
     const res = await fetch(
-      `/api/v1/public/applications?ref=${encodeURIComponent(lookup)}`,
+      `/api/v1/public/applications?ref=${encodeURIComponent(lookup)}&campus=${encodeURIComponent(campusCode)}`,
     );
     const json = await res.json();
     setStatus(
@@ -73,6 +85,25 @@ export default function ApplyPage() {
         {catalog?.campus.name ?? "College"}
       </p>
       <h1 className="font-display mt-2 text-4xl">Online admission</h1>
+      <div className="mt-4">
+        <Label htmlFor="campusCode">Campus</Label>
+        <select
+          id="campusCode"
+          value={campusCode}
+          onChange={(e) => setCampusCode(e.target.value)}
+          className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
+        >
+          {(campuses.length
+            ? campuses
+            : [{ name: "Main Campus", code: "MAIN" }]
+          ).map((c) => (
+            <option key={c.code ?? c.name} value={c.code ?? "MAIN"}>
+              {c.name}
+              {c.code ? ` (${c.code})` : ""}
+            </option>
+          ))}
+        </select>
+      </div>
       <p className="mt-2 text-sm text-[var(--muted)]">
         Application fee ₹{catalog?.applicationFee ?? "—"}. Pay at the campus
         counter. Staff will enroll you after the fee is recorded.

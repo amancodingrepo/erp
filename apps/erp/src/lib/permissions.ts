@@ -20,7 +20,12 @@ export function hasPermission(
   perm: string,
 ): boolean {
   if (!user) return false;
-  if (user.roles.includes("SuperAdmin")) return true;
+  if (
+    user.roles.includes("SuperAdmin") ||
+    user.roles.includes("PlatformAdmin")
+  ) {
+    return true;
+  }
   return user.permissions.includes(perm);
 }
 

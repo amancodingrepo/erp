@@ -25,6 +25,7 @@ export const applicationCreateSchema = z.object({
   programId: optStr,
   categoryCode: optStr,
   score: z.union([z.number(), z.string()]).optional(),
+  campusCode: optStr,
 });
 
 export const enrollSchema = z.object({
@@ -41,7 +42,14 @@ export const paySchema = z.object({
 export const FEE_SETTING_KEY = "admission.applicationFee";
 const DEFAULT_FEE = "500";
 
-export async function publicCampus() {
+export async function publicCampus(code?: string | null) {
+  if (code?.trim()) {
+    const campus = await prisma.campus.findFirst({
+      where: { code: code.trim().toUpperCase() },
+    });
+    if (!campus) throw notFound("campus");
+    return campus;
+  }
   const campus =
     (await prisma.campus.findFirst({ where: { code: "MAIN" } })) ??
     (await prisma.campus.findFirst());

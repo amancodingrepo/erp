@@ -7,6 +7,7 @@ import {
   ROLE_GRANTS,
   SYSTEM_ROLES,
 } from "../src/lib/permission-catalog";
+import { provisionCampusTenant } from "../src/lib/services/tenants";
 
 const prisma = new PrismaClient();
 
@@ -148,6 +149,12 @@ async function main() {
   await prisma.userRole.create({
     data: { userId: adminUser.id, roleId: superAdmin.id },
   });
+  const platformAdmin = roles.get("PlatformAdmin");
+  if (platformAdmin) {
+    await prisma.userRole.create({
+      data: { userId: adminUser.id, roleId: platformAdmin.id },
+    });
+  }
 
   const teacherRole = roles.get("Teacher")!;
   const teacherUser = await prisma.user.upsert({
@@ -233,7 +240,8 @@ async function main() {
       id === "feedback" ||
       id === "payroll" ||
       id === "seating" ||
-      id === "gmeet";
+      id === "gmeet" ||
+      id === "multi-campus";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
       update: { value: enabled },
@@ -439,9 +447,30 @@ async function main() {
     data: { userId: parentUser.id, roleId: parentRole.id },
   });
 
+  const east = await prisma.campus.findFirst({ where: { code: "EAST" } });
+  if (!east) {
+    await provisionCampusTenant({
+      orgId: org.id,
+      name: "East Campus",
+      code: "EAST",
+      adminUsername: "admin",
+      adminPasswordHash: passwordHash,
+      demoUsers: true,
+    });
+  } else {
+    await prisma.user.updateMany({
+      where: {
+        campusId: east.id,
+        username: { in: ["admin", "teacher", "student1", "parent1"] },
+      },
+      data: { passwordHash, isActive: true },
+    });
+  }
+
   console.log("Seed complete.");
-  console.log("  campus:", campus.name);
+  console.log("  campus: MAIN (Main Campus) and EAST (East Campus)");
   console.log("  session: 2025-26 (current)");
+  console.log("  pick campus on login, then:");
   console.log("  login: admin / (SEED_ADMIN_PASSWORD or Admin@12345)");
   console.log("  login: teacher / (same password, Teacher grants only)");
   console.log("  login: student1 / parent1 (same password, student & parent portals)");

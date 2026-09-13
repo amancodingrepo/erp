@@ -12,9 +12,11 @@ import type { AuthPrincipal } from "@/lib/permissions";
 
 type Me = {
   user: AuthPrincipal;
-  campus: { name: string; session: { name: string } | null };
+  campus: { name: string; code?: string | null; session: { name: string } | null };
   modules: Record<string, boolean>;
 };
+
+type TenantRow = { id: string; name: string; code: string | null };
 
 export function StaffShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,6 +28,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
     students: Array<{ id: string; admissionNo: string; name: string; href: string }>;
     receipts: Array<{ receiptNo: string; student: string; href: string }>;
   }>({ students: [], receipts: [] });
+  const [tenants, setTenants] = useState<TenantRow[]>([]);
 
   useEffect(() => {
     fetch("/api/v1/auth/me")
@@ -41,6 +44,14 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
       })
       .catch(() => router.replace("/login"));
   }, [router]);
+
+  useEffect(() => {
+    if (!me?.user.roles.includes("PlatformAdmin")) return;
+    fetch("/api/v1/tenants")
+      .then((r) => r.json())
+      .then((json) => setTenants(json.data ?? []))
+      .catch(() => setTenants([]));
+  }, [me]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -111,6 +122,16 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   }
 
+  async function switchCampus(campusId: string) {
+    if (!campusId || campusId === me?.user.campusId) return;
+    const res = await fetch("/api/v1/auth/switch-campus", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ campusId }),
+    });
+    if (res.ok) window.location.assign("/staff/dashboard");
+  }
+
   return (
     <div className="flex min-h-dvh bg-[var(--paper)] text-[var(--ink)]">
       <aside className="flex w-[18.5rem] shrink-0 flex-col border-r border-[var(--rule)] bg-[var(--ink)] text-[var(--paper)]">
@@ -120,7 +141,25 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </p>
           <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--brass)]">
             {me?.campus.name ?? "Campus"}
+            {me?.campus.code ? ` · ${me.campus.code}` : ""}
           </p>
+          {tenants.length > 1 ? (
+            <label className="mt-3 block">
+              <span className="sr-only">Switch campus</span>
+              <select
+                value={me?.user.campusId ?? ""}
+                onChange={(e) => switchCampus(e.target.value)}
+                className="h-9 w-full rounded-md border border-white/15 bg-white/5 px-2 text-xs text-[var(--paper)]"
+              >
+                {tenants.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                    {t.code ? ` (${t.code})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label className="mt-4 block">
             <span className="sr-only">Filter menu</span>
             <input

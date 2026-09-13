@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,16 @@ function LoginForm() {
   const from = useSearchParams().get("from") ?? "/staff/dashboard";
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [campuses, setCampuses] = useState<Array<{ name: string; code: string | null }>>(
+    [],
+  );
+
+  useEffect(() => {
+    fetch("/api/v1/public/campuses")
+      .then((r) => r.json())
+      .then((json) => setCampuses(json.data ?? []))
+      .catch(() => setCampuses([]));
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,6 +42,7 @@ function LoginForm() {
         username: form.get("username"),
         password: form.get("password"),
         portal: form.get("portal") || "staff",
+        campusCode: form.get("campusCode") || "MAIN",
       }),
     });
     setPending(false);
@@ -69,10 +80,29 @@ function LoginForm() {
         </p>
         <h1 className="font-display mt-2 text-4xl">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Staff, student, and parent portals share this gate. Access is scoped
-          by role.
+          Staff, student, and parent portals share this gate. Pick the campus
+          first — each campus has its own users and records.
         </p>
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          <div>
+            <Label htmlFor="campusCode">Campus</Label>
+            <select
+              id="campusCode"
+              name="campusCode"
+              defaultValue="MAIN"
+              className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
+            >
+              {(campuses.length
+                ? campuses
+                : [{ name: "Main Campus", code: "MAIN" }]
+              ).map((c) => (
+                <option key={c.code ?? c.name} value={c.code ?? "MAIN"}>
+                  {c.name}
+                  {c.code ? ` (${c.code})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <Label htmlFor="portal">Portal</Label>
             <select

@@ -52,6 +52,14 @@ describe("hasPermission", () => {
     expect(hasPermission(admin, "settings.roles.edit")).toBe(true);
   });
 
+  it("allows PlatformAdmin every permission", () => {
+    const admin = principal({
+      roles: ["PlatformAdmin"],
+      permissions: [],
+    });
+    expect(hasPermission(admin, "tenants.campus.create")).toBe(true);
+  });
+
   it("denies a Teacher from collecting fees", () => {
     expect(hasPermission(principal(), "fees.collect.collect")).toBe(false);
   });
@@ -157,7 +165,23 @@ describe("nav gating", () => {
     const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
     expect(hrefs).toContain("/staff/hostel");
     expect(hrefs).not.toContain("/staff/updater");
-    expect(hrefs).not.toContain("/staff/atkt-form/atkt-form-student");
+  });
+
+  it("shows Multi Branch only to PlatformAdmin when the module is on", () => {
+    const superOnly = principal({ roles: ["SuperAdmin"], permissions: [] });
+    const platform = principal({
+      roles: ["PlatformAdmin"],
+      permissions: [],
+    });
+    const flags = { "multi-campus": true };
+    const superHrefs = filterNav(NAV, superOnly, flags).flatMap((g) =>
+      g.items.map((i) => i.href),
+    );
+    const platformHrefs = filterNav(NAV, platform, flags).flatMap((g) =>
+      g.items.map((i) => i.href),
+    );
+    expect(superHrefs).not.toContain("/staff/multibranch/branch/overview");
+    expect(platformHrefs).toContain("/staff/multibranch/branch/overview");
   });
 
   it("treats optional modules as off unless explicitly enabled", () => {

@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     if (await hitLoginRateLimit(`apply:${ip}`, 20)) {
       throw rateLimited();
     }
-    const campus = await publicCampus();
     const body = applicationCreateSchema.parse(await readJson(request));
+    const campus = await publicCampus(body.campusCode);
     const row = await submitApplication(campus.id, body);
     return created({
       id: row.id,
@@ -30,9 +30,10 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const ref = new URL(request.url).searchParams.get("ref")?.trim();
+    const params = new URL(request.url).searchParams;
+    const ref = params.get("ref")?.trim();
     if (!ref) return ok({ data: null });
-    const campus = await publicCampus();
+    const campus = await publicCampus(params.get("campus"));
     const { prisma } = await import("@/lib/db");
     const row = await prisma.application.findFirst({
       where: { campusId: campus.id, applicationNo: ref },
