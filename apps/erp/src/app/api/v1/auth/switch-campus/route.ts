@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AUTH_COOKIE, authCookieOptions } from "@/lib/auth-cookie";
 import { signAuthToken } from "@/lib/auth-token";
 import { campusSummary } from "@/lib/campus";
 import { validationError } from "@/lib/errors";
@@ -37,12 +38,7 @@ export async function POST(request: Request) {
       },
       campus: summary,
     });
-    response.cookies.set("erp_token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 12,
-    });
+    response.cookies.set(AUTH_COOKIE, token, authCookieOptions());
     return response;
   } catch (error) {
     return fail(error);

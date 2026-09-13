@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { notFound, validationError } from "@/lib/errors";
+import { requestIp, writeAudit } from "@/lib/audit";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 import {
@@ -13,6 +14,19 @@ import {
 } from "@/lib/services/remaining";
 
 const opt = z.string().min(1).optional();
+
+function writePerm(
+  view: [string, string, string],
+): [string, string, string] {
+  if (view[2] !== "view") return view;
+  if (view[0] === "students") return ["students", "profile", "edit"];
+  if (view[0] === "communicate") return ["communicate", "notice", "create"];
+  if (view[0] === "academics") return ["academics", "class", "create"];
+  if (view[0] === "exams") return ["exams", "group", "create"];
+  if (view[0] === "hr") return ["hr", "staff", "create"];
+  if (view[0] === "fees") return ["fees", "master", "create"];
+  return ["settings", "campus", "edit"];
+}
 
 type Handler = {
   perm: [string, string, string];
@@ -871,8 +885,21 @@ export async function POST(
     const { collection } = await context.params;
     const handler = HANDLERS[collection];
     if (!handler) throw notFound("collection");
-    const user = await requireApiPermission(request, ...handler.perm);
-    const row = await handler.create(user.campusId, user.id, await readJson(request));
+    const user = await requireApiPermission(request, ...writePerm(handler.perm));
+    const row = await handler.create(
+      user.campusId,
+      user.id,
+      await readJson(request),
+    );
+    const entity = (row as { id?: string } | null)?.id ?? collection;
+    await writeAudit({
+      userId: user.id,
+      campusId: user.campusId,
+      action: "create",
+      entity: collection,
+      entityId: String(entity),
+      ip: requestIp(request),
+    });
     return created(row);
   } catch (error) {
     return fail(error);

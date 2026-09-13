@@ -54,7 +54,8 @@ export default function CatalogRecordOps({ screen }: { screen: ScreenDef }) {
     <div className="space-y-4">
       <h1 className="font-display text-4xl">{screen.title}</h1>
       <p className="text-sm text-[var(--muted)]">
-        {screen.module} records for this campus. {message}
+        Campus register for this screen — not the full original workflow.
+        Records stay on this campus only. {message}
       </p>
       <form className="grid max-w-xl gap-3" onSubmit={onSubmit}>
         {screen.fields.slice(0, 8).map((field) => (

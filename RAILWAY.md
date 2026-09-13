@@ -30,6 +30,9 @@ That runs `prisma migrate deploy`, seed, then `next start`.
 
 Health: `GET /api/health` → `{ "ok": true, "db": "up" }`.
 
+Uploads: mount a volume at `/app/uploads` and set `UPLOAD_DIR=/app/uploads` on **web**.
+Staff SuperAdmin can download a campus snapshot at `/staff/admin/backup`. Postgres itself is on the Railway volume — take snapshots there for a real restore.
+
 ## CLI (only when you want a deploy)
 
 From `apps/erp` (linked project):

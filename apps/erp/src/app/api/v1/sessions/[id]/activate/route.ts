@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { notFound } from "@/lib/errors";
 import { fail, ok } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
@@ -14,13 +15,17 @@ export async function POST(
       "edit",
     );
     const { id } = await context.params;
+    const session = await prisma.academicSession.findFirst({
+      where: { id, campusId: user.campusId },
+    });
+    if (!session) throw notFound("session");
     await prisma.$transaction([
       prisma.academicSession.updateMany({
         where: { campusId: user.campusId },
         data: { isCurrent: false },
       }),
-      prisma.academicSession.update({
-        where: { id },
+      prisma.academicSession.updateMany({
+        where: { id, campusId: user.campusId },
         data: { isCurrent: true, isActive: true },
       }),
       prisma.campus.update({
@@ -28,8 +33,11 @@ export async function POST(
         data: { currentSessionId: id },
       }),
     ]);
-    const session = await prisma.academicSession.findUnique({ where: { id } });
-    return ok(session);
+    return ok(
+      await prisma.academicSession.findFirst({
+        where: { id, campusId: user.campusId },
+      }),
+    );
   } catch (error) {
     return fail(error);
   }

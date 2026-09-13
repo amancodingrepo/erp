@@ -8,6 +8,7 @@ import {
   passwordNeedsRehash,
   verifyPassword,
 } from "./password";
+import { assertCsrf } from "./csrf";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
   staff: ActorType.STAFF,
@@ -137,6 +138,7 @@ export async function authenticateCredentials(input: {
 export async function principalFromRequest(
   request: Request,
 ): Promise<AuthPrincipal> {
+  assertCsrf(request);
   const header = request.headers.get("authorization");
   const bearer = header?.startsWith("Bearer ") ? header.slice(7) : null;
   const cookie = request.headers

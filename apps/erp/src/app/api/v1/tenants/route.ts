@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { z } from "zod";
+import { requestIp, writeAudit } from "@/lib/audit";
 import { hashPassword } from "@/lib/password";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
@@ -59,6 +60,15 @@ export async function POST(request: Request) {
       adminUsername: body.adminUsername ?? "admin",
       adminPasswordHash: await hashPassword(generated),
       demoUsers: Boolean(body.demoUsers),
+    });
+    await writeAudit({
+      userId: user.id,
+      campusId: home.id,
+      action: "create",
+      entity: "campus",
+      entityId: campus.id,
+      after: { code: campus.code, name: campus.name },
+      ip: requestIp(request),
     });
     return created({
       id: campus.id,

@@ -12,5 +12,7 @@ describe("security headers", () => {
     expect(pairs["X-Content-Type-Options"]).toBe("nosniff");
     expect(pairs["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     expect(pairs["X-Frame-Options"]).toBe("DENY");
+    expect(pairs["Strict-Transport-Security"]).toContain("max-age=");
+    expect(pairs["Content-Security-Policy"]).toContain("frame-ancestors 'none'");
   });
 });

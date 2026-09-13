@@ -33,6 +33,7 @@ import SeatingOps from "@/components/modules/seating-ops";
 import LiveClassOps from "@/components/modules/live-class-ops";
 import TenantOps from "@/components/modules/tenant-ops";
 import { REMAINING_LIVE } from "@/components/modules/remaining-screens";
+import BackupOps from "@/components/modules/backup-ops";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -182,6 +183,7 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/multibranch/finance": () => <TenantOps mode="report" />,
   "/staff/tenants": () => <TenantOps mode="overview" />,
   "/staff/chat": REMAINING_LIVE["/staff/chat"],
+  "/staff/admin/backup": () => <BackupOps />,
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (

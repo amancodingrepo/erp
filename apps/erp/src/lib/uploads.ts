@@ -31,7 +31,9 @@ export async function allowedUploadExts(campusId: string) {
 }
 
 export function uploadsRoot() {
-  return process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
+  if (process.env.UPLOAD_DIR) return process.env.UPLOAD_DIR;
+  if (process.env.NODE_ENV === "production") return "/app/uploads";
+  return path.join(process.cwd(), "uploads");
 }
 
 function sniffExt(

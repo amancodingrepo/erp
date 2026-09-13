@@ -189,6 +189,7 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/multibranch/branch/overview": "tenants.campus.view",
   "/staff/multibranch/finance": "tenants.campus.view",
   "/staff/tenants": "tenants.campus.view",
+  "/staff/admin/backup": "settings.backup.edit",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
