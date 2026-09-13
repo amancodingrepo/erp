@@ -32,6 +32,7 @@ import PayrollOps from "@/components/modules/payroll-ops";
 import SeatingOps from "@/components/modules/seating-ops";
 import LiveClassOps from "@/components/modules/live-class-ops";
 import TenantOps from "@/components/modules/tenant-ops";
+import { REMAINING_LIVE } from "@/components/modules/remaining-screens";
 
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
@@ -180,6 +181,7 @@ const LIVE: Record<string, () => ReactNode> = {
   "/staff/multibranch/branch/overview": () => <TenantOps mode="overview" />,
   "/staff/multibranch/finance": () => <TenantOps mode="report" />,
   "/staff/tenants": () => <TenantOps mode="overview" />,
+  "/staff/chat": REMAINING_LIVE["/staff/chat"],
   "/staff/report/studentinformation": () => <ReportView reportKey="students" />,
   "/staff/financereports/finance": () => <ReportView reportKey="daily-collection" />,
   "/staff/attendencereports/attendance": () => (
@@ -199,7 +201,11 @@ export function SpecialScreen({
   href: string;
   screen: ScreenDef;
 }) {
-  const render = LIVE[href] ?? LIVE[screen.href];
+  const render =
+    LIVE[href] ??
+    LIVE[screen.href] ??
+    REMAINING_LIVE[href] ??
+    REMAINING_LIVE[screen.href];
   if (!render) return null;
   return (
     <div>

@@ -140,7 +140,7 @@ describe("nav gating", () => {
     expect(hrefs).toContain("/staff/student/search");
     expect(hrefs).toContain("/staff/studentfee");
     expect(hrefs).toContain("/staff/module");
-    expect(hrefs).not.toContain("/staff/student/bulkdelete");
+    expect(hrefs).toContain("/staff/student/bulkdelete");
     expect(hrefs).not.toContain("/staff/hostel");
     expect(hrefs).not.toContain("/staff/atkt-form/atkt-form-student");
     expect(hrefs).not.toContain("/staff/seating-arrangement");
@@ -149,6 +149,37 @@ describe("nav gating", () => {
     expect(hrefs).not.toContain("/staff/updater");
     expect(hrefs).not.toContain("/staff/staffpayroll/staff-payroll");
     expect(hrefs).not.toContain("/staff/railway-concession");
+    expect(hrefs).not.toContain("/staff/canteen/menu-list");
+  });
+
+  it("shows remaining modules when enabled", () => {
+    const admin = principal({ roles: ["SuperAdmin"], permissions: [] });
+    const groups = filterNav(NAV, admin, {
+      canteen: true,
+      lms: true,
+      railway: true,
+      onlineexam: true,
+      recruitment: true,
+      inventory: true,
+      alumni: true,
+      cms: true,
+      finance: true,
+      placements: true,
+      activities: true,
+      "lesson-plan": true,
+      assignments: true,
+      downloads: true,
+      booking: true,
+      mentoring: true,
+    });
+    const hrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).toContain("/staff/canteen/menu-list");
+    expect(hrefs).toContain("/staff/onlinecourse/course");
+    expect(hrefs).toContain("/staff/railway-concession");
+    expect(hrefs).toContain("/staff/onlineexam");
+    expect(hrefs).toContain("/staff/hr-recruitment");
+    expect(hrefs).toContain("/staff/item");
+    expect(hrefs).not.toContain("/staff/updater");
   });
 
   it("shows online application inbox when admission is enabled", () => {

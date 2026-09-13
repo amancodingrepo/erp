@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { screenByHref } from "@/lib/catalog/lookup";
 import type { ScreenDef } from "@/lib/catalog/screens";
 import { SpecialScreen } from "./special-screens";
+import CatalogRecordOps from "./catalog-record-ops";
 import PhaseBScreen from "./phase-b";
 
 function synthetic(href: string): ScreenDef {
@@ -34,5 +35,8 @@ export function Workbench({ href }: { href: string }) {
   );
   const live = SpecialScreen({ href, screen });
   if (live) return live;
-  return <PhaseBScreen title={screen.title} />;
+  if (href.includes("updater")) {
+    return <PhaseBScreen title={screen.title} />;
+  }
+  return <CatalogRecordOps screen={screen} />;
 }

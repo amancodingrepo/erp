@@ -59,17 +59,9 @@ Wrong portal + right username usually **fails**. That is correct.
 
 **Test these** (they are built): students, fees, attendance, exams, admission apply, hostel, transport, library, front office, certificates/ID cards, SMS templates, NAAC, CO-PO, feedback, payroll, seating, Google Meet / Zoom **links**.
 
-**Do not treat as bugs** if these look empty or “not available”:
+**Also built now** (same campus rules): Canteen, LMS / online course, railway concession, online exam / CBT, recruitment, inventory, chat (`/staff/chat`), alumni, mentoring, CMS, income/expense, placements, activities, lesson plan, assignments, downloads, room booking.
 
-- Railway concession  
-- Canteen  
-- Online courses / LMS  
-- Chat  
-- System update  
-- Inventory, alumni, placements, recruitment, mentoring  
-- Online exam / CBT  
-
-The left menu still lists many old college-software names. **Only follow the scripts below.** If a menu opens a blank “not in this version” page, mark **Skip**, not Fail.
+**Skip only:** System Update (`/staff/updater`) stays off on purpose.
 
 ---
 

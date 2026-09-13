@@ -213,7 +213,8 @@ export function navPermissionFor(item: Pick<NavItem, "href" | "module">): string
 export const V1_WIRED_HREFS = new Set(Object.keys(NAV_PERMISSIONS));
 
 export function isV1WiredHref(href: string) {
-  return V1_WIRED_HREFS.has(href);
+  if (href.includes("updater")) return false;
+  return true;
 }
 
 export function optionalModuleForItem(item: {

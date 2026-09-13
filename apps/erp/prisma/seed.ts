@@ -227,21 +227,7 @@ async function main() {
 
   for (const id of OPTIONAL_MODULES) {
     const key = `module.${id}.enabled`;
-    const enabled =
-      id === "admission" ||
-      id === "hostel" ||
-      id === "transport" ||
-      id === "certificates" ||
-      id === "front-office" ||
-      id === "library" ||
-      id === "atkt" ||
-      id === "naac" ||
-      id === "copo" ||
-      id === "feedback" ||
-      id === "payroll" ||
-      id === "seating" ||
-      id === "gmeet" ||
-      id === "multi-campus";
+    const enabled = id !== "updater";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
       update: { value: enabled },

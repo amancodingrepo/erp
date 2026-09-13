@@ -12,21 +12,9 @@ import type { AuthPrincipal } from "@/lib/permissions";
 
 export const DEFAULT_CAMPUS_CODE = "MAIN";
 
-const ENABLED_MODULES = new Set([
-  "admission",
-  "hostel",
-  "transport",
-  "certificates",
-  "front-office",
-  "library",
-  "atkt",
-  "naac",
-  "copo",
-  "feedback",
-  "payroll",
-  "seating",
-  "gmeet",
-]);
+const ENABLED_MODULES = new Set<string>(
+  OPTIONAL_MODULES.filter((id) => id !== "updater"),
+);
 
 export function normalizeCampusCode(raw: string) {
   const code = raw.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");

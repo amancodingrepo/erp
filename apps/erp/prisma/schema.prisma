@@ -73,6 +73,32 @@ model Campus {
   payrollRuns      PayrollRun[]
   seatingBlocks    SeatingBlock[]
   liveClasses      LiveClass[]
+  canteenOutlets   CanteenOutlet[]
+  canteenMenuTypes CanteenMenuType[]
+  canteenFoodItems CanteenFoodItem[]
+  canteenMenus     CanteenMenu[]
+  canteenCoupons   CanteenCoupon[]
+  railwayConcessions RailwayConcession[]
+  lmsCategories    LmsCategory[]
+  lmsCourses       LmsCourse[]
+  onlineExams      OnlineExamBank[]
+  jobPostings      JobPosting[]
+  itemCategories   ItemCategory[]
+  itemStores       ItemStore[]
+  itemSuppliers    ItemSupplier[]
+  inventoryItems   InventoryItem[]
+  supportTopics    SupportTopic[]
+  chatThreads      ChatThread[]
+  alumni           Alumnus[]
+  alumniEvents     AlumniEvent[]
+  mentorAssignments MentorAssignment[]
+  cmsPages         CmsPage[]
+  financeHeads     FinanceHead[]
+  tnpCompanies     TnpCompany[]
+  activityEvents   ActivityEvent[]
+  lessonPlans      LessonPlan[]
+  downloadTypes    DownloadType[]
+  bookableRooms    BookableRoom[]
 }
 
 model AcademicSession {
@@ -1515,4 +1541,435 @@ model ScreenRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([campusId, screenKey])
+}
+
+model CanteenOutlet {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  code     String?
+  menus    CanteenMenu[]
+  coupons  CanteenCoupon[]
+  @@unique([campusId, name])
+}
+
+model CanteenMenuType {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  menus    CanteenMenu[]
+  @@unique([campusId, name])
+}
+
+model CanteenFoodItem {
+  id       String  @id @default(cuid())
+  campusId String
+  campus   Campus  @relation(fields: [campusId], references: [id])
+  name     String
+  price    Decimal @default(0) @db.Decimal(12, 2)
+  isActive Boolean @default(true)
+  @@index([campusId, name])
+}
+
+model CanteenMenu {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  outletId   String
+  outlet     CanteenOutlet @relation(fields: [outletId], references: [id])
+  menuTypeId String?
+  menuType   CanteenMenuType? @relation(fields: [menuTypeId], references: [id])
+  name       String
+  servedOn   DateTime? @db.Date
+  itemIds    Json
+  @@index([campusId, servedOn])
+}
+
+model CanteenCoupon {
+  id        String    @id @default(cuid())
+  campusId  String
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  outletId  String?
+  outlet    CanteenOutlet? @relation(fields: [outletId], references: [id])
+  studentId String?
+  code      String
+  amount    Decimal   @default(0) @db.Decimal(12, 2)
+  redeemedAt DateTime?
+  createdAt DateTime  @default(now())
+  @@unique([campusId, code])
+}
+
+model RailwayConcession {
+  id          String   @id @default(cuid())
+  campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  studentId   String
+  fromStation String
+  toStation   String
+  className   String   @default("SECOND")
+  periodFrom  DateTime? @db.Date
+  periodTo    DateTime? @db.Date
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  @@index([campusId, status])
+}
+
+model LmsCategory {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  courses  LmsCourse[]
+  @@unique([campusId, name])
+}
+
+model LmsCourse {
+  id          String @id @default(cuid())
+  campusId    String
+  campus      Campus @relation(fields: [campusId], references: [id])
+  categoryId  String?
+  category    LmsCategory? @relation(fields: [categoryId], references: [id])
+  title       String
+  price       Decimal @default(0) @db.Decimal(12, 2)
+  published   Boolean @default(true)
+  enrollments LmsEnrollment[]
+  questions   LmsQuestion[]
+}
+
+model LmsEnrollment {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    LmsCourse @relation(fields: [courseId], references: [id])
+  studentId String
+  paid      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@unique([courseId, studentId])
+}
+
+model LmsQuestion {
+  id       String @id @default(cuid())
+  courseId String
+  course   LmsCourse @relation(fields: [courseId], references: [id])
+  body     String
+  options  Json
+  answer   String
+}
+
+model OnlineExamBank {
+  id          String @id @default(cuid())
+  campusId    String
+  campus      Campus @relation(fields: [campusId], references: [id])
+  title       String
+  durationMin Int    @default(60)
+  published   Boolean @default(true)
+  questions   OnlineExamQuestion[]
+  attempts    OnlineExamAttempt[]
+}
+
+model OnlineExamQuestion {
+  id     String @id @default(cuid())
+  examId String
+  exam   OnlineExamBank @relation(fields: [examId], references: [id])
+  body   String
+  options Json
+  answer String
+  marks  Int    @default(1)
+}
+
+model OnlineExamAttempt {
+  id          String    @id @default(cuid())
+  examId      String
+  exam        OnlineExamBank @relation(fields: [examId], references: [id])
+  studentId   String
+  answers     Json?
+  score       Decimal?  @db.Decimal(8, 2)
+  submittedAt DateTime?
+  createdAt   DateTime  @default(now())
+  @@unique([examId, studentId])
+}
+
+model JobPosting {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  title      String
+  department String?
+  status     String @default("OPEN")
+  closesOn   DateTime? @db.Date
+  applicants JobApplicant[]
+}
+
+model JobApplicant {
+  id        String @id @default(cuid())
+  jobId     String
+  job       JobPosting @relation(fields: [jobId], references: [id])
+  name      String
+  email     String?
+  phone     String?
+  status    String @default("APPLIED")
+  createdAt DateTime @default(now())
+}
+
+model ItemCategory {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  items    InventoryItem[]
+  @@unique([campusId, name])
+}
+
+model ItemStore {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  stocks   ItemStock[]
+  @@unique([campusId, name])
+}
+
+model ItemSupplier {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  phone    String?
+  @@unique([campusId, name])
+}
+
+model InventoryItem {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  categoryId String?
+  category   ItemCategory? @relation(fields: [categoryId], references: [id])
+  name       String
+  unit       String @default("pcs")
+  stocks     ItemStock[]
+  issues     ItemIssue[]
+}
+
+model ItemStock {
+  id      String @id @default(cuid())
+  itemId  String
+  item    InventoryItem @relation(fields: [itemId], references: [id])
+  storeId String
+  store   ItemStore @relation(fields: [storeId], references: [id])
+  qty     Int    @default(0)
+  note    String?
+  @@unique([itemId, storeId])
+}
+
+model ItemIssue {
+  id        String    @id @default(cuid())
+  itemId    String
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  studentId String?
+  staffId   String?
+  qty       Int
+  issuedAt  DateTime  @default(now())
+  returnedAt DateTime?
+}
+
+model SupportTopic {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  tickets  SupportTicket[]
+  @@unique([campusId, name])
+}
+
+model SupportTicket {
+  id        String @id @default(cuid())
+  topicId   String
+  topic     SupportTopic @relation(fields: [topicId], references: [id])
+  studentId String?
+  title     String
+  body      String?
+  status    String @default("OPEN")
+  createdAt DateTime @default(now())
+}
+
+model ChatThread {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  title     String
+  studentId String?
+  createdAt DateTime @default(now())
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String @id @default(cuid())
+  threadId  String
+  thread    ChatThread @relation(fields: [threadId], references: [id])
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+  @@index([threadId, createdAt])
+}
+
+model Alumnus {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  studentId String?
+  name      String
+  year      String?
+  email     String?
+  phone     String?
+}
+
+model AlumniEvent {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  title    String
+  heldOn   DateTime? @db.Date
+  venue    String?
+}
+
+model MentorAssignment {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  staffId   String
+  studentId String
+  @@unique([campusId, staffId, studentId])
+}
+
+model MentorProject {
+  id        String @id @default(cuid())
+  campusId  String
+  staffId   String?
+  studentId String
+  title     String
+  kind      String @default("PROJECT")
+  status    String @default("PENDING")
+  chapter   String?
+}
+
+model CmsPage {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  slug      String
+  title     String
+  body      String
+  kind      String @default("page")
+  published Boolean @default(true)
+  @@unique([campusId, slug])
+}
+
+model FinanceHead {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  kind     String
+  name     String
+  entries  FinanceEntry[]
+  @@unique([campusId, kind, name])
+}
+
+model FinanceEntry {
+  id          String   @id @default(cuid())
+  headId      String
+  head        FinanceHead @relation(fields: [headId], references: [id])
+  amount      Decimal  @db.Decimal(12, 2)
+  entryOn     DateTime @db.Date
+  description String?
+}
+
+model TnpCompany {
+  id      String @id @default(cuid())
+  campusId String
+  campus  Campus @relation(fields: [campusId], references: [id])
+  name    String
+  sector  String?
+  contact String?
+  drives  TnpDrive[]
+}
+
+model TnpDrive {
+  id        String @id @default(cuid())
+  companyId String
+  company   TnpCompany @relation(fields: [companyId], references: [id])
+  title     String
+  heldOn    DateTime? @db.Date
+  status    String @default("OPEN")
+}
+
+model StudentResume {
+  id        String @id @default(cuid())
+  campusId  String
+  studentId String
+  headline  String
+  body      String
+  @@unique([campusId, studentId])
+}
+
+model ActivityEvent {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  title    String
+  heldOn   DateTime? @db.Date
+  venue    String?
+  notes    String?
+}
+
+model LessonPlan {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  classId   String?
+  subjectId String?
+  title     String
+  topic     String?
+  body      String?
+  weekNo    Int?
+}
+
+model DownloadType {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  contents SharedContent[]
+  @@unique([campusId, name])
+}
+
+model SharedContent {
+  id       String @id @default(cuid())
+  typeId   String?
+  type     DownloadType? @relation(fields: [typeId], references: [id])
+  campusId String
+  title    String
+  url      String
+  audience String @default("all")
+}
+
+model BookableRoom {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  capacity Int    @default(20)
+  bookings RoomBooking[]
+  @@unique([campusId, name])
+}
+
+model RoomBooking {
+  id          String   @id @default(cuid())
+  roomId      String
+  room        BookableRoom @relation(fields: [roomId], references: [id])
+  title       String
+  startAt     DateTime
+  endAt       DateTime
+  status      String   @default("PENDING")
+  requestedBy String?
 }
