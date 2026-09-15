@@ -64,6 +64,39 @@ describe("hasPermission", () => {
     expect(hasPermission(principal(), "fees.collect.collect")).toBe(false);
   });
 
+  it("limits Teacher nav to classwork screens", () => {
+    const teacher = principal({
+      roles: ["Teacher"],
+      permissions: [
+        "dashboard.home.view",
+        "students.profile.view",
+        "attendance.student.view",
+        "attendance.student.edit",
+        "exams.group.view",
+        "exams.marks.view",
+        "exams.marks.edit",
+        "academics.class.view",
+        "communicate.notice.view",
+      ],
+    });
+    const hrefs = filterNav(NAV, teacher, {
+      "lesson-plan": true,
+      assignments: true,
+      gmeet: true,
+    }).flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).toContain("/staff/dashboard");
+    expect(hrefs).toContain("/staff/stuattendence");
+    expect(hrefs).toContain("/staff/homework");
+    expect(hrefs).toContain("/staff/student/search");
+    expect(hrefs).not.toContain("/staff/student/create");
+    expect(hrefs).not.toContain("/staff/student/bulkdelete");
+    expect(hrefs).not.toContain("/staff/studentfee");
+    expect(hrefs).not.toContain("/staff/onlinestudent");
+    expect(hrefs).not.toContain("/staff/users");
+    expect(hrefs).not.toContain("/staff/canteen/menu-list");
+    expect(hrefs).not.toContain("/staff/examgroup");
+  });
+
   it("allows a Teacher to mark attendance", () => {
     expect(hasPermission(principal(), "attendance.student.edit")).toBe(true);
   });

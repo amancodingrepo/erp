@@ -4,7 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { NAV } from "@/lib/catalog/nav";
-import { filterNav, screenIsVisible } from "@/lib/catalog/nav-permissions";
+import {
+  filterNav,
+  isTeacherDesk,
+  screenIsVisible,
+  teacherCanSeeHref,
+} from "@/lib/catalog/nav-permissions";
 import { SCREENS } from "@/lib/catalog/screens";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
@@ -109,13 +114,13 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
         .then((json) =>
           setDataHits({
             students: json.students ?? [],
-            receipts: json.receipts ?? [],
+            receipts: isTeacherDesk(me?.user) ? [] : json.receipts ?? [],
           }),
         )
         .catch(() => setDataHits({ students: [], receipts: [] }));
     }, 200);
     return () => window.clearTimeout(handle);
-  }, [q, palette]);
+  }, [q, palette, me]);
 
   async function logout() {
     await fetch("/api/v1/auth/logout", { method: "POST" });
@@ -137,7 +142,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
       <aside className="flex w-[18.5rem] shrink-0 flex-col border-r border-[var(--rule)] bg-[var(--ink)] text-[var(--paper)]">
         <div className="border-b border-white/10 px-4 py-5">
           <p className="font-display text-xl leading-none tracking-tight">
-            College ERP
+            {isTeacherDesk(me?.user) ? "Teacher desk" : "Campus ERP"}
           </p>
           <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--brass)]">
             {me?.campus.name ?? "Campus"}
@@ -232,7 +237,25 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             Sign out
           </Button>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">
+          {me && isTeacherDesk(me.user) && !teacherCanSeeHref(pathname) ? (
+            <div className="max-w-lg">
+              <h1 className="font-display text-4xl">Not on the teacher desk</h1>
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                This screen is for office staff. Use attendance, marks,
+                timetable, homework, or student search.
+              </p>
+              <Link
+                href="/staff/dashboard"
+                className="mt-4 inline-block text-sm underline"
+              >
+                Back to teacher home
+              </Link>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
       {palette ? (
         <div

@@ -190,6 +190,11 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/multibranch/finance": "tenants.campus.view",
   "/staff/tenants": "tenants.campus.view",
   "/staff/admin/backup": "settings.backup.edit",
+  "/staff/homework": "academics.class.view",
+  "/staff/lessonplan/lesson": "academics.class.view",
+  "/staff/lessonplan/topic": "academics.class.view",
+  "/staff/lessonplan/instruction-plan": "academics.class.view",
+  "/staff/syllabus": "academics.class.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
@@ -258,6 +263,53 @@ export function isModuleEnabled(
   return flags[moduleId] === true;
 }
 
+const TEACHER_HREF_PREFIXES = [
+  "/staff/dashboard",
+  "/staff/admin/dashboard",
+  "/staff/stuattendence",
+  "/staff/attendencereports",
+  "/staff/timetable/mytimetable",
+  "/staff/timetable/classreport",
+  "/staff/homework",
+  "/staff/lessonplan",
+  "/staff/syllabus",
+  "/staff/gmeet",
+  "/staff/conference",
+  "/staff/examgroup/mark-entry-single-subject",
+  "/staff/examgroup/mark-entry-subjectwise",
+  "/staff/examgroup/displaymarksexamsubjwise",
+  "/staff/student/search",
+  "/staff/student/studentdetails",
+  "/staff/notification",
+];
+
+const TEACHER_HREF_EXACT = new Set([
+  "/staff/examresult",
+  "/staff/examresult/examinations",
+  "/staff/exam-schedule",
+  "/staff/student",
+]);
+
+export function isTeacherDesk(user: AuthPrincipal | null | undefined) {
+  if (!user?.roles.includes("Teacher")) return false;
+  if (
+    user.roles.includes("SuperAdmin") ||
+    user.roles.includes("PlatformAdmin")
+  ) {
+    return false;
+  }
+  const extra = ["Registrar", "Accountant", "HOD", "Principal"];
+  return !user.roles.some((role) => extra.includes(role));
+}
+
+export function teacherCanSeeHref(href: string) {
+  if (TEACHER_HREF_EXACT.has(href)) return true;
+  if (href === "/staff/exam" || href.startsWith("/staff/exam/")) return true;
+  return TEACHER_HREF_PREFIXES.some(
+    (prefix) => href === prefix || href.startsWith(`${prefix}/`),
+  );
+}
+
 function itemVisible(
   item: { href: string; module: string },
   user: AuthPrincipal | null | undefined,
@@ -271,6 +323,7 @@ function itemVisible(
   if (!isV1WiredHref(item.href)) {
     if (!optional || !isModuleEnabled(flags, optional)) return false;
   }
+  if (isTeacherDesk(user) && !teacherCanSeeHref(item.href)) return false;
   return hasPermission(user, navPermissionFor(item));
 }
 
