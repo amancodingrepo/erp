@@ -43,15 +43,15 @@ export default function BackupOps() {
   }
 
   async function runRestore(name: string) {
-    if (confirmText !== "RESTORE") {
-      setMessage("Type RESTORE in the box, then Restore.");
+    if (confirmText !== "RESTORE ALL CAMPUSES") {
+      setMessage("Type RESTORE ALL CAMPUSES in the box, then Restore.");
       return;
     }
     setPending(true);
     const res = await fetch("/api/v1/backup/restore", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, confirm: "RESTORE" }),
+      body: JSON.stringify({ name, confirm: "RESTORE ALL CAMPUSES" }),
     });
     const json = await res.json();
     setPending(false);
@@ -82,8 +82,7 @@ export default function BackupOps() {
         Campus snapshot is counts and recent audit. Database dumps are
         <code> pg_dump </code>
         files on the uploads volume (last 7 kept). Restore replaces the live
-        database. Type RESTORE when asked. A dump also runs about a minute
-        after boot, then once a day.
+        database for every campus. Type RESTORE ALL CAMPUSES to enable Restore.
       </p>
       {message ? <p className="text-sm">{message}</p> : null}
       <div className="flex gap-3">
@@ -98,7 +97,7 @@ export default function BackupOps() {
         <Input
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
-          placeholder='Type RESTORE to enable restore'
+          placeholder="Type RESTORE ALL CAMPUSES"
         />
       </div>
       <ul className="text-sm">
@@ -111,7 +110,7 @@ export default function BackupOps() {
               type="button"
               variant="ghost"
               size="sm"
-              disabled={pending || confirmText !== "RESTORE"}
+              disabled={pending || confirmText !== "RESTORE ALL CAMPUSES"}
               onClick={() => runRestore(d.name)}
             >
               Restore

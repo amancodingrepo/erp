@@ -42,33 +42,42 @@ export async function listMessageLogs(campusId: string) {
   });
 }
 
-async function sendSmtp(to: string, subject: string | null, body: string) {
-  const host = process.env.SMTP_HOST;
-  if (!host) return null;
+async function sendSmtp(
+  to: string,
+  subject: string | null,
+  body: string,
+  campusId?: string,
+) {
+  const { loadSmtpConfig } = await import("@/lib/smtp");
+  const cfg = await loadSmtpConfig(campusId);
+  if (!cfg?.host) return null;
   const nodemailer = await import("nodemailer");
-  const port = Number(process.env.SMTP_PORT ?? "587");
   const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: process.env.SMTP_SECURE === "true" || port === 465,
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
     auth:
-      process.env.SMTP_USER && process.env.SMTP_PASS
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-        : undefined,
+      cfg.user && cfg.pass ? { user: cfg.user, pass: cfg.pass } : undefined,
   });
   await transporter.sendMail({
-    from: process.env.SMTP_FROM ?? process.env.SMTP_USER ?? "noreply@localhost",
+    from: cfg.from ?? cfg.user ?? "noreply@localhost",
     to,
-    subject: subject ?? "College ERP",
+    subject: subject ?? "Campus ERP",
     text: body,
   });
   return "sent" as const;
 }
 
-async function deliver(channel: string, to: string, subject: string | null, body: string) {
+async function deliver(
+  channel: string,
+  to: string,
+  subject: string | null,
+  body: string,
+  campusId?: string,
+) {
   if (channel === "EMAIL") {
     try {
-      const smtp = await sendSmtp(to, subject, body);
+      const smtp = await sendSmtp(to, subject, body, campusId);
       if (smtp) return smtp;
     } catch {
       return "failed";
@@ -103,6 +112,7 @@ export async function queueRendered(input: {
     input.to,
     input.subject ?? null,
     input.body,
+    input.campusId,
   );
   return prisma.messageLog.create({
     data: {

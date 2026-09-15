@@ -10,7 +10,8 @@ type Mode =
   | "notices"
   | "settings"
   | "letterhead"
-  | "modules";
+  | "modules"
+  | "smtp";
 const SELECT =
   "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
 
@@ -20,6 +21,7 @@ export default function CampusOps({ mode }: { mode: Mode }) {
   if (mode === "notices") return <NoticesPanel />;
   if (mode === "letterhead") return <LetterheadPanel />;
   if (mode === "modules") return <ModulesPanel />;
+  if (mode === "smtp") return <SmtpPanel />;
   return <SettingsPanel />;
 }
 
@@ -207,6 +209,101 @@ function NoticesPanel() {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function SmtpPanel() {
+  const [host, setHost] = useState("");
+  const [port, setPort] = useState("587");
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [from, setFrom] = useState("");
+  const [secure, setSecure] = useState(false);
+  const [configured, setConfigured] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/v1/settings/smtp")
+      .then((r) => r.json())
+      .then((j) => {
+        setHost(j.host ?? "");
+        setPort(String(j.port ?? 587));
+        setUser(j.user ?? "");
+        setFrom(j.from ?? "");
+        setSecure(Boolean(j.secure));
+        setConfigured(Boolean(j.configured));
+      })
+      .catch(() => undefined);
+  }, []);
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    const res = await fetch("/api/v1/settings/smtp", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        host,
+        port: Number(port),
+        user,
+        from,
+        secure,
+        ...(pass.trim() ? { pass } : {}),
+      }),
+    });
+    const json = await res.json();
+    setMessage(
+      res.ok
+        ? "SMTP saved. Portal passwords will email on enroll."
+        : json.message ?? "Could not save",
+    );
+    if (res.ok) setConfigured(true);
+    setPass("");
+  }
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Email (SMTP)</h1>
+      <p className="text-sm text-[var(--muted)]">
+        {configured
+          ? "Mail is configured for this campus (or via SMTP_* env)."
+          : "Without SMTP, portal logins are shown on screen and only logged."}
+      </p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid gap-3" onSubmit={onSubmit}>
+        <div>
+          <Label htmlFor="smtpHost">Host</Label>
+          <Input id="smtpHost" value={host} onChange={(e) => setHost(e.target.value)} required />
+        </div>
+        <div>
+          <Label htmlFor="smtpPort">Port</Label>
+          <Input id="smtpPort" value={port} onChange={(e) => setPort(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="smtpUser">Username</Label>
+          <Input id="smtpUser" value={user} onChange={(e) => setUser(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="smtpPass">Password</Label>
+          <Input
+            id="smtpPass"
+            type="password"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+            placeholder="Leave blank to keep current"
+          />
+        </div>
+        <div>
+          <Label htmlFor="smtpFrom">From address</Label>
+          <Input id="smtpFrom" value={from} onChange={(e) => setFrom(e.target.value)} />
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={secure}
+            onChange={(e) => setSecure(e.target.checked)}
+          />
+          Use TLS (port 465)
+        </label>
+        <Button type="submit">Save SMTP</Button>
+      </form>
     </div>
   );
 }

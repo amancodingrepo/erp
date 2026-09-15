@@ -63,11 +63,10 @@ export const publicApplicationSchema = z.object({
   programId: z.string().min(1, "select a class or course"),
   previousQualification: z.string().min(1, "required"),
   score: z
-    .string()
-    .min(1, "enter percentage")
+    .union([z.string(), z.number()])
     .refine((value) => {
       const n = Number(value);
-      return Number.isFinite(n) && n >= 0 && n <= 100;
+      return String(value).trim() !== "" && Number.isFinite(n) && n >= 0 && n <= 100;
     }, "enter a percentage from 0 to 100"),
   campusCode: z.string().optional(),
 });

@@ -120,7 +120,7 @@ export const LEFTOVER_LIVE: Record<string, () => ReactNode> = {
   "/staff/attributes": () => <CampusOps mode="settings" />,
   "/staff/notification/setting": () => <CommsOps mode="reminder" />,
   "/staff/smsconfig": () => <CommsOps mode="sms-template" />,
-  "/staff/emailconfig": () => <CommsOps mode="email-template" />,
+  "/staff/emailconfig": () => <CampusOps mode="smtp" />,
   "/staff/language": () => <CampusOps mode="settings" />,
   "/staff/currency": () => <CampusOps mode="settings" />,
   "/staff/customfield": () => <CampusOps mode="settings" />,

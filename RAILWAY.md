@@ -31,7 +31,9 @@ Do **not** set the service root to the git repo root. The Next.js app is **`apps
 6. Generate a public domain. After the service is **live**, open `/login` as `admin` / `SEED_ADMIN_PASSWORD`.
 
 Start command (already in `apps/erp/railway.json`): `npm run start:railway`  
-That runs `prisma migrate deploy`, seed, then `next start`.
+That runs `prisma migrate deploy`, seed (skipped if campuses already exist unless `FORCE_SEED=true`), then `next start`.
+
+SMTP can also be set in staff **Email (SMTP)** (`/staff/emailconfig`). Env `SMTP_*` overrides campus settings.
 
 Health: `GET /api/health` → `{ "ok": true, "db": "up" }`.
 

@@ -7,7 +7,7 @@ import { requireApiPermission } from "@/lib/principal";
 
 const bodySchema = z.object({
   name: z.string().min(1),
-  confirm: z.literal("RESTORE"),
+  confirm: z.literal("RESTORE ALL CAMPUSES"),
 });
 
 export async function POST(request: Request) {
@@ -37,7 +37,8 @@ export async function POST(request: Request) {
     return ok({
       ok: true,
       dump,
-      warning: "Database restored. Sign in again if sessions were reset.",
+      warning:
+        "Full database restored for every campus. Sign in again if sessions were reset.",
     });
   } catch (error) {
     return fail(error);

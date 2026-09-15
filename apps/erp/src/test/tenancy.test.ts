@@ -58,6 +58,9 @@ describe("multi-tenant campuses", () => {
     const cat = (await catalog.json()) as { campus: { code?: string } };
     expect(cat.campus.code).toBe("EAST");
 
+    const eastProgram = await prisma.program.findFirst({
+      where: { department: { campus: { code: "EAST" } } },
+    });
     const created = await applyPost(
       new Request("http://local/api/v1/public/applications", {
         method: "POST",
@@ -65,6 +68,14 @@ describe("multi-tenant campuses", () => {
         body: JSON.stringify({
           firstName: "East",
           lastName: "Applicant",
+          fatherName: "East Parent",
+          mobile: "9000000011",
+          email: "east.applicant@example.com",
+          dob: "2011-04-01",
+          gender: "MALE",
+          programId: eastProgram?.id,
+          previousQualification: "Class 8",
+          score: 72,
           campusCode: "EAST",
         }),
       }),

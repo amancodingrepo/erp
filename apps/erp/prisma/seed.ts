@@ -12,6 +12,13 @@ import { provisionCampusTenant } from "../src/lib/services/tenants";
 const prisma = new PrismaClient();
 
 async function main() {
+  const existing = await prisma.campus.count();
+  if (existing > 0 && process.env.FORCE_SEED !== "true") {
+    console.log(
+      "Seed skipped (campuses already exist). Set FORCE_SEED=true to re-run.",
+    );
+    return;
+  }
   const password = process.env.SEED_ADMIN_PASSWORD ?? "Admin@12345";
   const passwordHash = await bcrypt.hash(password, 12);
 
