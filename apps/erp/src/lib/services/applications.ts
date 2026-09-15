@@ -8,6 +8,7 @@ import {
 import { prisma } from "@/lib/db";
 import { conflict, notFound, validationError } from "@/lib/errors";
 import { createStudent } from "@/lib/services/students";
+import { provisionEnrollmentPortals } from "@/lib/services/portal-accounts";
 
 const emptyToUndef = (value: unknown) =>
   value === "" || value === null ? undefined : value;
@@ -223,6 +224,9 @@ export async function enrollApplication(
   if (row.paymentStatus !== "PAID") {
     throw validationError({ paymentStatus: "application fee unpaid" });
   }
+  if (row.selectionStatus === "REJECTED") {
+    throw validationError({ selectionStatus: "applicant was not selected" });
+  }
   await classInCampus(campusId, body.classId);
   await sectionInCampus(campusId, body.sectionId);
   const admissionNo = (body.admissionNo ?? row.applicationNo).trim();
@@ -249,5 +253,13 @@ export async function enrollApplication(
       status: ApplicationStatus.ENROLLED,
     },
   });
-  return { application: updated, student };
+  const portals = await provisionEnrollmentPortals({
+    campusId,
+    studentId: student.id,
+    admissionNo: student.admissionNo,
+    studentEmail: row.email,
+    fatherName: row.fatherName,
+    fatherPhone: row.mobile,
+  });
+  return { application: updated, student, portals };
 }

@@ -116,13 +116,40 @@ describe("Phase B online admission", () => {
     const body = (await enrolled.json()) as {
       admissionNo: string;
       status: string;
+      portals?: {
+        campusCode: string;
+        student: { username: string; password: string; portal: string };
+        parent: { username: string; password: string; portal: string } | null;
+      };
     };
     expect(body.admissionNo).toBe(`ADM-${suffix}`);
     expect(body.status).toBe("ENROLLED");
+    expect(body.portals?.student.username).toBeTruthy();
+    expect(body.portals?.student.password).toMatch(/^Portal@/);
+    expect(body.portals?.parent?.username).toBeTruthy();
     const student = await prisma.student.findFirst({
       where: { admissionNo: `ADM-${suffix}` },
     });
     expect(student?.firstName).toBe("Anika");
+    expect(student?.userId).toBeTruthy();
+    const studentLogin = await loginPost(
+      req("POST", "/api/v1/auth/login", undefined, {
+        username: body.portals!.student.username,
+        password: body.portals!.student.password,
+        portal: "student",
+        campusCode: "MAIN",
+      }),
+    );
+    expect(studentLogin.status).toBe(200);
+    const parentLogin = await loginPost(
+      req("POST", "/api/v1/auth/login", undefined, {
+        username: body.portals!.parent!.username,
+        password: body.portals!.parent!.password,
+        portal: "parent",
+        campusCode: "MAIN",
+      }),
+    );
+    expect(parentLogin.status).toBe(200);
   });
 
   it("staff inbox lists the application", async () => {

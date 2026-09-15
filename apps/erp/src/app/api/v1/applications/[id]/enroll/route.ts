@@ -25,6 +25,7 @@ export async function POST(
       status: result.application.status,
       studentId: result.student.id,
       admissionNo: result.student.admissionNo,
+      portals: result.portals,
     });
   } catch (error) {
     return fail(error);

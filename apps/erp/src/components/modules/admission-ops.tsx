@@ -78,6 +78,12 @@ function InboxPanel() {
   const [classes, setClasses] = useState<Klass[]>([]);
   const [q, setQ] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [issued, setIssued] = useState<{
+    admissionNo: string;
+    campusCode: string;
+    student: { username: string; password: string };
+    parent: { username: string; password: string } | null;
+  } | null>(null);
 
   async function load(query = q) {
     const res = await fetch(
@@ -118,9 +124,17 @@ function InboxPanel() {
       }),
     });
     const json = await res.json();
-    setMessage(
-      res.ok ? `Enrolled ${json.admissionNo}` : json.message ?? json.error,
-    );
+    if (res.ok && json.portals?.student) {
+      setIssued({
+        admissionNo: json.admissionNo,
+        campusCode: json.portals.campusCode,
+        student: json.portals.student,
+        parent: json.portals.parent,
+      });
+      setMessage(`Enrolled ${json.admissionNo}. Portal logins are shown once below.`);
+    } else {
+      setMessage(res.ok ? `Enrolled ${json.admissionNo}` : json.message ?? json.error);
+    }
     load();
   }
 
@@ -142,6 +156,28 @@ function InboxPanel() {
         <Button type="submit">Find</Button>
       </form>
       <p className="mt-2 text-sm text-[var(--muted)]">{message}</p>
+      {issued ? (
+        <div className="mt-4 border border-[var(--brass)] bg-[var(--paper-2)] p-4 text-sm">
+          <p className="font-semibold">Portal logins (shown once — copy now)</p>
+          <p className="mt-1 text-[var(--muted)]">
+            Campus {issued.campusCode}. Use /login, portal Student or Parent.
+          </p>
+          <p className="mt-2">
+            Student: <code>{issued.student.username}</code> /{" "}
+            <code>{issued.student.password}</code>
+          </p>
+          {issued.parent ? (
+            <p>
+              Parent: <code>{issued.parent.username}</code> /{" "}
+              <code>{issued.parent.password}</code>
+            </p>
+          ) : (
+            <p className="text-[var(--muted)]">
+              No parent login (no father name on the application).
+            </p>
+          )}
+        </div>
+      ) : null}
       <div className="mt-4 overflow-x-auto border border-[var(--rule)]">
         <table className="w-full min-w-[880px] text-left text-sm">
           <thead className="bg-[var(--ink)] text-[var(--paper)]">
