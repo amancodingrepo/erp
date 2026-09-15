@@ -80,8 +80,8 @@ function LoginForm() {
         </p>
         <h1 className="font-display mt-2 text-4xl">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Staff, student, and parent portals share this gate. Pick the campus
-          first — each campus has its own users and records.
+          School and college desks share this gate. Pick the campus first —
+          each campus has its own users and records.
         </p>
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <div>

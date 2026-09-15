@@ -331,11 +331,11 @@ async function main() {
   });
   const demoProgram = await prisma.program.upsert({
     where: { id: "seed-program-demo" },
-    update: { name: "BA" },
+    update: { name: "BA / Class 11–12 Arts" },
     create: {
       id: "seed-program-demo",
       departmentId: demoDept.id,
-      name: "BA",
+      name: "BA / Class 11–12 Arts",
       level: "UNDERGRADUATE",
     },
   });
@@ -358,6 +358,51 @@ async function main() {
       name: "A",
     },
   });
+
+  for (const row of [
+    {
+      programId: "seed-program-c1",
+      programName: "Class 1",
+      classId: "seed-class-c1",
+      sectionId: "seed-section-c1",
+    },
+    {
+      programId: "seed-program-c10",
+      programName: "Class 10",
+      classId: "seed-class-c10",
+      sectionId: "seed-section-c10",
+    },
+  ]) {
+    const program = await prisma.program.upsert({
+      where: { id: row.programId },
+      update: { name: row.programName },
+      create: {
+        id: row.programId,
+        departmentId: demoDept.id,
+        name: row.programName,
+        level: "UNDERGRADUATE",
+      },
+    });
+    const klass = await prisma.class.upsert({
+      where: { id: row.classId },
+      update: { name: row.programName },
+      create: {
+        id: row.classId,
+        programId: program.id,
+        name: row.programName,
+        yearNo: 1,
+      },
+    });
+    await prisma.section.upsert({
+      where: { id: row.sectionId },
+      update: { name: "A" },
+      create: {
+        id: row.sectionId,
+        classId: klass.id,
+        name: "A",
+      },
+    });
+  }
 
   const studentRole = roles.get("Student")!;
   const parentRole = roles.get("Parent")!;

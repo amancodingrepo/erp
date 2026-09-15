@@ -1,15 +1,53 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import {
+  PREVIOUS_QUALIFICATIONS,
+  publicApplicationSchema,
+} from "@/lib/services/applications";
 
 type Catalog = {
   campus: { name: string; code?: string | null };
   applicationFee: string;
   programs: Array<{ id: string; name: string; level: string }>;
 };
+
+type ApplyValues = z.infer<typeof publicApplicationSchema>;
+
+const SELECT =
+  "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
+
+function ReqLabel({
+  htmlFor,
+  children,
+}: {
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Label htmlFor={htmlFor}>
+      {children}{" "}
+      <span className="text-[var(--stamp)]" aria-hidden>
+        *
+      </span>
+    </Label>
+  );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="mt-1 text-xs text-[var(--stamp)]" role="alert">
+      {message}
+    </p>
+  );
+}
 
 export default function ApplyPage() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -23,6 +61,24 @@ export default function ApplyPage() {
   const [lookup, setLookup] = useState("");
   const [status, setStatus] = useState<string | null>(null);
 
+  const form = useForm<ApplyValues>({
+    resolver: zodResolver(publicApplicationSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      fatherName: "",
+      mobile: "",
+      email: "",
+      parentEmail: undefined,
+      dob: "",
+      gender: undefined,
+      programId: "",
+      previousQualification: "",
+      score: "",
+      campusCode: "MAIN",
+    },
+  });
+
   useEffect(() => {
     fetch("/api/v1/public/campuses")
       .then((r) => r.json())
@@ -35,27 +91,17 @@ export default function ApplyPage() {
       .then((r) => r.json())
       .then(setCatalog)
       .catch(() => setCatalog(null));
-  }, [campusCode]);
+    form.setValue("campusCode", campusCode);
+  }, [campusCode, form]);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const mobileReg = form.register("mobile");
+
+  async function onSubmit(values: ApplyValues) {
     setMessage(null);
-    const form = new FormData(event.currentTarget);
     const res = await fetch("/api/v1/public/applications", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        firstName: form.get("firstName"),
-        lastName: form.get("lastName"),
-        email: form.get("email"),
-        mobile: form.get("mobile"),
-        dob: form.get("dob"),
-        gender: form.get("gender") || undefined,
-        fatherName: form.get("fatherName"),
-        parentEmail: form.get("parentEmail") || undefined,
-        programId: form.get("programId") || undefined,
-        campusCode,
-      }),
+      body: JSON.stringify({ ...values, campusCode }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -64,10 +110,10 @@ export default function ApplyPage() {
     }
     setRef(json.applicationNo);
     setAppId(json.id);
-    event.currentTarget.reset();
+    form.reset({ campusCode });
   }
 
-  async function onLookup(event: FormEvent) {
+  async function onLookup(event: React.FormEvent) {
     event.preventDefault();
     const res = await fetch(
       `/api/v1/public/applications?ref=${encodeURIComponent(lookup)}&campus=${encodeURIComponent(campusCode)}`,
@@ -83,16 +129,16 @@ export default function ApplyPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
-        {catalog?.campus.name ?? "College"}
+        {catalog?.campus.name ?? "School / college"}
       </p>
       <h1 className="font-display mt-2 text-4xl">Online admission</h1>
       <div className="mt-4">
-        <Label htmlFor="campusCode">Campus</Label>
+        <ReqLabel htmlFor="campusCode">Campus / branch</ReqLabel>
         <select
           id="campusCode"
           value={campusCode}
           onChange={(e) => setCampusCode(e.target.value)}
-          className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
+          className={SELECT}
         >
           {(campuses.length
             ? campuses
@@ -106,8 +152,9 @@ export default function ApplyPage() {
         </select>
       </div>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Application fee ₹{catalog?.applicationFee ?? "—"}. Pay at the campus
-        counter. Staff will enroll you after the fee is recorded.
+        For school and college admissions. Fields marked{" "}
+        <span className="text-[var(--stamp)]">*</span> are required. Application
+        fee ₹{catalog?.applicationFee ?? "—"}.
       </p>
       {ref ? (
         <p className="mt-4 border border-[var(--rule)] bg-[var(--paper-2)] p-4 text-sm">
@@ -142,64 +189,112 @@ export default function ApplyPage() {
           {message}
         </p>
       ) : null}
-      <form className="mt-8 grid gap-3" onSubmit={onSubmit}>
+      <form className="mt-8 grid gap-3" onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div>
-          <Label htmlFor="firstName">First name</Label>
-          <Input id="firstName" name="firstName" required />
+          <ReqLabel htmlFor="firstName">First name</ReqLabel>
+          <Input id="firstName" {...form.register("firstName")} autoComplete="given-name" />
+          <FieldError message={form.formState.errors.firstName?.message} />
         </div>
         <div>
-          <Label htmlFor="lastName">Last name</Label>
-          <Input id="lastName" name="lastName" />
+          <ReqLabel htmlFor="lastName">Last name</ReqLabel>
+          <Input id="lastName" {...form.register("lastName")} autoComplete="family-name" />
+          <FieldError message={form.formState.errors.lastName?.message} />
         </div>
         <div>
-          <Label htmlFor="fatherName">Father / spouse name</Label>
-          <Input id="fatherName" name="fatherName" />
+          <ReqLabel htmlFor="fatherName">Parent / guardian name</ReqLabel>
+          <Input id="fatherName" {...form.register("fatherName")} />
+          <FieldError message={form.formState.errors.fatherName?.message} />
         </div>
         <div>
-          <Label htmlFor="mobile">Mobile</Label>
-          <Input id="mobile" name="mobile" />
+          <ReqLabel htmlFor="mobile">Mobile (10 digits)</ReqLabel>
+          <Input
+            id="mobile"
+            inputMode="numeric"
+            maxLength={10}
+            autoComplete="tel-national"
+            {...mobileReg}
+            onChange={(event) => {
+              event.target.value = event.target.value.replace(/\D/g, "").slice(0, 10);
+              mobileReg.onChange(event);
+            }}
+          />
+          <FieldError message={form.formState.errors.mobile?.message} />
         </div>
         <div>
-          <Label htmlFor="email">Student email (for portal login)</Label>
-          <Input id="email" name="email" type="email" />
+          <ReqLabel htmlFor="email">Student / pupil email</ReqLabel>
+          <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
+          <FieldError message={form.formState.errors.email?.message} />
         </div>
         <div>
-          <Label htmlFor="parentEmail">Parent email (for parent portal login)</Label>
-          <Input id="parentEmail" name="parentEmail" type="email" />
+          <Label htmlFor="parentEmail">Parent email (for parent portal)</Label>
+          <Input
+            id="parentEmail"
+            type="email"
+            {...form.register("parentEmail")}
+          />
+          <FieldError message={form.formState.errors.parentEmail?.message} />
         </div>
         <div>
-          <Label htmlFor="dob">Date of birth</Label>
-          <Input id="dob" name="dob" type="date" />
+          <ReqLabel htmlFor="dob">Date of birth</ReqLabel>
+          <Input id="dob" type="date" {...form.register("dob")} />
+          <FieldError message={form.formState.errors.dob?.message} />
         </div>
         <div>
-          <Label htmlFor="gender">Gender</Label>
-          <select
-            id="gender"
-            name="gender"
-            className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
-          >
-            <option value="">—</option>
+          <ReqLabel htmlFor="gender">Gender</ReqLabel>
+          <select id="gender" className={SELECT} {...form.register("gender")}>
+            <option value="">Select</option>
             <option value="MALE">Male</option>
             <option value="FEMALE">Female</option>
             <option value="OTHER">Other</option>
           </select>
+          <FieldError message={form.formState.errors.gender?.message} />
         </div>
         <div>
-          <Label htmlFor="programId">Program</Label>
-          <select
-            id="programId"
-            name="programId"
-            className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
-          >
-            <option value="">—</option>
+          <ReqLabel htmlFor="programId">Class / course applying for</ReqLabel>
+          <select id="programId" className={SELECT} {...form.register("programId")}>
+            <option value="">Select</option>
             {(catalog?.programs ?? []).map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
           </select>
+          <FieldError message={form.formState.errors.programId?.message} />
         </div>
-        <Button type="submit">Submit application</Button>
+        <div>
+          <ReqLabel htmlFor="previousQualification">
+            Previous class / qualification passed
+          </ReqLabel>
+          <select
+            id="previousQualification"
+            className={SELECT}
+            {...form.register("previousQualification")}
+          >
+            <option value="">Select</option>
+            {PREVIOUS_QUALIFICATIONS.map((q) => (
+              <option key={q} value={q}>
+                {q}
+              </option>
+            ))}
+          </select>
+          <FieldError message={form.formState.errors.previousQualification?.message} />
+        </div>
+        <div>
+          <ReqLabel htmlFor="score">Percentage in last exam</ReqLabel>
+          <Input
+            id="score"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            max={100}
+            step="0.01"
+            {...form.register("score")}
+          />
+          <FieldError message={form.formState.errors.score?.message} />
+        </div>
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Submitting…" : "Submit application"}
+        </Button>
       </form>
       <form className="mt-10 space-y-3 border-t border-[var(--rule)] pt-6" onSubmit={onLookup}>
         <Label htmlFor="lookup">Check status</Label>
@@ -218,7 +313,7 @@ export default function ApplyPage() {
       </form>
       <p className="mt-8 text-sm">
         <Link href="/login" className="underline-offset-4 hover:underline">
-          Staff / student login
+          Staff / student / parent login
         </Link>
       </p>
     </div>

@@ -2,7 +2,7 @@ import { created, fail, ok, readJson } from "@/lib/http";
 import { rateLimited } from "@/lib/errors";
 import { hitLoginRateLimit } from "@/lib/rate-limit-db";
 import {
-  applicationCreateSchema,
+  publicApplicationSchema,
   publicCampus,
   submitApplication,
 } from "@/lib/services/applications";
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     if (await hitLoginRateLimit(`apply:${ip}`, 20)) {
       throw rateLimited();
     }
-    const body = applicationCreateSchema.parse(await readJson(request));
+    const body = publicApplicationSchema.parse(await readJson(request));
     const campus = await publicCampus(body.campusCode);
     const row = await submitApplication(campus.id, body);
     return created({

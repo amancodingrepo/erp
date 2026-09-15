@@ -25,6 +25,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "@noble/hashes": "^2.4.0",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
@@ -38,6 +39,7 @@
     "prisma": "^6.19.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.88.0",
     "tailwind-merge": "^3.6.0",
     "tsx": "^4.23.13",
     "zod": "^4.5.4"

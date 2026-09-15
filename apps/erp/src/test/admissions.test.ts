@@ -25,6 +25,7 @@ describe("Phase B online admission", () => {
   let token: string;
   let classId: string;
   let sectionId: string;
+  let programId: string;
   let applicationId: string;
   let applicationNo: string;
 
@@ -48,6 +49,7 @@ describe("Phase B online admission", () => {
     if (!klass?.sections[0]) throw new Error("seed class missing");
     classId = klass.id;
     sectionId = klass.sections[0].id;
+    programId = klass.programId;
   });
 
   it("public catalog lists programs and fee", async () => {
@@ -71,6 +73,11 @@ describe("Phase B online admission", () => {
         email: `anika.${suffix}@example.com`,
         fatherName: "Rahul Joshi",
         parentEmail: `rahul.${suffix}@example.com`,
+        dob: "2010-06-15",
+        gender: "FEMALE",
+        programId,
+        previousQualification: "Class 10 (SSC / Matric)",
+        score: 88.5,
       }),
     );
     expect(res.status).toBe(201);

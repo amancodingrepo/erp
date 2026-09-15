@@ -405,6 +405,7 @@ model Application {
   gender         Gender?
   fatherName     String?
   parentEmail    String?
+  previousQualification String?
   programId      String?
   program        Program?          @relation(fields: [programId], references: [id])
   feeAmount      Decimal           @db.Decimal(12, 2)
