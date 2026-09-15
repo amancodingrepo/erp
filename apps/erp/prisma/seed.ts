@@ -285,6 +285,23 @@ async function main() {
       body: "Dear {{name}}, your outstanding balance is {{balance}}.",
     },
   });
+  await prisma.messageTemplate.upsert({
+    where: {
+      campusId_channel_name: {
+        campusId: campus.id,
+        channel: "EMAIL",
+        name: "portal_login",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      channel: "EMAIL",
+      name: "portal_login",
+      subject: "{{campus}} {{portal}} portal login",
+      body: "Dear {{name}}, your {{portal}} portal login for {{campus}} is ready.\n\nCampus code: {{campusCode}}\nUsername: {{username}}\nPassword: {{password}}\nAdmission no: {{admissionNo}}\n\nSign in at {{loginUrl}}.",
+    },
+  });
   await prisma.printTemplate.upsert({
     where: {
       campusId_kind_name: {

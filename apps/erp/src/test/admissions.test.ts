@@ -68,7 +68,9 @@ describe("Phase B online admission", () => {
         firstName: "Anika",
         lastName: "Joshi",
         mobile: "9000000099",
+        email: `anika.${suffix}@example.com`,
         fatherName: "Rahul Joshi",
+        parentEmail: `rahul.${suffix}@example.com`,
       }),
     );
     expect(res.status).toBe(201);
@@ -120,6 +122,7 @@ describe("Phase B online admission", () => {
         campusCode: string;
         student: { username: string; password: string; portal: string };
         parent: { username: string; password: string; portal: string } | null;
+        mail?: { student?: string; parent?: string | null };
       };
     };
     expect(body.admissionNo).toBe(`ADM-${suffix}`);
@@ -127,6 +130,7 @@ describe("Phase B online admission", () => {
     expect(body.portals?.student.username).toBeTruthy();
     expect(body.portals?.student.password).toMatch(/^Portal@/);
     expect(body.portals?.parent?.username).toBeTruthy();
+    expect(["sent", "logged", "failed"]).toContain(body.portals?.mail?.student);
     const student = await prisma.student.findFirst({
       where: { admissionNo: `ADM-${suffix}` },
     });

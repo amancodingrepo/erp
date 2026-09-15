@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { ActorType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { sendPortalLoginEmail } from "@/lib/services/messages";
 
 export type PortalLogin = {
   username: string;
@@ -47,6 +48,8 @@ export async function provisionEnrollmentPortals(input: {
   studentEmail?: string | null;
   fatherName?: string | null;
   fatherPhone?: string | null;
+  parentEmail?: string | null;
+  studentName?: string | null;
 }) {
   const studentPassword = tempPassword();
   const studentUsername = await uniqueUsername(input.campusId, input.admissionNo);
@@ -84,12 +87,13 @@ export async function provisionEnrollmentPortals(input: {
       input.campusId,
       `p${input.admissionNo}`,
     );
+    const parentEmail = guardianRow.email ?? input.parentEmail ?? null;
     const parentUser = await prisma.user.create({
       data: {
         campusId: input.campusId,
         actorType: ActorType.GUARDIAN,
         username: parentUsername,
-        email: guardianRow.email,
+        email: parentEmail,
         passwordHash: await hashPassword(parentPassword),
         isActive: true,
       },
@@ -99,6 +103,7 @@ export async function provisionEnrollmentPortals(input: {
       data: {
         userId: parentUser.id,
         phone: guardianRow.phone ?? input.fatherPhone,
+        email: parentEmail,
       },
     });
     await assignRole(input.campusId, parentUser.id, "Parent");
@@ -114,10 +119,45 @@ export async function provisionEnrollmentPortals(input: {
     select: { code: true, name: true },
   });
 
+  const campusCode = campus?.code ?? "MAIN";
+  const campusName = campus?.name ?? "Campus";
+  const studentName = input.studentName ?? input.admissionNo;
+  const studentMail = await sendPortalLoginEmail({
+    campusId: input.campusId,
+    studentId: input.studentId,
+    to: input.studentEmail,
+    name: studentName,
+    portal: "student",
+    username: studentLogin.username,
+    password: studentLogin.password,
+    admissionNo: input.admissionNo,
+    campusName,
+    campusCode,
+  });
+  let parentMail: string | null = null;
+  if (parentLogin) {
+    parentMail = await sendPortalLoginEmail({
+      campusId: input.campusId,
+      studentId: input.studentId,
+      to: input.parentEmail ?? guardianRow?.email,
+      name: input.fatherName ?? "Parent",
+      portal: "parent",
+      username: parentLogin.username,
+      password: parentLogin.password,
+      admissionNo: input.admissionNo,
+      campusName,
+      campusCode,
+    });
+  }
+
   return {
-    campusCode: campus?.code ?? "MAIN",
-    campusName: campus?.name ?? "Campus",
+    campusCode,
+    campusName,
     student: studentLogin,
     parent: parentLogin,
+    mail: {
+      student: studentMail,
+      parent: parentMail,
+    },
   };
 }

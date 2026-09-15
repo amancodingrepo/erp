@@ -22,6 +22,11 @@ Do **not** set the service root to the git repo root. The Next.js app is **`apps
 | `SEED_ADMIN_PASSWORD` | login password for `admin` |
 | `AUTH_URL` | `https://${{RAILWAY_PUBLIC_DOMAIN}}` |
 | `NEXTAUTH_URL` | `https://${{RAILWAY_PUBLIC_DOMAIN}}` |
+| `SMTP_HOST` | SMTP server (optional; needed to email portal passwords) |
+| `SMTP_PORT` | `587` (or `465` with `SMTP_SECURE=true`) |
+| `SMTP_USER` / `SMTP_PASS` | SMTP login |
+| `SMTP_FROM` | From address, e.g. `noreply@college.edu` |
+| `EMAIL_WEBHOOK_URL` | Alternative to SMTP: POST `{channel,to,subject,body}` |
 
 6. Generate a public domain. After the service is **live**, open `/login` as `admin` / `SEED_ADMIN_PASSWORD`.
 

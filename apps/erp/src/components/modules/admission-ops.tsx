@@ -83,6 +83,7 @@ function InboxPanel() {
     campusCode: string;
     student: { username: string; password: string };
     parent: { username: string; password: string } | null;
+    mail?: { student?: string; parent?: string | null };
   } | null>(null);
 
   async function load(query = q) {
@@ -130,6 +131,7 @@ function InboxPanel() {
         campusCode: json.portals.campusCode,
         student: json.portals.student,
         parent: json.portals.parent,
+        mail: json.portals.mail,
       });
       setMessage(`Enrolled ${json.admissionNo}. Portal logins are shown once below.`);
     } else {
@@ -176,6 +178,13 @@ function InboxPanel() {
               No parent login (no father name on the application).
             </p>
           )}
+          <p className="mt-2 text-[var(--muted)]">
+            Email student: {issued.mail?.student ?? "n/a"}
+            {issued.parent
+              ? ` · parent: ${issued.mail?.parent ?? "n/a"}`
+              : ""}
+            . sent = delivered, logged = no SMTP yet (copy passwords here).
+          </p>
         </div>
       ) : null}
       <div className="mt-4 overflow-x-auto border border-[var(--rule)]">

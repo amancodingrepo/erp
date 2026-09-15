@@ -42,7 +42,38 @@ export async function listMessageLogs(campusId: string) {
   });
 }
 
+async function sendSmtp(to: string, subject: string | null, body: string) {
+  const host = process.env.SMTP_HOST;
+  if (!host) return null;
+  const nodemailer = await import("nodemailer");
+  const port = Number(process.env.SMTP_PORT ?? "587");
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: process.env.SMTP_SECURE === "true" || port === 465,
+    auth:
+      process.env.SMTP_USER && process.env.SMTP_PASS
+        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+        : undefined,
+  });
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM ?? process.env.SMTP_USER ?? "noreply@localhost",
+    to,
+    subject: subject ?? "College ERP",
+    text: body,
+  });
+  return "sent" as const;
+}
+
 async function deliver(channel: string, to: string, subject: string | null, body: string) {
+  if (channel === "EMAIL") {
+    try {
+      const smtp = await sendSmtp(to, subject, body);
+      if (smtp) return smtp;
+    } catch {
+      return "failed";
+    }
+  }
   const hook =
     channel === "SMS" ? process.env.SMS_WEBHOOK_URL : process.env.EMAIL_WEBHOOK_URL;
   if (!hook) return "logged";
@@ -189,4 +220,64 @@ export async function composeToClass(input: {
     sent += 1;
   }
   return { sent };
+}
+
+const PORTAL_LOGIN_BODY =
+  "Dear {{name}}, your {{portal}} portal login for {{campus}} is ready.\n\nCampus code: {{campusCode}}\nUsername: {{username}}\nPassword: {{password}}\nAdmission no: {{admissionNo}}\n\nSign in at {{loginUrl}} (choose campus, then Student or Parent).\nThis password is shown only once.";
+
+export async function sendPortalLoginEmail(input: {
+  campusId: string;
+  studentId: string;
+  to: string | null | undefined;
+  name: string;
+  portal: "student" | "parent";
+  username: string;
+  password: string;
+  admissionNo: string;
+  campusName: string;
+  campusCode: string;
+}) {
+  if (!input.to?.trim()) return "skipped";
+  let template = await prisma.messageTemplate.findFirst({
+    where: {
+      campusId: input.campusId,
+      channel: "EMAIL",
+      name: "portal_login",
+    },
+  });
+  if (!template) {
+    template = await prisma.messageTemplate.create({
+      data: {
+        campusId: input.campusId,
+        channel: "EMAIL",
+        name: "portal_login",
+        subject: "{{campus}} {{portal}} portal login",
+        body: PORTAL_LOGIN_BODY,
+      },
+    });
+  }
+  const loginUrl =
+    process.env.AUTH_URL ||
+    process.env.NEXTAUTH_URL ||
+    "https://web-production-99e97.up.railway.app";
+  const vars = {
+    name: input.name,
+    portal: input.portal,
+    username: input.username,
+    password: input.password,
+    admissionNo: input.admissionNo,
+    campus: input.campusName,
+    campusCode: input.campusCode,
+    loginUrl: `${loginUrl.replace(/\/$/, "")}/login`,
+  };
+  const log = await queueRendered({
+    campusId: input.campusId,
+    channel: "EMAIL",
+    templateId: template.id,
+    studentId: input.studentId,
+    to: input.to.trim(),
+    subject: renderTemplate(template.subject ?? "{{campus}} portal login", vars),
+    body: renderTemplate(template.body, vars),
+  });
+  return log.status;
 }

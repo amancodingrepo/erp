@@ -23,6 +23,7 @@ export const applicationCreateSchema = z.object({
   dob: optStr,
   gender: z.nativeEnum(Gender).optional(),
   fatherName: optStr,
+  parentEmail: optEmail,
   programId: optStr,
   categoryCode: optStr,
   score: z.union([z.number(), z.string()]).optional(),
@@ -124,6 +125,7 @@ export async function submitApplication(
           dob: body.dob ? parseDateOnly(body.dob) : undefined,
           gender: body.gender,
           fatherName: body.fatherName,
+          parentEmail: body.parentEmail,
           programId: body.programId,
           categoryCode: body.categoryCode?.toUpperCase(),
           score:
@@ -241,6 +243,15 @@ export async function enrollApplication(
       dob: row.dob ? row.dob.toISOString().slice(0, 10) : undefined,
       gender: row.gender ?? undefined,
       fatherName: row.fatherName ?? undefined,
+      guardians: row.fatherName
+        ? {
+            father: {
+              name: row.fatherName,
+              email: row.parentEmail ?? undefined,
+              phone: row.mobile ?? undefined,
+            },
+          }
+        : undefined,
       classId: body.classId,
       sectionId: body.sectionId,
       sessionId: body.sessionId,
@@ -260,6 +271,8 @@ export async function enrollApplication(
     studentEmail: row.email,
     fatherName: row.fatherName,
     fatherPhone: row.mobile,
+    parentEmail: row.parentEmail,
+    studentName: [row.firstName, row.lastName].filter(Boolean).join(" "),
   });
   return { application: updated, student, portals };
 }

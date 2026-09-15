@@ -52,6 +52,7 @@ export default function ApplyPage() {
         dob: form.get("dob"),
         gender: form.get("gender") || undefined,
         fatherName: form.get("fatherName"),
+        parentEmail: form.get("parentEmail") || undefined,
         programId: form.get("programId") || undefined,
         campusCode,
       }),
@@ -159,8 +160,12 @@ export default function ApplyPage() {
           <Input id="mobile" name="mobile" />
         </div>
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Student email (for portal login)</Label>
           <Input id="email" name="email" type="email" />
+        </div>
+        <div>
+          <Label htmlFor="parentEmail">Parent email (for parent portal login)</Label>
+          <Input id="parentEmail" name="parentEmail" type="email" />
         </div>
         <div>
           <Label htmlFor="dob">Date of birth</Label>
