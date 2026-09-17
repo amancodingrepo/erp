@@ -74,11 +74,14 @@ function LoginForm() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-4">
-      <div className="w-full max-w-md border border-[var(--rule)] bg-[var(--paper-2)] p-8 shadow-[8px_8px_0_#1b2a22]">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
-          Campus desk
-        </p>
-        <h1 className="font-display mt-2 text-4xl">Sign in</h1>
+      <div className="em-card w-full max-w-md p-8">
+        <div className="mb-4 flex items-center gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(135deg,#2d8f5b,#1e6b44)] text-sm font-extrabold text-white">
+            C
+          </span>
+          <p className="text-sm font-semibold text-[var(--green-dark)]">Campus ERP</p>
+        </div>
+        <h1 className="font-display text-3xl">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           School and college desks share this gate. Pick the campus first —
           each campus has its own users and records.
@@ -90,7 +93,7 @@ function LoginForm() {
               id="campusCode"
               name="campusCode"
               defaultValue="MAIN"
-              className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
+              className="h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm"
             >
               {(campuses.length
                 ? campuses
@@ -109,7 +112,7 @@ function LoginForm() {
               id="portal"
               name="portal"
               defaultValue="staff"
-              className="h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm"
+              className="h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm"
             >
               <option value="staff">Staff</option>
               <option value="student">Student</option>

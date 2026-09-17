@@ -21,7 +21,7 @@ type Catalog = {
 type ApplyValues = z.infer<typeof publicApplicationSchema>;
 
 const SELECT =
-  "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
+  "h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm";
 
 function ReqLabel({
   htmlFor,
@@ -128,6 +128,7 @@ export default function ApplyPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
+      <div className="em-card p-8">
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
         {catalog?.campus.name ?? "School / college"}
       </p>
@@ -312,10 +313,11 @@ export default function ApplyPage() {
         {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
       </form>
       <p className="mt-8 text-sm">
-        <Link href="/login" className="underline-offset-4 hover:underline">
+        <Link href="/login" className="font-semibold text-[var(--green-dark)] underline-offset-4 hover:underline">
           Staff / student / parent login
         </Link>
       </p>
+      </div>
     </div>
   );
 }

@@ -10,7 +10,7 @@ function Status({ children }: { children: ReactNode }) {
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-[var(--rule)] bg-[var(--paper-2)] p-5 shadow-[4px_4px_0_#1b2a22]">
+    <div className="em-card p-5">
       {children}
     </div>
   );

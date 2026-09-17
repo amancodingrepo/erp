@@ -27,25 +27,29 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-dvh bg-[var(--paper)]">
-      <header className="border-b border-[var(--rule)] bg-[var(--ink)] text-[var(--paper)]">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--brass)]">
-              College ERP
-            </p>
-            <Link href={home} className="font-display text-2xl leading-tight">
-              {title}
-            </Link>
+    <div className="min-h-dvh px-3 py-4 sm:px-5">
+      <div className="mx-auto max-w-5xl rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)]">
+      <header className="rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(135deg,#2d8f5b,#1e6b44)] text-sm font-extrabold text-white">
+              C
+            </span>
+            <div>
+              <p className="text-[11px] font-semibold text-[var(--green-dark)]">Campus ERP</p>
+              <Link href={home} className="text-xl font-bold leading-tight tracking-tight">
+                {title}
+              </Link>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {extra}
-            <Button type="button" variant="brass" size="sm" onClick={logout}>
+            <Button type="button" variant="ghost" size="sm" onClick={logout}>
               Sign out
             </Button>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-5xl flex-wrap gap-1 px-4 pb-3 sm:px-6">
+        <nav className="mt-3 flex flex-wrap gap-1">
           {links.map((l) => {
             const active = path === l.href;
             return (
@@ -54,8 +58,8 @@ export function PortalShell({
                 href={l.href}
                 className={
                   active
-                    ? "rounded-full bg-[var(--brass)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)]"
-                    : "rounded-full px-3 py-1.5 text-sm text-[var(--paper)]/80 hover:bg-white/10"
+                    ? "rounded-full bg-[var(--peach)] px-3 py-1.5 text-sm font-semibold text-[var(--brass)]"
+                    : "rounded-full px-3 py-1.5 text-sm text-[#5f6368] hover:bg-[#f7f7f8]"
                 }
               >
                 {l.label}
@@ -64,7 +68,8 @@ export function PortalShell({
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="px-2 py-6 sm:px-4">{children}</main>
+      </div>
     </div>
   );
 }

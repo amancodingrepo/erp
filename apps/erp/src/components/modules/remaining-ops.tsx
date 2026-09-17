@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const SELECT =
-  "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
+  "h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm";
 
 type Field = {
   name: string;

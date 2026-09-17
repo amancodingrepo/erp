@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3ead7;
-  --paper-2: #ebe1c8;
-  --ink: #1b2a22;
-  --muted: #5c6a61;
-  --brass: #9a6b2f;
-  --stamp: #9c2b20;
-  --rule: #d7cbb0;
+  --paper: #e8ece8;
+  --paper-2: #ffffff;
+  --ink: #1c1c1c;
+  --muted: #6b7280;
+  --brass: #c07a2a;
+  --stamp: #c2410c;
+  --rule: #eef0f3;
+  --green: #2f9e6a;
+  --green-dark: #1f6b48;
+  --peach: #f8eadc;
+  --orange: #f0a04b;
+  --gold: #c9a45a;
+  --shadow: 0 8px 28px rgba(16, 24, 40, 0.06);
+  --radius: 18px;
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -16,27 +23,89 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --font-display: var(--font-body);
 }
 
 * {
   border-color: var(--rule);
 }
 
+html,
 body {
-  background: var(--paper);
+  min-height: 100%;
+}
+
+body {
   color: var(--ink);
-  font-family: var(--font-body), "Segoe UI", sans-serif;
-  background-image:
-    linear-gradient(180deg, rgb(243 234 215 / 0.92), rgb(243 234 215 / 0.96)),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 27px,
-      rgb(27 42 34 / 0.04) 28px
-    );
+  font-family: var(--font-body), Inter, system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #f3efe6 0%, transparent 50%),
+    radial-gradient(900px 500px at 100% 100%, #dfe8df 0%, transparent 46%),
+    var(--paper);
 }
 
 .font-display {
-  font-family: var(--font-display), "Palatino Linotype", serif;
+  font-family: var(--font-body), Inter, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+input,
+select,
+textarea {
+  background: #fff;
+}
+
+select {
+  height: 2.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--rule);
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: #f3f4f6;
+  padding: 12px;
+}
+
+thead th:first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+thead th:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+tbody td {
+  padding: 13px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f2f4;
+}
+
+.em-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+main [class*="border-[var(--rule)]"] {
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  background: #fff;
+}
+
+.em-banner {
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(90deg, #c9a054 0%, #9aaa58 38%, #3d7a4e 72%, #1f5a3c 100%);
 }
