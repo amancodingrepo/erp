@@ -10,7 +10,7 @@ import { Input, Label } from "@/components/ui/input";
 import {
   PREVIOUS_QUALIFICATIONS,
   publicApplicationSchema,
-} from "@/lib/services/applications";
+} from "@/lib/services/application-schema";
 
 type Catalog = {
   campus: { name: string; code?: string | null };

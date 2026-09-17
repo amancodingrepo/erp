@@ -1,4 +1,4 @@
-import { ApplicationStatus, Gender, Prisma } from "@prisma/client";
+import { ApplicationStatus, Prisma } from "@prisma/client";
 import { z } from "zod";
 import {
   classInCampus,
@@ -9,78 +9,18 @@ import { prisma } from "@/lib/db";
 import { conflict, notFound, validationError } from "@/lib/errors";
 import { createStudent } from "@/lib/services/students";
 import { provisionEnrollmentPortals } from "@/lib/services/portal-accounts";
+import {
+  applicationCreateSchema,
+  enrollSchema,
+} from "@/lib/services/application-schema";
 
-const emptyToUndef = (value: unknown) =>
-  value === "" || value === null ? undefined : value;
-const optStr = z.preprocess(emptyToUndef, z.string().min(1).optional());
-const optEmail = z.preprocess(emptyToUndef, z.string().email().optional());
-
-export const PREVIOUS_QUALIFICATIONS = [
-  "Nursery / KG",
-  "Class 5",
-  "Class 8",
-  "Class 10 (SSC / Matric)",
-  "Class 12 (HSC / Intermediate)",
-  "Diploma",
-  "Graduation",
-  "Post graduation",
-  "Other",
-] as const;
-
-export const applicationCreateSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: optStr,
-  email: optEmail,
-  mobile: optStr,
-  dob: optStr,
-  gender: z.nativeEnum(Gender).optional(),
-  fatherName: optStr,
-  parentEmail: optEmail,
-  previousQualification: optStr,
-  programId: optStr,
-  categoryCode: optStr,
-  score: z.union([z.number(), z.string()]).optional(),
-  campusCode: optStr,
-});
-
-export const publicApplicationSchema = z.object({
-  firstName: z.string().min(1, "required"),
-  lastName: z.string().min(1, "required"),
-  fatherName: z.string().min(1, "required"),
-  mobile: z
-    .string()
-    .regex(/^\d{10}$/, "enter a 10-digit mobile number"),
-  email: z.string().email("valid email required"),
-  parentEmail: z
-    .string()
-    .optional()
-    .refine(
-      (value) => !value || z.string().email().safeParse(value).success,
-      "valid email required",
-    ),
-  dob: z.string().min(1, "required"),
-  gender: z.enum(["MALE", "FEMALE", "OTHER"], { message: "required" }),
-  programId: z.string().min(1, "select a class or course"),
-  previousQualification: z.string().min(1, "required"),
-  score: z
-    .union([z.string(), z.number()])
-    .refine((value) => {
-      const n = Number(value);
-      return String(value).trim() !== "" && Number.isFinite(n) && n >= 0 && n <= 100;
-    }, "enter a percentage from 0 to 100"),
-  campusCode: z.string().optional(),
-});
-
-export const enrollSchema = z.object({
-  classId: z.string().min(1),
-  sectionId: z.string().min(1),
-  sessionId: optStr,
-  admissionNo: optStr,
-});
-
-export const paySchema = z.object({
-  method: z.enum(["CASH", "UPI", "CHEQUE"]).default("CASH"),
-});
+export {
+  PREVIOUS_QUALIFICATIONS,
+  applicationCreateSchema,
+  publicApplicationSchema,
+  enrollSchema,
+  paySchema,
+} from "@/lib/services/application-schema";
 
 export const FEE_SETTING_KEY = "admission.applicationFee";
 const DEFAULT_FEE = "500";
