@@ -1,8 +1,10 @@
-# College ERP — testing guide (non-technical)
+# School / college ERP — testing guide (non-technical)
 
 This is a **click-through test**, not a programming task. You only need a computer, a browser, and about 60–90 minutes.
 
-Use a **Pass / Fail / Skip** mark on every step. If something fails, write:
+Mark **Pass / Fail / Skip**. Leave **Outcome** blank until you test; then write what you actually saw (short).
+
+If something fails, also note:
 
 1. What you clicked  
 2. What you expected  
@@ -20,423 +22,448 @@ https://web-production-99e97.up.railway.app/login
 
 1. Open **Chrome** or **Edge** (preferred).  
 2. Paste the link above.  
-3. You should see **Sign in** with Campus, Portal, Username, Password.
+3. You should see **Sign in** with **Campus**, **Portal**, **Username**, **Password**.
 
-| Check | Pass | Fail |
-|---|---|---|
-| Login page loads | ☐ | ☐ |
-| Campus dropdown shows at least Main Campus (MAIN) and East Campus (EAST) | ☐ | ☐ |
-| You can type in username and password | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Login page loads | Sign-in form, no crash | | ☐ | ☐ |
+| Campus list | At least Main Campus (MAIN) and East Campus (EAST) | | ☐ | ☐ |
+| You can type username and password | Fields accept text | | ☐ | ☐ |
 
 If the page does not load: wait 30 seconds and refresh. If it still fails, note the error and stop this round.
-report -- student login does not have logout button add one and the ui screen is not looking good 
 
 ---
 
 ## 2. Demo logins (use these only)
 
-Password for **all** demo users: `Admin@12345`
+Password for **all** seeded demo users: `Admin@12345`
 
 On the login screen, first choose **Campus**, then **Portal**, then username.
 
-| Who | Campus | Portal dropdown | Username | Password | Should land on |
+| Who | Campus | Portal | Username | Password | Should land on |
 |---|---|---|---|---|---|
-| Main campus admin | MAIN | Staff | `admin` | `Admin@12345` | Staff dashboard |
-| Main campus teacher | MAIN | Staff | `teacher` | `Admin@12345` | Staff dashboard (fewer menus) |
-| Main campus student | MAIN | Student | `student1` | `Admin@12345` | Student dashboard |
-| Main campus parent | MAIN | Parent | `parent1` | `Admin@12345` | Parent dashboard |
-| East campus admin | EAST | Staff | `admin` | `Admin@12345` | Staff dashboard for East only |
+| Main campus admin (also Platform Admin) | MAIN | Staff | `admin` | `Admin@12345` | Full staff desk |
+| Main campus teacher | MAIN | Staff | `teacher` | `Admin@12345` | **Teacher desk** (short menu) |
+| Main campus student | MAIN | Student | `student1` | `Admin@12345` | Student portal |
+| Main campus parent | MAIN | Parent | `parent1` | `Admin@12345` | Parent portal |
+| East campus admin | EAST | Staff | `admin` | `Admin@12345` | East staff desk only |
 
-Wrong campus + right username usually **fails** (except the Main campus admin, who can also open **Multi Branch** and switch). That is correct.
+Wrong campus + right username usually **fails** (except MAIN `admin`, who can open **Multi Branch** and switch). That is correct.
 
 Wrong portal + right username usually **fails**. That is correct.
 
-**Always log out** (or close the tab) before switching user.
+**Always Sign out** (or close the tab) before switching user. Student and parent portals have a **Sign out** button.
 
 ---
 
-## 3. What to test vs what to ignore
+## 3. What to test vs what to skip
 
-**Test these** (they are built): students, fees, attendance, exams, admission apply, hostel, transport, library, front office, certificates/ID cards, SMS templates, NAAC, CO-PO, feedback, payroll, seating, Google Meet / Zoom **links**.
+**Test:** students, fees, attendance, exams, **public apply** (new form), enroll + auto logins, teacher desk, hostel, transport, library, front office, certificates, templates, NAAC, CO-PO, feedback, payroll, seating, Meet/Zoom **links**, two campuses.
 
-**Also built now** (same campus rules): Canteen, LMS / online course, railway concession, online exam / CBT, recruitment, inventory, chat (`/staff/chat`), alumni, mentoring, CMS, income/expense, placements, activities, lesson plan, assignments, downloads, room booking.
+**Also in the menu (campus-scoped, thinner):** canteen, LMS, railway concession, online exam, recruitment, inventory, chat, alumni, mentoring, CMS, income/expense, placements, activities, lesson plan, homework, downloads, room booking.
 
-**Skip only:** System Update (`/staff/updater`) stays off on purpose.
+**Skip only:** System Update (`/staff/updater`) — off on purpose.
 
 ---
 
 ## A. Staff admin — first login
 
-1. Campus = **MAIN** (Main Campus)  
+1. Campus = **MAIN**  
 2. Portal = **Staff**  
 3. Username `admin` / password `Admin@12345`  
 4. Click **Enter desk**
 
-| Check | Pass | Fail |
-|---|---|---|
-| You reach a staff home / dashboard | ☐ | ☐ |
-| Left menu shows groups (Students, Fees, Exams, etc.) | ☐ | ☐ |
-| Your name or campus feels like a college desk, not a crash | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Staff home | Dashboard titled like Campus ledger; left menu has many groups (Students, Fees, Exams, …) | | ☐ | ☐ |
+| Sign out | Clear **Sign out** in the header (and sidebar) | | ☐ | ☐ |
 
 ---
 
-## A2. Two campuses (multi-tenant)
+## A2. Two campuses
 
-**Goal:** prove Main and East do not share student lists.
+**Goal:** Main and East do not share students.
 
-1. Still on Main campus admin, open **Multi Branch** → **Overview** (`/staff/multibranch/branch/overview`).  
+1. As MAIN admin, open **Multi Branch** → **Overview**.  
 2. You should see **Main Campus** and **East Campus**.  
-3. Sign out. Login as Campus **EAST**, Portal **Staff**, username `admin`.  
-4. Open **Student Details**. You should **not** see a student you created on Main (for example `TEST-101`).  
-5. Sign out. Login Main admin again. Use the campus switcher in the left sidebar (if shown) or Multi Branch → **Work in this campus** on East, then check students, then switch back.
+3. Sign out. Login Campus **EAST**, Portal **Staff**, username `admin`.  
+4. Open student search. You should **not** see a Main-only student (for example `TEST-101`).  
+5. Sign out. MAIN admin again. Campus switcher in the left sidebar (if shown) or Multi Branch → **Work in this campus**.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Multi Branch page lists MAIN and EAST | ☐ | ☐ | ☐ |
-| East admin login works | ☐ | ☐ | ☐ |
-| East student list is not the same as Main | ☐ | ☐ | ☐ |
-| Online admission `/apply` has a campus dropdown | ☐ | ☐ | ☐ |
-
----
-
-## B. Students (admit and search)
-
-**Goal:** create a student and find them again.
-
-1. Menu **Student Information** → **Student Admission** (`/staff/student/create`).  
-2. Fill at least:
-   - First name: `Test`  
-   - Admission no: `TEST-101` (must be unique — if it says already exists, use `TEST-102`)  
-   - Class **FY BA**, section **A** if asked  
-3. Save.  
-4. Open **Student Details** / search (`/staff/student/search`).  
-5. Search `TEST-101`.
-
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Create page opens | ☐ | ☐ | ☐ |
-| Save succeeds (success message or student appears) | ☐ | ☐ | ☐ |
-| Search finds the student | ☐ | ☐ | ☐ |
-| Opening the student shows name + admission no | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Multi Branch list | MAIN and EAST both listed | | ☐ | ☐ | ☐ |
+| East admin login | East dashboard, not Main’s student list | | ☐ | ☐ | ☐ |
+| Isolation | East list ≠ Main list | | ☐ | ☐ | ☐ |
 
 ---
 
-## C. Fees (assign, collect, receipt)
+## A3. Teacher desk (short menu)
 
-**Goal:** a due amount can be collected and a receipt shown.
+1. Sign out. Campus **MAIN**, Portal **Staff**, username `teacher`.  
+2. Look at the left menu and home page.
 
-Use student `STU-001` (Demo Student) or your `TEST-101`.
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Login | Home titled like **Teacher home** (not the full office ledger) | | ☐ | ☐ |
+| Menus present | Attendance, marks, timetable, homework, find a student | | ☐ | ☐ |
+| Menus **missing** | Collect fees, student admission/create, online applications, Multi Branch, users, backup | | ☐ | ☐ |
+| Blocked URL | Opening `/staff/student/create` shows “Not on the teacher desk” (or similar) | | ☐ | ☐ |
+| Fees | Teacher **cannot** collect cash | | ☐ | ☐ |
 
-1. Open **Collect Fees** / student fee (`/staff/studentfee`).  
-2. Find the student.  
-3. If there is no bill yet, use **Fee Master** / assign if those screens are in the menu (`/staff/feemaster`, `/staff/feemastercoursewise`).  
-4. Collect a **small cash** amount (example ₹100).  
-5. Confirm a **receipt number** appears.  
-6. Open receipt / PDF if there is a Print or PDF button.
-
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| You can open collect fees | ☐ | ☐ | ☐ |
-| A due or invoice is visible (or you could assign one) | ☐ | ☐ | ☐ |
-| Payment saves | ☐ | ☐ | ☐ |
-| Receipt / PDF opens | ☐ | ☐ | ☐ |
-
-**Do not** try to cancel a receipt unless the screen clearly says cancel creates a reverse entry (not delete).
+If the teacher sees the full office menu or can collect fees, that is a **Fail**.
 
 ---
 
-## D. Teacher must **not** collect fees
+## B. Students (walk-in admit and search)
 
-1. Log out.  
-2. Portal **Staff**, username `teacher`, same password.  
-3. Look at the left menu.
+**Goal:** create a student at the desk and find them.
 
-| Check | Pass | Fail |
-|---|---|---|
-| Teacher logs in | ☐ | ☐ |
-| **Collect Fees** is missing or they cannot complete a payment | ☐ | ☐ |
-| Teacher can still open attendance or exams if those menus show | ☐ | ☐ |
+1. Login as **admin**.  
+2. **Student Information** → **Student Admission**.  
+3. Fill at least first name `Test`, admission no `TEST-101` (or `TEST-102` if taken), class **FY BA** / **Class 10** / section **A**.  
+4. Save. Search `TEST-101`.
 
-If the teacher can collect cash, that is a **Fail** (security).
-
----
-
-## E. Attendance
-
-Log in as **admin** again.
-
-1. Open student attendance (`/staff/stuattendence`).  
-2. Pick today’s date, class **FY BA**, section **A**.  
-3. Mark Demo Student present (or leave).  
-4. Save.
-
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Attendance grid loads | ☐ | ☐ | ☐ |
-| Save works | ☐ | ☐ | ☐ |
-| Saving again the same day does not duplicate wildly | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Create page | Form opens | | ☐ | ☐ | ☐ |
+| Save | Success message or student appears | | ☐ | ☐ | ☐ |
+| Search | Finds the student with that admission no | | ☐ | ☐ | ☐ |
 
 ---
 
-## F. Exams (marks)
+## C. Fees
 
-1. Open **Exam Group** (`/staff/examgroup`).  
-2. If a group exists, open mark entry.  
-3. If empty: create a simple group (name `Test exam`, type college grade, session **2025-26**).  
-4. Add one exam, one subject if the form allows.  
-5. Enter a mark (example 70 out of 100). Save draft.  
-6. If there is **Finalize**, try it once.
+Use `STU-001` (Demo Student) or `TEST-101`.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Exam group page opens | ☐ | ☐ | ☐ |
-| Marks can be saved | ☐ | ☐ | ☐ |
-| Finalize locks or shows a clear message | ☐ | ☐ | ☐ |
+1. **Collect Fees**.  
+2. If no bill, assign from Fee Master.  
+3. Collect a **small cash** amount (example ₹100).  
+4. Confirm a receipt number / PDF.
 
----
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Collect fees opens | Student/due visible or you can assign a bill | | ☐ | ☐ | ☐ |
+| Payment | Saves; receipt number appears | | ☐ | ☐ | ☐ |
+| PDF | Receipt opens or downloads | | ☐ | ☐ | ☐ |
 
-## G. Public admission (no login)
-
-1. Open a **private / incognito** window.  
-2. Go to: https://web-production-99e97.up.railway.app/apply  
-3. Fill first name `Ravi`, mobile a fake 10-digit number.  
-4. Submit.
-
-| Check | Pass | Fail |
-|---|---|---|
-| Apply page loads without login | ☐ | ☐ |
-| Submit gives an application number (like APP-…) | ☐ | ☐ |
-
-Then as **admin**: **Online admission / student inbox** (`/staff/onlinestudent`) — the new name should appear.
-
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Application shows in staff inbox | ☐ | ☐ | ☐ |
+Do **not** delete a receipt. Cancel should reverse, not erase.
 
 ---
 
-## H. Hostel and transport
+## D. Attendance
+
+As **admin** (or teacher).
+
+1. Student attendance. Today’s date, class **FY BA** or **Class 10**, section **A**.  
+2. Mark Demo Student present. Save.
+
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Grid loads | Names for that class/section | | ☐ | ☐ | ☐ |
+| Save | Works; saving again the same day does not duplicate wildly | | ☐ | ☐ | ☐ |
+
+---
+
+## E. Exams (marks)
+
+1. **Exam Group**. Create a simple group if empty.  
+2. Enter a mark (example 70 / 100). Save draft. Finalize if shown.
+
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Page opens | Group / mark entry usable | | ☐ | ☐ | ☐ |
+| Save | Mark stored | | ☐ | ☐ | ☐ |
+| Finalize | Locks or a clear message | | ☐ | ☐ | ☐ |
+
+---
+
+## F. Public application (new form — no login)
+
+**Goal:** a parent or student applies online with the **new required form**. Use a **private / incognito** window so you are not logged in as staff.
+
+**Open:** https://web-production-99e97.up.railway.app/apply
+
+### F1. Page load
+
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Page loads without login | Title **Online admission**; campus / branch dropdown | | ☐ | ☐ |
+| Required marks | Fields marked **\*** for first name, last name, parent/guardian, mobile, student email, date of birth, gender, class/course, previous qualification, percentage | | ☐ | ☐ |
+| School + college | Wording like class/course, parent/guardian (not college-only) | | ☐ | ☐ |
+| Class list | Dropdown includes programmes such as Class 1, Class 10, and/or BA | | ☐ | ☐ |
+
+### F2. Validation (do **not** submit a complete form yet)
+
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Submit empty | Stays on the page; red messages on required fields; **no** application number | | ☐ | ☐ |
+| Mobile extra digits | Typing an 11th digit is **blocked**; field stays 10 digits | | ☐ | ☐ |
+| Mobile letters | Letters are **not** kept; only digits | | ☐ | ☐ |
+| Percentage 101 | Error: percentage must be 0–100; no application number | | ☐ | ☐ |
+| Bad student email | Error on student email; no application number | | ☐ | ☐ |
+
+### F3. Successful application
+
+Fill **all required** fields, for example:
+
+| Field | Example value |
+|---|---|
+| Campus / branch | MAIN (Main Campus) |
+| First name | Ravi |
+| Last name | Sharma |
+| Parent / guardian name | Suresh Sharma |
+| Mobile | `9876543210` (exactly 10 digits) |
+| Student / pupil email | `ravi.test@example.com` |
+| Parent email (optional) | `suresh.test@example.com` |
+| Date of birth | any past school-age date |
+| Gender | Male |
+| Class / course applying for | Class 10 **or** BA / Class 11–12 Arts |
+| Previous class / qualification | Class 8 **or** Class 10 (SSC / Matric) |
+| Percentage in last exam | `82.5` |
+
+Click **Submit application**.
+
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Submit success | Message with an application number like **APP-…**; keep this number | | ☐ | ☐ |
+| Optional pay link | “Pay application fee online” may appear (live pay only if gateway keys exist — Skip if it errors) | | ☐ | ☐ |
+
+### F4. Status lookup
+
+On the same page, **Check status** — paste the APP number.
+
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Look up | Shows that application number, status (e.g. applied), fee unpaid or paid | | ☐ | ☐ |
+
+### F5. Staff inbox → pay fee → enroll → portal passwords
+
+1. Close incognito (or keep it). Login as MAIN **admin**.  
+2. Open **Online applications** / online student inbox (`/staff/onlinestudent`).  
+3. Find **Ravi** / your APP number.  
+4. **Mark fee paid** (cash is fine).  
+5. **Enroll**: class + section (e.g. Class 10 / A or FY BA / A). Save.
+
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Inbox | New application appears for this campus | | ☐ | ☐ | ☐ |
+| Enroll before fee | Should **refuse** until fee is marked paid | | ☐ | ☐ | ☐ |
+| Enroll after fee | Student created; gold box shows **portal logins once** | | ☐ | ☐ | ☐ |
+| Student login shown | Username (from admission no) and password starting like `Portal@…` | | ☐ | ☐ | ☐ |
+| Parent login shown | Parent username/password **if** you entered parent/guardian name | | ☐ | ☐ | ☐ |
+| Email line | Shows student email status `sent` or `logged` (logged = SMTP not set; still OK if passwords are on screen) | | ☐ | ☐ | ☐ |
+
+**Copy the passwords now.** They are not shown again.
+
+### F6. New applicant logs in (not `student1`)
+
+1. Sign out.  
+2. Campus **MAIN**, Portal **Student**, username and password from the gold box.  
+3. Then Sign out; Portal **Parent** with the parent pair.
+
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| New student login | Student portal opens (dashboard / fees / profile) | | ☐ | ☐ | ☐ |
+| Sign out | Visible **Sign out**; returns toward login | | ☐ | ☐ | ☐ |
+| New parent login | Parent portal; child name visible | | ☐ | ☐ | ☐ |
+
+---
+
+## G. Hostel and transport
 
 As **admin**:
 
-1. **Hostel** (`/staff/hostel`) — add a hostel name `Boys 1` if empty.  
-2. **Hostel room** — add a room with capacity 1.  
-3. **Assign room** — allot Demo Student.  
-4. Try allotting the **same room again** to another student if you have one — it should **refuse** (full).
+1. **Hostel** — add `Boys 1` if empty. Room capacity **1**. Assign Demo Student.  
+2. Same room again to another student — should **refuse** (full).  
+3. **Route** — add route + pickup; assign student.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Hostel + room can be saved | ☐ | ☐ | ☐ |
-| Allotment works | ☐ | ☐ | ☐ |
-| Full room is rejected | ☐ | ☐ | ☐ |
-
-**Transport:** **Route** (`/staff/route`) — add a route and a pickup point. Assign student. First assignment may add a transport fee.
-
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Route can be saved | ☐ | ☐ | ☐ |
-| Student can be assigned | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Hostel + room save | Names stored | | ☐ | ☐ | ☐ |
+| Allotment | First assign works; full room rejected | | ☐ | ☐ | ☐ |
+| Transport | Route save; student can be assigned | | ☐ | ☐ | ☐ |
 
 ---
 
-## I. Library
+## H. Library
 
-1. **Books** (`/staff/book/getall`) — add title `Physics`, quantity **1**.  
-2. **Student member** — add Demo Student as member.  
-3. **Issue** (`/staff/member`) — issue the book.  
-4. Issue the **same book again** — should fail (no copy left).  
-5. **Return** the book.
+1. Book title `Physics`, quantity **1**. Member = Demo Student. Issue.  
+2. Issue again — fail. Return — works.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Book saved | ☐ | ☐ | ☐ |
-| Member created | ☐ | ☐ | ☐ |
-| First issue works | ☐ | ☐ | ☐ |
-| Second issue is blocked | ☐ | ☐ | ☐ |
-| Return works | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Book / member | Save | | ☐ | ☐ | ☐ |
+| First issue | Works | | ☐ | ☐ | ☐ |
+| Second issue | Blocked | | ☐ | ☐ | ☐ |
+| Return | Works | | ☐ | ☐ | ☐ |
 
 ---
 
-## J. Front office (enquiry)
+## I. Front office
 
-1. **Enquiry** (`/staff/enquiry`) — name `Walk-in Parent`, phone `9000000099`. Save.  
-2. If there is convert / won — try convert to application.
+**Enquiry** — name `Walk-in Parent`, phone `9000000099`. Convert if shown.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Enquiry saves | ☐ | ☐ | ☐ |
-| Convert creates an application **or** a clear “already converted” message | ☐ | ☐ | ☐ |
-
----
-
-## K. Certificates / ID card
-
-1. **Generate ID card** search (`/staff/generateidcard/search`) — pick Demo Student, generate / PDF.  
-2. **Certificate** (`/staff/generatecertificate`) — Bonafide if listed.
-
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| ID card / PDF downloads or opens | ☐ | ☐ | ☐ |
-| Certificate generates | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Enquiry saves | Row appears | | ☐ | ☐ | ☐ |
+| Convert | Creates an application **or** “already converted” | | ☐ | ☐ | ☐ |
 
 ---
 
-## L. Messages (SMS/email templates)
+## J. Certificates / ID
 
-1. **SMS template** (`/staff/mailsms/sms-template`).  
-2. You should see a `fee_due` style template with `{{name}}` placeholders.  
-3. **Do not** expect a real SMS on the phone unless someone set a paid SMS gateway.
+Generate ID / Bonafide for Demo Student.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Template list/edit opens | ☐ | ☐ | ☐ |
-| Saving a small text change works | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| ID / PDF | Downloads or opens | | ☐ | ☐ | ☐ |
+| Certificate | Generates | | ☐ | ☐ | ☐ |
 
 ---
 
-## M. NAAC
+## K. Messages and SMTP
 
-1. **NAAC Dashboard** (`/staff/naac/dashboard`) — seven criteria (C1–C7) with % .  
-2. **Task Master** (`/staff/naac`) — add a task on criterion 1.  
-3. **Task Allocation** — assign to Demo Teacher, try **Complete** with no evidence (should refuse), then add a file path like `uploads/naac/proof.pdf` and complete.
+1. **SMS / email templates** — `fee_due` / `portal_login` with `{{name}}`.  
+2. **Email (SMTP)** (`/staff/emailconfig`) — host/user/from. Do not expect a real SMS/email on a phone unless SMTP was saved.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Dashboard shows 7 criteria | ☐ | ☐ | ☐ |
-| Task can be created | ☐ | ☐ | ☐ |
-| Complete without evidence fails | ☐ | ☐ | ☐ |
-| Complete with evidence works | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Templates | List/edit opens; small save works | | ☐ | ☐ | ☐ |
+| SMTP page | Form to save host (optional for this round) | | ☐ | ☐ | ☐ |
 
 ---
 
-## N. CO-PO (outcomes)
+## L. NAAC
 
-1. **Program outcomes** (`/staff/copo/program-outcomes`) — add `PO1` / short title.  
-2. **Course outcomes** — add `CO1` on any subject.  
-3. **CO-PO mapping** — weight **3**. Try weight **4** — should refuse.  
-4. **OBE / outcome** report (`/staff/outcome-basis-education`) — pick program BA and Compute.
+Dashboard C1–C7. Task on criterion 1. Complete without evidence **refused**; with a file path, completes.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| PO and CO save | ☐ | ☐ | ☐ |
-| Weight 3 saves, weight 4 rejected | ☐ | ☐ | ☐ |
-| Attainment page runs without crashing | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Dashboard | 7 criteria | | ☐ | ☐ | ☐ |
+| Task | Create works | | ☐ | ☐ | ☐ |
+| Evidence | Empty complete fails; with path succeeds | | ☐ | ☐ | ☐ |
 
 ---
 
-## O. Feedback
+## M. CO-PO
 
-1. **Add form** (`/staff/feedback/feedback-formname-master`) — name `Teacher rating`.  
-2. **Fields** (`/staff/feedback`) — add a **Rating 1–5** question.  
-3. **Assign** — open window from yesterday to tomorrow.  
-4. **Fill** — submit as Demo Student with rating 4.
+PO1, CO1, mapping weight **3** saves, **4** refused. Compute attainment.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Form + field save | ☐ | ☐ | ☐ |
-| Window can be opened | ☐ | ☐ | ☐ |
-| Fill submits | ☐ | ☐ | ☐ |
-| Report shows an average (or at least 1 response) | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| PO / CO | Save | | ☐ | ☐ | ☐ |
+| Weight | 3 OK, 4 rejected | | ☐ | ☐ | ☐ |
+| Report | Runs without crash | | ☐ | ☐ | ☐ |
 
 ---
 
-## P. Payroll (admin / accountant style)
+## N. Feedback
 
-1. **Pay elements** (`/staff/staffpayroll/add-element`) — list should include BASIC, PF, ESI, PT, TDS.  
-2. **Select pay element** — attach **BASIC** ₹12000 and **DA** ₹8000 to Demo Teacher.  
-3. **Generate payroll** (`/staff/staffpayroll/staff-payroll`) — year this year, month this month. Run.  
-4. You should see PF (about ₹1800 if basic+DA is ₹20,000) and a **net** pay.  
-5. Run the **same month again** — should say already generated.
+Form `Teacher rating`, rating 1–5, window open, Demo Student submits 4.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Elements list loads | ☐ | ☐ | ☐ |
-| Structure save works | ☐ | ☐ | ☐ |
-| First monthly run works | ☐ | ☐ | ☐ |
-| Duplicate month is blocked | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Form + field | Save | | ☐ | ☐ | ☐ |
+| Fill | Submits | | ☐ | ☐ | ☐ |
+| Report | Average or at least 1 response | | ☐ | ☐ | ☐ |
 
 ---
 
-## Q. Seating
+## O. Payroll
 
-1. **Seating blocks** (`/staff/seating-arrangement`) — block `Hall A`, capacity **2**.  
-2. **Assign block** — pick an exam paper if listed, class FY BA, select Hall A, auto-allocate.  
-3. If the class has more than 2 students, it should **refuse**. Raise capacity to 20 and retry.
+BASIC + DA on Demo Teacher. Generate this month. Run again — already generated.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Block saves | ☐ | ☐ | ☐ |
-| Over-capacity is rejected **or** seats appear when capacity is enough | ☐ | ☐ | ☐ |
-| Report lists seat numbers like Hall A-01 | ☐ | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Elements | BASIC, PF, ESI, PT, TDS listed | | ☐ | ☐ | ☐ |
+| First run | Net pay shown | | ☐ | ☐ | ☐ |
+| Second run | Blocked | | ☐ | ☐ | ☐ |
 
 ---
 
-## R. Google Meet / Zoom (links only)
+## P. Seating
 
-1. **Gmeet Live Classes** → Live Classes (`/staff/gmeet/timetable`).  
-2. Title `Demo lecture`.  
-3. Meeting URL **must** be like `https://meet.google.com/aaa-bbbb-ccc` (https).  
-4. Save. Click **Join**.  
-5. Try a fake URL `https://google.com` — should **refuse**.
+Hall A capacity **2**. Allocate. Too many students → refuse. Raise capacity and retry.
 
-| Check | Pass | Fail | Skip |
-|---|---|---|---|
-| Valid Meet link saves | ☐ | ☐ | ☐ |
-| Join opens a new tab | ☐ | ☐ | ☐ |
-| Wrong website URL is rejected | ☐ | ☐ | ☐ |
-
-This does **not** create a real Google meeting by itself. It only stores the link.
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Block | Saves | | ☐ | ☐ | ☐ |
+| Overflow | Rejected **or** seats when capacity is enough | | ☐ | ☐ | ☐ |
 
 ---
 
-## S. Student portal
+## Q. Google Meet / Zoom (links only)
 
-1. Log out. Portal **Student**, user `student1`, password `Admin@12345`.  
-2. Open Dashboard, Fees, Attendance, Exams, Profile, Notices.
+Valid `https://meet.google.com/…` saves. `https://google.com` refused. Does **not** create a real Google meeting.
 
-| Check | Pass | Fail |
-|---|---|---|
-| Student dashboard loads | ☐ | ☐ |
-| Fees / attendance / exams open without error | ☐ | ☐ |
-| Student **cannot** open staff URL `/staff/studentfee` (should kick to login or forbid) | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Valid link | Saves; Join opens a tab | | ☐ | ☐ | ☐ |
+| Wrong URL | Rejected | | ☐ | ☐ | ☐ |
 
 ---
 
-## T. Parent portal
+## R. Seeded student portal
 
-1. Portal **Parent**, user `parent1`, same password.  
-2. Dashboard should mention Demo Student.
+Portal **Student**, `student1` / `Admin@12345`.
 
-| Check | Pass | Fail |
-|---|---|---|
-| Parent dashboard loads | ☐ | ☐ |
-| Child fees or attendance is visible | ☐ | ☐ |
-| Parent cannot use staff collect-fees URL | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Dashboard | Loads; Sign out visible | | ☐ | ☐ |
+| Fees / attendance / exams | Open without crash | | ☐ | ☐ |
+| Staff URL | `/staff/studentfee` kicks to login or forbid | | ☐ | ☐ |
 
 ---
 
-## U. Wrong password and lockout
+## S. Seeded parent portal
 
-1. Portal Staff, username `admin`, password `wrong`. Submit 2–3 times.
+Portal **Parent**, `parent1` / `Admin@12345`.
 
-| Check | Pass | Fail |
-|---|---|---|
-| Error message is shown (not a white crash) | ☐ | ☐ |
-| After many tries, “too many attempts” **may** appear | ☐ | ☐ |
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Dashboard | Mentions Demo Student; Sign out visible | | ☐ | ☐ |
+| Child data | Fees or attendance visible | | ☐ | ☐ |
+| Staff URL | Cannot collect fees | | ☐ | ☐ |
 
-Then log in correctly with `Admin@12345`.
+---
+
+## T. Wrong password
+
+Staff `admin`, password `wrong`, 2–3 times.
+
+| Check | Expected result | Outcome | Pass | Fail |
+|---|---|---|---|---|
+| Error | Message, not a white crash | | ☐ | ☐ |
+| Lockout | After many tries, “too many attempts” **may** appear | | ☐ | ☐ |
+
+Then log in with `Admin@12345`.
+
+---
+
+## U. Backup (admin only — do **not** restore live data)
+
+**Backup** screen. Snapshot download. Optional **Run database dump**.
+
+**Do not** type `RESTORE ALL CAMPUSES` on the live test site unless you were told to wipe the database.
+
+| Check | Expected result | Outcome | Pass | Fail | Skip |
+|---|---|---|---|---|---|
+| Backup page | Opens for admin | | ☐ | ☐ | ☐ |
+| Snapshot | JSON file downloads | | ☐ | ☐ | ☐ |
+| Restore button | Disabled until you type **RESTORE ALL CAMPUSES** | | ☐ | ☐ | ☐ |
 
 ---
 
 ## 4. End-of-day score
 
-Count **Fail** items only on scripts A–U (ignore Skip).
+Count **Fail** only (ignore Skip). Section **F** (new application) is the most important new path.
 
 | Fails | Meaning |
 |---|---|
 | 0 | Good enough for a demo walkthrough |
 | 1–3 | Usable; list the fails for the developer |
-| 4+ | Do not show to a college yet |
+| 4+ | Do not show to a school/college yet |
 
 ---
 
@@ -445,7 +472,7 @@ Count **Fail** items only on scripts A–U (ignore Skip).
 ```
 Date:
 Browser (Chrome / Edge / phone):
-Login used (admin / teacher / student1 / parent1):
+Login used (admin / teacher / student1 / parent1 / new APP student):
 Page URL:
 What I clicked:
 What I expected:
@@ -457,13 +484,15 @@ Screenshot attached: yes / no
 
 ## 6. If you test on a phone
 
-Repeat **A, S, T, G** only (login, student, parent, public apply). Staff grids are built for a **computer**.
+Repeat **A, A3, F, R, S** only (login, teacher, public apply, student, parent). Staff grids are for a **computer**.
 
 ---
 
 ## 7. Reminder
 
-- Demo data is **fake** (Indore College, FY BA, STU-001).  
+- Demo data is **fake** (campuses MAIN/EAST, Class 1 / Class 10 / BA, STU-001).  
 - Do not enter real Aadhaar or bank numbers.  
-- Do not change the admin password unless you were asked to.  
-- Online payment (Razorpay) will not complete without real gateway keys — skip card/UPI live pay unless someone confirmed keys are set.
+- Do not change the admin password unless asked.  
+- Do not run **Restore** on the shared live site.  
+- Online payment (Razorpay) will not complete without real gateway keys — skip live UPI/card unless keys are confirmed.  
+- Portal **emails** send only if SMTP was saved; otherwise status is `logged` and passwords are still on the enroll screen.
