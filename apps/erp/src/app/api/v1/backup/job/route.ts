@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "crypto";
 import { requestIp, writeAudit } from "@/lib/audit";
 import { createDbDump } from "@/lib/db-backup";
 import { unauthenticated } from "@/lib/errors";

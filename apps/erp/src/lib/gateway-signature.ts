@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 export function hmacSha256Hex(secret: string, raw: string) {
   return createHmac("sha256", secret).update(raw).digest("hex");

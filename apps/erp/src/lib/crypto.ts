@@ -3,7 +3,7 @@ import {
   createDecipheriv,
   createHash,
   randomBytes,
-} from "node:crypto";
+} from "crypto";
 
 const DEV_KEY = "dev-only-field-encryption-key-not-for-production!!";
 

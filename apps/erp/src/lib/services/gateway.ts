@@ -1,5 +1,5 @@
 import { PaymentMethod } from "@prisma/client";
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { decryptField, encryptField } from "@/lib/crypto";
 import { forbidden, notFound, validationError } from "@/lib/errors";

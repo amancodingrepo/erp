@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

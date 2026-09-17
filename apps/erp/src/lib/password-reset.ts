@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "crypto";
 import { prisma } from "./db";
 import { notFound, validationError } from "./errors";
 import { hashPassword } from "./password";

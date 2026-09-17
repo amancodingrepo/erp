@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "crypto";
 import { ActorType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";

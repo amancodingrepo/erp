@@ -1,4 +1,4 @@
-import { timingSafeEqual, randomBytes } from "node:crypto";
+import { timingSafeEqual, randomBytes } from "crypto";
 import { argon2idAsync } from "@noble/hashes/argon2.js";
 import bcrypt from "bcryptjs";
 

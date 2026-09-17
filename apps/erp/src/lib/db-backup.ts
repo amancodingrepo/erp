@@ -1,6 +1,6 @@
-import { spawn } from "node:child_process";
-import { mkdir, readdir, stat, unlink } from "node:fs/promises";
-import path from "node:path";
+import { spawn } from "child_process";
+import { mkdir, readdir, stat, unlink } from "fs/promises";
+import path from "path";
 import { uploadsRoot } from "./uploads";
 
 const KEEP = 7;
