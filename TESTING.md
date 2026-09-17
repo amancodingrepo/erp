@@ -54,6 +54,8 @@ Wrong portal + right username usually **fails**. That is correct.
 
 **Always Sign out** (or close the tab) before switching user. Student and parent portals have a **Sign out** button.
 
+A spreadsheet of the same logins plus **direct links** is in **`TESTING-logins.csv`** (open in Excel / Google Sheets). Click the login link, then the “open after login” link.
+
 ---
 
 ## 3. What to test vs what to skip
@@ -224,10 +226,15 @@ Fill **all required** fields, for example:
 
 Click **Submit application**.
 
+**Payment is not required to submit.** You should get an APP number with fee still unpaid. Live Razorpay/UPI is optional and can be skipped for testing.
+
+**Payment is required only to enroll** (create the student and portal passwords). For testing, do **not** need a real card: staff **Mark fee paid** (cash) is enough. Walk-in **Student Admission** on the staff desk never uses this application fee.
+
 | Check | Expected result | Outcome | Pass | Fail |
 |---|---|---|---|---|
-| Submit success | Message with an application number like **APP-…**; keep this number | | ☐ | ☐ |
-| Optional pay link | “Pay application fee online” may appear (live pay only if gateway keys exist — Skip if it errors) | | ☐ | ☐ |
+| Submit success | Message with an application number like **APP-…**; keep this number. Fee can still be **unpaid** | | ☐ | ☐ |
+| No live pay needed | You can close the page without paying online | | ☐ | ☐ |
+| Optional pay link | “Pay application fee online” may appear (Skip if it errors — keys often not set) | | ☐ | ☐ |
 
 ### F4. Status lookup
 
@@ -242,13 +249,13 @@ On the same page, **Check status** — paste the APP number.
 1. Close incognito (or keep it). Login as MAIN **admin**.  
 2. Open **Online applications** / online student inbox (`/staff/onlinestudent`).  
 3. Find **Ravi** / your APP number.  
-4. **Mark fee paid** (cash is fine).  
+4. **Mark fee paid** (cash is fine). This is how testers skip live payment.  
 5. **Enroll**: class + section (e.g. Class 10 / A or FY BA / A). Save.
 
 | Check | Expected result | Outcome | Pass | Fail | Skip |
 |---|---|---|---|---|---|
-| Inbox | New application appears for this campus | | ☐ | ☐ | ☐ |
-| Enroll before fee | Should **refuse** until fee is marked paid | | ☐ | ☐ | ☐ |
+| Inbox | New application appears for this campus, fee unpaid until you mark it | | ☐ | ☐ | ☐ |
+| Enroll before fee | Should **refuse** (“unpaid” / similar) until fee is marked paid | | ☐ | ☐ | ☐ |
 | Enroll after fee | Student created; gold box shows **portal logins once** | | ☐ | ☐ | ☐ |
 | Student login shown | Username (from admission no) and password starting like `Portal@…` | | ☐ | ☐ | ☐ |
 | Parent login shown | Parent username/password **if** you entered parent/guardian name | | ☐ | ☐ | ☐ |
