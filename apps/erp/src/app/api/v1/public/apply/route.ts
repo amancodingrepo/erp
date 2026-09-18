@@ -5,11 +5,9 @@ import {
   publicCampus,
 } from "@/lib/services/applications";
 
-export async function GET(request?: Request) {
+export async function GET(request: Request) {
   try {
-    const code = request
-      ? new URL(request.url).searchParams.get("campus")
-      : null;
+    const code = new URL(request.url).searchParams.get("campus");
     const campus = await publicCampus(code);
     const [programs, fee] = await Promise.all([
       listPublicPrograms(campus.id),

@@ -53,7 +53,7 @@ describe("Phase B online admission", () => {
   });
 
   it("public catalog lists programs and fee", async () => {
-    const res = await applyGet();
+    const res = await applyGet(new Request("http://local/api/v1/public/apply"));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
       applicationFee: string;
