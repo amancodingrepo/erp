@@ -110,6 +110,17 @@ export default function ApplyPage() {
     }
     setRef(json.applicationNo);
     setAppId(json.id);
+    setLookup(json.applicationNo ?? "");
+    setStatus(null);
+    form.reset({ campusCode });
+  }
+
+  function startAnother() {
+    setRef(null);
+    setAppId(null);
+    setMessage(null);
+    setStatus(null);
+    setLookup("");
     form.reset({ campusCode });
   }
 
@@ -123,6 +134,79 @@ export default function ApplyPage() {
       json.data
         ? `${json.data.applicationNo}: ${json.data.status} · fee ${json.data.paymentStatus}`
         : "No application with that reference",
+    );
+  }
+
+  if (ref) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-12">
+        <div className="em-card p-8">
+          <p className="text-[12.5px] font-semibold text-[var(--green-dark)]">
+            {catalog?.campus.name ?? "School / college"}
+          </p>
+          <h1 className="font-display mt-2 text-3xl">Application submitted</h1>
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            Keep this reference number. You do not need to pay now. Staff will
+            mark the fee paid before enrollment.
+          </p>
+          <p className="mt-6 rounded-2xl bg-[#e9f7ef] px-4 py-4 text-center text-2xl font-extrabold tracking-tight text-[var(--green-dark)]">
+            {ref}
+          </p>
+          {message ? (
+            <p className="mt-3 text-sm text-[var(--stamp)]" role="alert">
+              {message}
+            </p>
+          ) : null}
+          {appId ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-4 w-full"
+              onClick={async () => {
+                const res = await fetch(
+                  `/api/v1/public/applications/${appId}/pay-online`,
+                  { method: "POST" },
+                );
+                const json = await res.json();
+                setMessage(
+                  res.ok
+                    ? `Pay ₹${json.amount} with order ${json.orderId}`
+                    : json.message ?? "Online pay unavailable — staff can mark fee paid",
+                );
+              }}
+            >
+              Pay application fee online (optional)
+            </Button>
+          ) : null}
+          <form className="mt-8 space-y-3 border-t border-[var(--rule)] pt-6" onSubmit={onLookup}>
+            <Label htmlFor="lookup">Check status</Label>
+            <div className="flex gap-3">
+              <Input
+                id="lookup"
+                value={lookup}
+                onChange={(e) => setLookup(e.target.value)}
+                placeholder="APP-2026-0001"
+              />
+              <Button type="submit" variant="ghost">
+                Look up
+              </Button>
+            </div>
+            {status ? (
+              <p className="text-sm text-[var(--muted)]">{status}</p>
+            ) : null}
+          </form>
+          <div className="mt-8 flex flex-col gap-3">
+            <Link href="/login" className="w-full">
+              <Button type="button" className="w-full">
+                Student / parent / staff login
+              </Button>
+            </Link>
+            <Button type="button" variant="ghost" className="w-full" onClick={startAnother}>
+              Submit another application
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -157,34 +241,6 @@ export default function ApplyPage() {
         <span className="text-[var(--stamp)]">*</span> are required. Application
         fee ₹{catalog?.applicationFee ?? "—"}.
       </p>
-      {ref ? (
-        <p className="mt-4 border border-[var(--rule)] bg-[var(--paper-2)] p-4 text-sm">
-          Submitted. Keep this reference number: <strong>{ref}</strong>
-          {appId ? (
-            <>
-              {" "}
-              <button
-                type="button"
-                className="underline"
-                onClick={async () => {
-                  const res = await fetch(
-                    `/api/v1/public/applications/${appId}/pay-online`,
-                    { method: "POST" },
-                  );
-                  const json = await res.json();
-                  setMessage(
-                    res.ok
-                      ? `Pay ₹${json.amount} with order ${json.orderId}`
-                      : json.message ?? "Online pay unavailable",
-                  );
-                }}
-              >
-                Pay application fee online
-              </button>
-            </>
-          ) : null}
-        </p>
-      ) : null}
       {message ? (
         <p className="mt-3 text-sm text-[var(--stamp)]" role="alert">
           {message}
