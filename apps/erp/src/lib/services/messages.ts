@@ -246,6 +246,8 @@ export async function sendPortalLoginEmail(input: {
   admissionNo: string;
   campusName: string;
   campusCode: string;
+  parentUsername?: string | null;
+  parentPassword?: string | null;
 }) {
   if (!input.to?.trim()) return "skipped";
   let template = await prisma.messageTemplate.findFirst({
@@ -280,6 +282,10 @@ export async function sendPortalLoginEmail(input: {
     campusCode: input.campusCode,
     loginUrl: `${loginUrl.replace(/\/$/, "")}/login`,
   };
+  let body = renderTemplate(template.body, vars);
+  if (input.portal === "student" && input.parentUsername && input.parentPassword) {
+    body += `\n\nParent / guardian portal (please share with parent):\nCampus code: ${input.campusCode}\nUsername: ${input.parentUsername}\nPassword: ${input.parentPassword}\n`;
+  }
   const log = await queueRendered({
     campusId: input.campusId,
     channel: "EMAIL",
@@ -287,7 +293,7 @@ export async function sendPortalLoginEmail(input: {
     studentId: input.studentId,
     to: input.to.trim(),
     subject: renderTemplate(template.subject ?? "{{campus}} portal login", vars),
-    body: renderTemplate(template.body, vars),
+    body,
   });
   return log.status;
 }

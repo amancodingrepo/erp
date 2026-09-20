@@ -1,5 +1,6 @@
 import { ActorType } from "@prisma/client";
 import { OPTIONAL_MODULES } from "@/lib/catalog/nav-permissions";
+import { ensureSchoolClasses } from "@/lib/school-classes";
 import { prisma } from "@/lib/db";
 import { conflict, forbidden, notFound, validationError } from "@/lib/errors";
 import { NAAC_CRITERIA } from "@/lib/naac-criteria";
@@ -254,6 +255,7 @@ async function seedCampusDefaults(campusId: string, enableMultiCampus: boolean) 
       body: "This is to certify that {{name}} ({{admissionNo}}) is a bona fide student of {{campus}}, class {{class}} / {{section}}.",
     },
   });
+  await ensureSchoolClasses(campusId);
 }
 
 async function seedDemoPeople(

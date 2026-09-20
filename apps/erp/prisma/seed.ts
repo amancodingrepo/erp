@@ -8,14 +8,19 @@ import {
   SYSTEM_ROLES,
 } from "../src/lib/permission-catalog";
 import { provisionCampusTenant } from "../src/lib/services/tenants";
+import { ensureSchoolClasses } from "../src/lib/school-classes";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const existing = await prisma.campus.count();
   if (existing > 0 && process.env.FORCE_SEED !== "true") {
+    const campuses = await prisma.campus.findMany({ select: { id: true, name: true } });
+    for (const row of campuses) {
+      await ensureSchoolClasses(row.id);
+    }
     console.log(
-      "Seed skipped (campuses already exist). Set FORCE_SEED=true to re-run.",
+      "Seed skipped (campuses already exist); Nursery–Class 12 ensured. Set FORCE_SEED=true to re-run.",
     );
     return;
   }
@@ -366,50 +371,7 @@ async function main() {
     },
   });
 
-  for (const row of [
-    {
-      programId: "seed-program-c1",
-      programName: "Class 1",
-      classId: "seed-class-c1",
-      sectionId: "seed-section-c1",
-    },
-    {
-      programId: "seed-program-c10",
-      programName: "Class 10",
-      classId: "seed-class-c10",
-      sectionId: "seed-section-c10",
-    },
-  ]) {
-    const program = await prisma.program.upsert({
-      where: { id: row.programId },
-      update: { name: row.programName },
-      create: {
-        id: row.programId,
-        departmentId: demoDept.id,
-        name: row.programName,
-        level: "UNDERGRADUATE",
-      },
-    });
-    const klass = await prisma.class.upsert({
-      where: { id: row.classId },
-      update: { name: row.programName },
-      create: {
-        id: row.classId,
-        programId: program.id,
-        name: row.programName,
-        yearNo: 1,
-      },
-    });
-    await prisma.section.upsert({
-      where: { id: row.sectionId },
-      update: { name: "A" },
-      create: {
-        id: row.sectionId,
-        classId: klass.id,
-        name: "A",
-      },
-    });
-  }
+  await ensureSchoolClasses(campus.id);
 
   const studentRole = roles.get("Student")!;
   const parentRole = roles.get("Parent")!;

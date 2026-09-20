@@ -9,7 +9,7 @@ type Option = { id: string; name: string };
 type Klass = Option & { sections: Option[] };
 
 const SELECT =
-  "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
+  "h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm";
 
 export default function StudentsOps({ mode }: { mode: Mode }) {
   if (mode === "rolls") return <RollsPanel />;
@@ -115,6 +115,15 @@ function ImportPanel() {
   const [errors, setErrors] = useState<Array<{ line: number; fields: Record<string, string> }>>(
     [],
   );
+  const [issued, setIssued] = useState<
+    Array<{
+      admissionNo: string;
+      enrollmentNo: string | null;
+      student: { username: string; password: string };
+      parent: { username: string; password: string } | null;
+      mail?: { student?: string; parent?: string | null };
+    }>
+  >([]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -125,9 +134,13 @@ function ImportPanel() {
     const json = await res.json();
     if (res.ok) {
       setErrors([]);
-      setMessage(`Inserted ${json.inserted} students`);
+      setIssued(json.issued ?? []);
+      setMessage(
+        `Enrolled ${json.inserted} students. Enrollment numbers and portal logins were generated. Copy passwords now; they are emailed when SMTP is set.`,
+      );
       return;
     }
+    setIssued([]);
     setMessage(json.message ?? json.error ?? "Import failed");
     setErrors(json.errors ?? []);
   }
@@ -136,15 +149,25 @@ function ImportPanel() {
     <div>
       <h1 className="font-display text-4xl">Bulk upload</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        CSV header must include Student ID and First Name. One bad row rolls back the
-        whole file.
+        CSV must include First Name and Class (Nursery–Class 12). Student ID is
+        optional — enrollment numbers like ENR-2026-0001 are generated.
+        One bad row rolls back the whole file. Student email gets student login
+        plus parent login; parent email gets parent login.
+      </p>
+      <p className="mt-2 text-sm">
+        <a
+          href="/demo-student-bulk-upload.csv"
+          className="font-semibold text-[var(--green-dark)] underline-offset-4 hover:underline"
+        >
+          Download demo CSV
+        </a>
       </p>
       <form className="mt-6 max-w-xl space-y-4" onSubmit={onSubmit}>
         <div>
           <Label htmlFor="file">CSV file</Label>
           <Input id="file" name="file" type="file" accept=".csv,text/csv" required />
         </div>
-        <Button type="submit">Import</Button>
+        <Button type="submit">Import and enroll</Button>
       </form>
       {message ? <p className="mt-3 text-sm">{message}</p> : null}
       {errors.length ? (
@@ -155,6 +178,40 @@ function ImportPanel() {
             </li>
           ))}
         </ul>
+      ) : null}
+      {issued.length ? (
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-[var(--rule)] bg-white p-4 text-sm">
+          <p className="font-semibold">Portal logins (shown once)</p>
+          <table className="mt-2">
+            <thead>
+              <tr>
+                <th>Enrollment</th>
+                <th>Student login</th>
+                <th>Parent login</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {issued.map((row) => (
+                <tr key={row.admissionNo}>
+                  <td>{row.enrollmentNo ?? row.admissionNo}</td>
+                  <td>
+                    {row.student.username} / {row.student.password}
+                  </td>
+                  <td>
+                    {row.parent
+                      ? `${row.parent.username} / ${row.parent.password}`
+                      : "—"}
+                  </td>
+                  <td>
+                    student {row.mail?.student ?? "n/a"}
+                    {row.parent ? ` · parent ${row.mail?.parent ?? "n/a"}` : ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

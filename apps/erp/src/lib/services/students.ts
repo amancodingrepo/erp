@@ -210,6 +210,14 @@ export function parseCsv(text: string): string[][] {
 const CSV_HEADERS: Record<string, string> = {
   "student id": "admissionNo",
   "admission no": "admissionNo",
+  "enrollment no": "enrollmentNo",
+  "enrolment no": "enrollmentNo",
+  "father name": "fatherName",
+  "parent name": "fatherName",
+  "guardian name": "fatherName",
+  "parent email": "parentEmail",
+  "father email": "parentEmail",
+  "class name": "className",
   salutation: "salutation",
   "full name (12th)": "nameAs12th",
   "first name": "firstName",
@@ -221,7 +229,6 @@ const CSV_HEADERS: Record<string, string> = {
   "roll no": "rollNo",
   class: "className",
   section: "sectionName",
-  "enrollment no": "enrollmentNo",
   dob: "dob",
   "birth place": "birthPlace",
   email: "email",
@@ -737,9 +744,9 @@ export async function importStudentsCsv(input: {
   }
   const header = rows[0].map((h) => h.trim().toLowerCase());
   const mapped = header.map((h) => CSV_HEADERS[h] ?? null);
-  if (!mapped.includes("admissionNo") || !mapped.includes("firstName")) {
+  if (!mapped.includes("firstName")) {
     throw validationError({
-      file: "CSV header must include Student ID and First Name",
+      file: "CSV header must include First Name",
     });
   }
 
@@ -764,11 +771,11 @@ export async function importStudentsCsv(input: {
       const key = mapped[idx];
       if (key) rec[key] = value.trim();
     });
-    if (!rec.admissionNo) fields.admissionNo = "required";
     if (!rec.firstName) fields.firstName = "required";
-    if (!rec.email) fields.email = "required";
-    if (!rec.mobile) fields.mobile = "required";
-    if (!rec.nameAs12th) fields.nameAs12th = "required";
+    if (!rec.className) fields.className = "required";
+    if (rec.mobile && !/^\d{10}$/.test(rec.mobile)) {
+      fields.mobile = "must be 10 digits";
+    }
     const admissionKey = rec.admissionNo?.toLowerCase();
     if (admissionKey && seen.has(admissionKey)) {
       fields.admissionNo = "duplicate in file";
@@ -791,13 +798,12 @@ export async function importStudentsCsv(input: {
       if (!klass) fields.className = "class not found";
       else {
         classId = klass.id;
-        if (rec.sectionName) {
-          const section = klass.sections.find(
-            (s) => s.name.toLowerCase() === rec.sectionName.toLowerCase(),
-          );
-          if (!section) fields.sectionName = "section not found";
-          else sectionId = section.id;
-        }
+        const wanted = (rec.sectionName || "A").toLowerCase();
+        const section = klass.sections.find(
+          (s) => s.name.toLowerCase() === wanted,
+        );
+        if (!section) fields.sectionName = "section not found";
+        else sectionId = section.id;
       }
     }
 
@@ -816,7 +822,7 @@ export async function importStudentsCsv(input: {
     }
 
     parsed.push({
-      admissionNo: rec.admissionNo,
+      admissionNo: rec.admissionNo || `__gen__${line}`,
       firstName: rec.firstName,
       middleName: rec.middleName,
       lastName: rec.lastName,
@@ -833,6 +839,16 @@ export async function importStudentsCsv(input: {
       classId,
       sectionId,
       categoryId,
+      fatherName: rec.fatherName,
+      guardians: rec.fatherName
+        ? {
+            father: {
+              name: rec.fatherName,
+              email: rec.parentEmail,
+              phone: rec.mobile,
+            },
+          }
+        : undefined,
       previousEdu: rec.qualification
         ? { qualification: rec.qualification }
         : undefined,
@@ -846,25 +862,85 @@ export async function importStudentsCsv(input: {
   }
 
   try {
-    const ids: string[] = [];
+    const created: Array<{
+      id: string;
+      admissionNo: string;
+      enrollmentNo: string | null;
+      firstName: string;
+      lastName: string | null;
+      email: string | null;
+      fatherName?: string;
+      parentEmail?: string;
+    }> = [];
     await prisma.$transaction(async (tx) => {
       for (const body of parsed) {
+        const enrollmentNo =
+          body.enrollmentNo ||
+          (await nextEnrollmentNo(input.campusId, tx));
+        const admissionNo = body.admissionNo.startsWith("__gen__")
+          ? enrollmentNo
+          : body.admissionNo;
         const student = await createStudent({
           campusId: input.campusId,
-          body,
+          body: { ...body, admissionNo, enrollmentNo },
           tx,
         });
-        ids.push(student.id);
+        created.push({
+          id: student.id,
+          admissionNo: student.admissionNo,
+          enrollmentNo: student.enrollmentNo,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          email: student.email,
+          fatherName: body.fatherName,
+          parentEmail: body.guardians?.father?.email,
+        });
       }
     });
-    return { inserted: ids.length, ids };
+    const { provisionEnrollmentPortals } = await import(
+      "@/lib/services/portal-accounts"
+    );
+    const issued = [];
+    for (const row of created) {
+      const portals = await provisionEnrollmentPortals({
+        campusId: input.campusId,
+        studentId: row.id,
+        admissionNo: row.admissionNo,
+        studentEmail: row.email,
+        fatherName: row.fatherName,
+        parentEmail: row.parentEmail,
+        studentName: [row.firstName, row.lastName].filter(Boolean).join(" "),
+      });
+      issued.push({
+        admissionNo: row.admissionNo,
+        enrollmentNo: row.enrollmentNo,
+        ...portals,
+      });
+    }
+    return { inserted: created.length, ids: created.map((r) => r.id), issued };
   } catch (error) {
-    if (
-      prismaErrorCode(error) === "P2002"
-    ) {
+    if (prismaErrorCode(error) === "P2002") {
       throw conflict("duplicate admissionNo");
     }
     throw error;
   }
+}
+
+async function nextEnrollmentNo(
+  campusId: string,
+  tx: Prisma.TransactionClient,
+) {
+  const year = new Date().getFullYear();
+  const prefix = `ENR-${year}-`;
+  const last = await tx.student.findFirst({
+    where: { campusId, enrollmentNo: { startsWith: prefix } },
+    orderBy: { enrollmentNo: "desc" },
+    select: { enrollmentNo: true },
+  });
+  const n = last?.enrollmentNo
+    ? Number(last.enrollmentNo.slice(prefix.length)) + 1
+    : 1;
+  const seq = Number.isFinite(n) && n > 0 ? n : 1;
+  return `${prefix}${String(seq).padStart(4, "0")}`;
 }
 

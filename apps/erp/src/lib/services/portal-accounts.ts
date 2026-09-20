@@ -133,6 +133,8 @@ export async function provisionEnrollmentPortals(input: {
     admissionNo: input.admissionNo,
     campusName,
     campusCode,
+    parentUsername: parentLogin?.username,
+    parentPassword: parentLogin?.password,
   });
   let parentMail: string | null = null;
   if (parentLogin) {
