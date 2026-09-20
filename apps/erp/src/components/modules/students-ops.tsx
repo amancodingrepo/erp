@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n/provider";
 
 type Mode = "rolls" | "import" | "categories" | "disableReasons";
 type Option = { id: string; name: string };
@@ -111,6 +112,7 @@ function RollsPanel() {
 }
 
 function ImportPanel() {
+  const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Array<{ line: number; fields: Record<string, string> }>>(
     [],
@@ -147,7 +149,7 @@ function ImportPanel() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Bulk upload</h1>
+      <h1 className="font-display text-4xl">{t("Bulk upload")}</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         CSV must include First Name and Class (Nursery–Class 12). Student ID is
         optional — enrollment numbers like ENR-2026-0001 are generated.
@@ -159,7 +161,7 @@ function ImportPanel() {
           href="/demo-student-bulk-upload.csv"
           className="font-semibold text-[var(--green-dark)] underline-offset-4 hover:underline"
         >
-          Download demo CSV
+          {t("Download demo CSV")}
         </a>
       </p>
       <form className="mt-6 max-w-xl space-y-4" onSubmit={onSubmit}>
@@ -167,7 +169,7 @@ function ImportPanel() {
           <Label htmlFor="file">CSV file</Label>
           <Input id="file" name="file" type="file" accept=".csv,text/csv" required />
         </div>
-        <Button type="submit">Import and enroll</Button>
+        <Button type="submit">{t("Import and enroll")}</Button>
       </form>
       {message ? <p className="mt-3 text-sm">{message}</p> : null}
       {errors.length ? (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n/provider";
 import { usePortal } from "@/lib/use-portal";
 
 function Status({ children }: { children: ReactNode }) {
@@ -17,47 +18,49 @@ function Card({ children }: { children: ReactNode }) {
 }
 
 function Page({ title, children }: { title: string; children: ReactNode }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-5">
-      <h1 className="font-display text-3xl sm:text-4xl">{title}</h1>
+      <h1 className="font-display text-3xl sm:text-4xl">{t(title)}</h1>
       {children}
     </div>
   );
 }
 
 export function DashboardView() {
+  const { t } = useI18n();
   const { data, error } = usePortal();
   if (error) return <Status>{error}</Status>;
-  if (!data) return <Status>Loading…</Status>;
+  if (!data) return <Status>{t("Loading")}</Status>;
   return (
-    <Page title={`Hello, ${data.student.name}`}>
+    <Page title={`${t("Hello")}, ${data.student.name}`}>
       <p className="text-sm text-[var(--muted)]">
         {data.student.admissionNo} · {data.student.class} / {data.student.section}
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>
-          <p className="text-sm text-[var(--muted)]">Fee balance</p>
+          <p className="text-sm text-[var(--muted)]">{t("Fee balance")}</p>
           <p className="mt-1 font-display text-3xl">₹{data.dues.balance}</p>
         </Card>
         <Card>
-          <p className="text-sm text-[var(--muted)]">Attendance</p>
+          <p className="text-sm text-[var(--muted)]">{t("Attendance")}</p>
           <p className="mt-1 font-display text-3xl">{data.attendancePercent}%</p>
         </Card>
         <Card>
-          <p className="text-sm text-[var(--muted)]">Class</p>
+          <p className="text-sm text-[var(--muted)]">{t("Class")}</p>
           <p className="mt-1 font-display text-2xl">
             {data.timetable.nextClass ?? "—"}
           </p>
         </Card>
       </div>
       <Card>
-        <p className="text-sm font-semibold">Notices</p>
+        <p className="text-sm font-semibold">{t("Notices")}</p>
         <ul className="mt-2 space-y-1 text-sm">
           {data.notices.map((n) => (
             <li key={n.id}>{n.title}</li>
           ))}
           {!data.notices.length ? (
-            <li className="text-[var(--muted)]">No notices yet.</li>
+            <li className="text-[var(--muted)]">{t("No notices yet.")}</li>
           ) : null}
         </ul>
       </Card>

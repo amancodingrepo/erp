@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { isTeacherDesk } from "@/lib/catalog/nav-permissions";
+import { useI18n } from "@/lib/i18n/provider";
 import { SCREENS } from "@/lib/catalog/screens";
 import type { AuthPrincipal } from "@/lib/permissions";
 
@@ -22,6 +23,7 @@ function rupees(value: number) {
 }
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
 
@@ -80,15 +82,17 @@ export default function DashboardPage() {
     <div>
       <section className="em-banner p-7">
         <p className="text-[12.5px] font-medium opacity-90">
-          {teacher ? "Teacher desk" : "Campus operations"}
+          {teacher ? t("Teacher desk") : t("Campus operations")}
         </p>
         <h1 className="mt-2 max-w-xl text-[26px] font-semibold leading-snug tracking-tight">
-          {teacher ? "Your classes, attendance, and marks" : "Welcome back to the campus desk"}
+          {teacher
+            ? t("Your classes, attendance, and marks")
+            : t("Welcome back to the campus desk")}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-white/90">
           {teacher
-            ? "Office menus stay with admin. Use the shortcuts below."
-            : `${SCREENS.length} staff screens. Ctrl+K jumps anywhere. Fee totals ignore cancelled receipts.`}
+            ? t("Office menus stay with admin. Use the shortcuts below.")
+            : `${SCREENS.length} ${t("Modules")}. Ctrl+K.`}
         </p>
         {teacher ? (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -104,7 +108,7 @@ export default function DashboardPage() {
                 href={href}
                 className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-[#1f2937]"
               >
-                {label}
+                {t(label)}
               </Link>
             ))}
           </div>
@@ -113,14 +117,14 @@ export default function DashboardPage() {
       <div className="mt-4 grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <article key={card.label} className="em-card flex min-h-[132px] flex-col p-4">
-            <p className="text-[12.5px] text-[var(--muted)]">{card.label}</p>
+            <p className="text-[12.5px] text-[var(--muted)]">{t(card.label)}</p>
             <p className="mt-auto text-[28px] font-extrabold tracking-tight">{card.value}</p>
           </article>
         ))}
       </div>
       {teacher ? null : (
         <>
-          <h2 className="mt-8 text-lg font-bold">Modules</h2>
+          <h2 className="mt-8 text-lg font-bold">{t("Modules")}</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {modules.map(([name, meta]) => (
               <Link

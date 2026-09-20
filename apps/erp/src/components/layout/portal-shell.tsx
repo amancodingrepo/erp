@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle, useI18n } from "@/lib/i18n/provider";
 
 export function PortalShell({
   title,
@@ -20,6 +21,7 @@ export function PortalShell({
 }) {
   const path = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
 
   async function logout() {
     await fetch("/api/v1/auth/logout", { method: "POST" });
@@ -36,16 +38,19 @@ export function PortalShell({
               C
             </span>
             <div>
-              <p className="text-[11px] font-semibold text-[var(--green-dark)]">Campus ERP</p>
+              <p className="text-[11px] font-semibold text-[var(--green-dark)]">
+                {t("Campus ERP")}
+              </p>
               <Link href={home} className="text-xl font-bold leading-tight tracking-tight">
-                {title}
+                {t(title)}
               </Link>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {extra}
+            <LanguageToggle />
             <Button type="button" variant="ghost" size="sm" onClick={logout}>
-              Sign out
+              {t("Sign out")}
             </Button>
           </div>
         </div>
@@ -62,7 +67,7 @@ export function PortalShell({
                     : "rounded-full px-3 py-1.5 text-sm text-[#5f6368] hover:bg-[#f7f7f8]"
                 }
               >
-                {l.label}
+                {t(l.label)}
               </Link>
             );
           })}

@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n/provider";
 
 const SELECT =
   "h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm";
@@ -30,6 +31,7 @@ export default function RemainingOps({
     {},
   );
   const [message, setMessage] = useState<string | null>(null);
+  const { t } = useI18n();
 
   async function load() {
     const json = await fetch(`/api/v1/ops/${collection}`).then((r) => r.json());
@@ -89,7 +91,7 @@ export default function RemainingOps({
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-4xl">{title}</h1>
+      <h1 className="font-display text-4xl">{t(title)}</h1>
       <p className="text-sm text-[var(--muted)]">{message}</p>
       <form className="grid max-w-xl gap-3" onSubmit={onSubmit}>
         {fields.map((field) =>
@@ -117,7 +119,7 @@ export default function RemainingOps({
             />
           ),
         )}
-        <Button type="submit">Save</Button>
+        <Button type="submit">{t("Save")}</Button>
       </form>
       <ul className="text-sm">
         {rows.slice(0, 80).map((row) => (

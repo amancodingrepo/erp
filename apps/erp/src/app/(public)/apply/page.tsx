@@ -11,6 +11,7 @@ import {
   PREVIOUS_QUALIFICATIONS,
   publicApplicationSchema,
 } from "@/lib/services/application-schema";
+import { LanguageToggle, useI18n } from "@/lib/i18n/provider";
 
 type Catalog = {
   campus: { name: string; code?: string | null };
@@ -50,6 +51,7 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export default function ApplyPage() {
+  const { t } = useI18n();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [campuses, setCampuses] = useState<Array<{ name: string; code: string | null }>>(
     [],
@@ -144,10 +146,14 @@ export default function ApplyPage() {
           <p className="text-[12.5px] font-semibold text-[var(--green-dark)]">
             {catalog?.campus.name ?? "School / college"}
           </p>
-          <h1 className="font-display mt-2 text-3xl">Application submitted</h1>
+          <div className="mb-2 flex justify-end">
+            <LanguageToggle />
+          </div>
+          <h1 className="font-display mt-2 text-3xl">{t("Application submitted")}</h1>
           <p className="mt-3 text-sm text-[var(--muted)]">
-            Keep this reference number. You do not need to pay now. Staff will
-            mark the fee paid before enrollment.
+            {t(
+              "Keep this reference number. You do not need to pay now. Staff will mark the fee paid before enrollment.",
+            )}
           </p>
           <p className="mt-6 rounded-2xl bg-[#e9f7ef] px-4 py-4 text-center text-2xl font-extrabold tracking-tight text-[var(--green-dark)]">
             {ref}
@@ -175,11 +181,11 @@ export default function ApplyPage() {
                 );
               }}
             >
-              Pay application fee online (optional)
+              {t("Pay application fee online (optional)")}
             </Button>
           ) : null}
           <form className="mt-8 space-y-3 border-t border-[var(--rule)] pt-6" onSubmit={onLookup}>
-            <Label htmlFor="lookup">Check status</Label>
+            <Label htmlFor="lookup">{t("Check status")}</Label>
             <div className="flex gap-3">
               <Input
                 id="lookup"
@@ -188,7 +194,7 @@ export default function ApplyPage() {
                 placeholder="APP-2026-0001"
               />
               <Button type="submit" variant="ghost">
-                Look up
+                {t("Look up")}
               </Button>
             </div>
             {status ? (
@@ -198,11 +204,11 @@ export default function ApplyPage() {
           <div className="mt-8 flex flex-col gap-3">
             <Link href="/login" className="w-full">
               <Button type="button" className="w-full">
-                Student / parent / staff login
+                {t("Student / parent / staff login")}
               </Button>
             </Link>
             <Button type="button" variant="ghost" className="w-full" onClick={startAnother}>
-              Submit another application
+              {t("Submit another application")}
             </Button>
           </div>
         </div>
@@ -216,9 +222,12 @@ export default function ApplyPage() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
         {catalog?.campus.name ?? "School / college"}
       </p>
-      <h1 className="font-display mt-2 text-4xl">Online admission</h1>
+      <div className="flex items-start justify-between gap-3">
+        <h1 className="font-display mt-2 text-4xl">{t("Online admission")}</h1>
+        <LanguageToggle />
+      </div>
       <div className="mt-4">
-        <ReqLabel htmlFor="campusCode">Campus / branch</ReqLabel>
+        <ReqLabel htmlFor="campusCode">{t("Campus / branch")}</ReqLabel>
         <select
           id="campusCode"
           value={campusCode}
@@ -248,22 +257,22 @@ export default function ApplyPage() {
       ) : null}
       <form className="mt-8 grid gap-3" onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <div>
-          <ReqLabel htmlFor="firstName">First name</ReqLabel>
+          <ReqLabel htmlFor="firstName">{t("First name")}</ReqLabel>
           <Input id="firstName" {...form.register("firstName")} autoComplete="given-name" />
           <FieldError message={form.formState.errors.firstName?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="lastName">Last name</ReqLabel>
+          <ReqLabel htmlFor="lastName">{t("Last name")}</ReqLabel>
           <Input id="lastName" {...form.register("lastName")} autoComplete="family-name" />
           <FieldError message={form.formState.errors.lastName?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="fatherName">Parent / guardian name</ReqLabel>
+          <ReqLabel htmlFor="fatherName">{t("Parent / guardian name")}</ReqLabel>
           <Input id="fatherName" {...form.register("fatherName")} />
           <FieldError message={form.formState.errors.fatherName?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="mobile">Mobile (10 digits)</ReqLabel>
+          <ReqLabel htmlFor="mobile">{t("Mobile (10 digits)")}</ReqLabel>
           <Input
             id="mobile"
             inputMode="numeric"
@@ -278,12 +287,12 @@ export default function ApplyPage() {
           <FieldError message={form.formState.errors.mobile?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="email">Student / pupil email</ReqLabel>
+          <ReqLabel htmlFor="email">{t("Student / pupil email")}</ReqLabel>
           <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
           <FieldError message={form.formState.errors.email?.message} />
         </div>
         <div>
-          <Label htmlFor="parentEmail">Parent email (for parent portal)</Label>
+          <Label htmlFor="parentEmail">{t("Parent email (for parent portal)")}</Label>
           <Input
             id="parentEmail"
             type="email"
@@ -292,27 +301,27 @@ export default function ApplyPage() {
           <FieldError message={form.formState.errors.parentEmail?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="dob">Date of birth</ReqLabel>
+          <ReqLabel htmlFor="dob">{t("Date of birth")}</ReqLabel>
           <Input id="dob" type="date" {...form.register("dob")} />
           <FieldError message={form.formState.errors.dob?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="gender">Gender</ReqLabel>
+          <ReqLabel htmlFor="gender">{t("Gender")}</ReqLabel>
           <select id="gender" className={SELECT} {...form.register("gender")}>
-            <option value="">Select</option>
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-            <option value="OTHER">Other</option>
+            <option value="">{t("Select")}</option>
+            <option value="MALE">{t("Male")}</option>
+            <option value="FEMALE">{t("Female")}</option>
+            <option value="OTHER">{t("Other")}</option>
           </select>
           <FieldError message={form.formState.errors.gender?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="programId">Class / course applying for</ReqLabel>
+          <ReqLabel htmlFor="programId">{t("Class / course applying for")}</ReqLabel>
           <select id="programId" className={SELECT} {...form.register("programId")}>
-            <option value="">Select</option>
+            <option value="">{t("Select")}</option>
             {(catalog?.programs ?? []).map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {t(p.name)}
               </option>
             ))}
           </select>
@@ -320,24 +329,24 @@ export default function ApplyPage() {
         </div>
         <div>
           <ReqLabel htmlFor="previousQualification">
-            Previous class / qualification passed
+            {t("Previous class / qualification passed")}
           </ReqLabel>
           <select
             id="previousQualification"
             className={SELECT}
             {...form.register("previousQualification")}
           >
-            <option value="">Select</option>
+            <option value="">{t("Select")}</option>
             {PREVIOUS_QUALIFICATIONS.map((q) => (
               <option key={q} value={q}>
-                {q}
+                {t(q)}
               </option>
             ))}
           </select>
           <FieldError message={form.formState.errors.previousQualification?.message} />
         </div>
         <div>
-          <ReqLabel htmlFor="score">Percentage in last exam</ReqLabel>
+          <ReqLabel htmlFor="score">{t("Percentage in last exam")}</ReqLabel>
           <Input
             id="score"
             type="number"
@@ -350,11 +359,11 @@ export default function ApplyPage() {
           <FieldError message={form.formState.errors.score?.message} />
         </div>
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Submitting…" : "Submit application"}
+          {form.formState.isSubmitting ? t("Submitting…") : t("Submit application")}
         </Button>
       </form>
       <form className="mt-10 space-y-3 border-t border-[var(--rule)] pt-6" onSubmit={onLookup}>
-        <Label htmlFor="lookup">Check status</Label>
+        <Label htmlFor="lookup">{t("Check status")}</Label>
         <div className="flex gap-3">
           <Input
             id="lookup"
@@ -363,14 +372,14 @@ export default function ApplyPage() {
             placeholder="APP-2026-0001"
           />
           <Button type="submit" variant="ghost">
-            Look up
+            {t("Look up")}
           </Button>
         </div>
         {status ? <p className="text-sm text-[var(--muted)]">{status}</p> : null}
       </form>
       <p className="mt-8 text-sm">
         <Link href="/login" className="font-semibold text-[var(--green-dark)] underline-offset-4 hover:underline">
-          Staff / student / parent login
+          {t("Staff / student / parent login")}
         </Link>
       </p>
       </div>

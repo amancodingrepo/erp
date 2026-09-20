@@ -13,6 +13,7 @@ import {
 import { SCREENS } from "@/lib/catalog/screens";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle, useI18n } from "@/lib/i18n/provider";
 import type { AuthPrincipal } from "@/lib/permissions";
 
 type Me = {
@@ -26,6 +27,7 @@ type TenantRow = { id: string; name: string; code: string | null };
 export function StaffShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
   const [me, setMe] = useState<Me | null>(null);
   const [q, setQ] = useState("");
   const [palette, setPalette] = useState(false);
@@ -147,7 +149,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </span>
           <div>
             <p className="text-[18px] font-bold leading-none tracking-tight">
-              {isTeacherDesk(me?.user) ? "Teacher" : "Campus"}
+              {isTeacherDesk(me?.user) ? t("Teacher") : t("Campus")}
             </p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
               {me?.campus.name ?? "Campus"}
@@ -177,7 +179,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search menu"
+              placeholder={t("Search menu")}
               className="h-10 w-full rounded-full border border-[var(--rule)] bg-[#f7f7f8] px-4 text-sm"
             />
           </label>
@@ -193,7 +195,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
                 className="mb-1"
               >
                 <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-[12px] font-semibold text-[var(--muted)] hover:bg-[#f7f7f8]">
-                  {group.label}
+                  {t(group.label)}
                   <span className="ml-2 text-[var(--text-3,#9aa0a6)]">{group.items.length}</span>
                 </summary>
                 <div className="mb-2 flex flex-col gap-0.5">
@@ -208,7 +210,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
                           : "text-[#5f6368] hover:bg-[#f7f7f8] hover:text-[#222]",
                       )}
                     >
-                      {item.label}
+                      {t(item.label)}
                     </Link>
                   ))}
                 </div>
@@ -226,7 +228,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             onClick={logout}
             className="mt-3 w-full rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#1f2937]"
           >
-            Sign out
+            {t("Sign out")}
           </button>
         </div>
       </aside>
@@ -237,30 +239,32 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             className="flex h-11 max-w-md flex-1 items-center rounded-full border border-[var(--rule)] bg-white px-4 text-sm text-[var(--muted)] shadow-[0_1px_0_rgba(0,0,0,0.02)]"
             onClick={() => setPalette(true)}
           >
-            Search students, receipts, screens · Ctrl+K
+            {t("Search students, receipts, screens · Ctrl+K")}
           </button>
           <div className="flex items-center gap-2">
+            <LanguageToggle />
             <span className="hidden rounded-full border border-[var(--rule)] bg-white px-3 py-2 text-xs font-semibold sm:inline">
-              {me?.user.roles[0] ?? "Staff"}
+              {t(me?.user.roles[0] ?? "Staff")}
             </span>
             <Button type="button" variant="ghost" size="sm" onClick={logout}>
-              Sign out
+              {t("Sign out")}
             </Button>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto px-1 py-3">
           {me && isTeacherDesk(me.user) && !teacherCanSeeHref(pathname) ? (
             <div className="em-card max-w-lg p-6">
-              <h1 className="font-display text-3xl">Not on the teacher desk</h1>
+              <h1 className="font-display text-3xl">{t("Not on the teacher desk")}</h1>
               <p className="mt-3 text-sm text-[var(--muted)]">
-                This screen is for office staff. Use attendance, marks,
-                timetable, homework, or student search.
+                {t(
+                  "This screen is for office staff. Use attendance, marks, timetable, homework, or student search.",
+                )}
               </p>
               <Link
                 href="/staff/dashboard"
                 className="mt-4 inline-block text-sm font-semibold text-[var(--green-dark)]"
               >
-                Back to teacher home
+                {t("Back to teacher home")}
               </Link>
             </div>
           ) : (

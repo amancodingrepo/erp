@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { LanguageToggle, useI18n } from "@/lib/i18n/provider";
 
 export default function LoginPage() {
   return (
@@ -15,6 +16,7 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  const { t } = useI18n();
   const router = useRouter();
   const from = useSearchParams().get("from") ?? "/staff/dashboard";
   const [error, setError] = useState<string | null>(null);
@@ -50,8 +52,8 @@ function LoginForm() {
       const payload = await response.json().catch(() => ({}));
       setError(
         payload.error === "rate_limited"
-          ? "Too many attempts. Wait and try again."
-          : "Username or password is wrong, or this login is disabled.",
+          ? t("Too many attempts. Wait and try again.")
+          : t("Username or password is wrong, or this login is disabled."),
       );
       return;
     }
@@ -79,16 +81,22 @@ function LoginForm() {
           <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(135deg,#2d8f5b,#1e6b44)] text-sm font-extrabold text-white">
             C
           </span>
-          <p className="text-sm font-semibold text-[var(--green-dark)]">Campus ERP</p>
+          <p className="text-sm font-semibold text-[var(--green-dark)]">
+            {t("Campus ERP")}
+          </p>
+          <div className="ml-auto">
+            <LanguageToggle />
+          </div>
         </div>
-        <h1 className="font-display text-3xl">Sign in</h1>
+        <h1 className="font-display text-3xl">{t("Sign in")}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          School and college desks share this gate. Pick the campus first —
-          each campus has its own users and records.
+          {t(
+            "School and college desks share this gate. Pick the campus first — each campus has its own users and records.",
+          )}
         </p>
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <div>
-            <Label htmlFor="campusCode">Campus</Label>
+            <Label htmlFor="campusCode">{t("Campus")}</Label>
             <select
               id="campusCode"
               name="campusCode"
@@ -107,24 +115,24 @@ function LoginForm() {
             </select>
           </div>
           <div>
-            <Label htmlFor="portal">Portal</Label>
+            <Label htmlFor="portal">{t("Portal")}</Label>
             <select
               id="portal"
               name="portal"
               defaultValue="staff"
               className="h-10 w-full rounded-xl border border-[var(--rule)] bg-white px-3 text-sm"
             >
-              <option value="staff">Staff</option>
-              <option value="student">Student</option>
-              <option value="parent">Parent</option>
+              <option value="staff">{t("Staff")}</option>
+              <option value="student">{t("Student")}</option>
+              <option value="parent">{t("Parent")}</option>
             </select>
           </div>
           <div>
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">{t("Username")}</Label>
             <Input id="username" name="username" autoComplete="username" required />
           </div>
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("Password")}</Label>
             <Input
               id="password"
               name="password"
@@ -139,15 +147,15 @@ function LoginForm() {
             </p>
           ) : null}
           <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Checking…" : "Enter desk"}
+            {pending ? t("Checking…") : t("Enter desk")}
           </Button>
           <p className="text-center text-sm">
             <Link href="/forgot-password" className="underline-offset-4 hover:underline">
-              Forgot password
+              {t("Forgot password")}
             </Link>
             {" · "}
             <Link href="/apply" className="underline-offset-4 hover:underline">
-              Online admission
+              {t("Online admission")}
             </Link>
           </p>
         </form>
