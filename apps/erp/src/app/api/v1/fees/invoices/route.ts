@@ -6,6 +6,10 @@ import { created, fail, ok, readJson } from "@/lib/http";
 import { ZERO } from "@/lib/money";
 import { requireApiPermission } from "@/lib/principal";
 import { listInvoices } from "@/lib/services/fees";
+import {
+  allocateSessionNumber,
+  writeInvoiceNoTx,
+} from "@/lib/services/campus-session-prefixes";
 
 const bodySchema = z.object({
   studentId: z.string(),
@@ -48,23 +52,40 @@ export async function POST(request: Request) {
     });
     if (!student) throw notFound("student");
     const total = master.lines.reduce((sum, line) => sum.plus(line.amount), ZERO);
-    const invoice = await prisma.feeInvoice.create({
-      data: {
-        studentId: body.studentId,
-        sessionId: body.sessionId,
-        masterId: master.id,
-        status: InvoiceStatus.DUE,
-        total,
-        lines: {
-          create: master.lines.map((line) => ({
-            feeTypeId: line.feeTypeId,
-            description: line.feeType.name,
-            amount: line.amount,
-            dueDate: master.dueDate,
-          })),
+    const session = await prisma.academicSession.findFirst({
+      where: { id: body.sessionId, campusId: user.campusId },
+      select: { id: true, name: true, code: true },
+    });
+    const invoice = await prisma.$transaction(async (tx) => {
+      const row = await tx.feeInvoice.create({
+        data: {
+          studentId: body.studentId,
+          sessionId: body.sessionId,
+          masterId: master.id,
+          status: InvoiceStatus.DUE,
+          total,
+          lines: {
+            create: master.lines.map((line) => ({
+              feeTypeId: line.feeTypeId,
+              description: line.feeType.name,
+              amount: line.amount,
+              dueDate: master.dueDate,
+            })),
+          },
         },
-      },
-      include: { lines: true },
+        include: { lines: true },
+      });
+      if (session) {
+        const invoiceNo = await allocateSessionNumber(
+          tx,
+          user.campusId,
+          session,
+          "invoice",
+        );
+        await writeInvoiceNoTx(tx, user.campusId, row.id, invoiceNo);
+        return { ...row, invoiceNo };
+      }
+      return { ...row, invoiceNo: "" };
     });
     return created(invoice);
   } catch (error) {

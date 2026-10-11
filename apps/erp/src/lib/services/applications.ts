@@ -10,6 +10,18 @@ import { conflict, notFound, validationError } from "@/lib/errors";
 import { createStudent } from "@/lib/services/students";
 import { provisionEnrollmentPortals } from "@/lib/services/portal-accounts";
 import {
+  extraAnswersPayload,
+  fieldsForBelongTo,
+  formIsOpen,
+  listAdmissionForms,
+  notesWithAnswers,
+} from "@/lib/services/admission-forms";
+import {
+  applicationNoFor,
+  listSessionPrefixes,
+  prefixForSession,
+} from "@/lib/services/campus-session-prefixes";
+import {
   applicationCreateSchema,
   enrollSchema,
 } from "@/lib/services/application-schema";
@@ -64,13 +76,20 @@ export async function setApplicationFee(campusId: string, amount: number | strin
 
 async function nextApplicationNo(campusId: string) {
   const year = new Date().getFullYear();
-  const prefix = `APP-${year}-`;
-  const last = await prisma.application.findFirst({
-    where: { campusId, applicationNo: { startsWith: prefix } },
-    orderBy: { applicationNo: "desc" },
+  const session = await prisma.academicSession.findFirst({
+    where: { campusId, isCurrent: true },
+    select: { id: true },
   });
-  const n = last ? Number(last.applicationNo.slice(prefix.length)) + 1 : 1;
-  return `${prefix}${String(Number.isFinite(n) ? n : 1).padStart(4, "0")}`;
+  const prefixes = await listSessionPrefixes(campusId);
+  const row = session ? prefixForSession(prefixes, session.id) : undefined;
+  const sample = applicationNoFor(row, year);
+  const stem = sample.slice(0, sample.lastIndexOf("-") + 1);
+  const last = await prisma.application.findFirst({
+    where: { campusId, applicationNo: { startsWith: stem } },
+    orderBy: { applicationNo: "desc" },
+    select: { applicationNo: true },
+  });
+  return applicationNoFor(row, year, last?.applicationNo);
 }
 
 export async function listPublicPrograms(campusId: string) {
@@ -92,6 +111,22 @@ export async function submitApplication(
     if (!program) throw notFound("program");
   }
   const feeAmount = await applicationFeeAmount(campusId);
+  let notes: string | undefined;
+  const forms = await listAdmissionForms(campusId);
+  const selected = body.formId
+    ? forms.find((form) => form.id === body.formId)
+    : forms.filter((form) => form.kind === "admission").find((form) => formIsOpen(form));
+  if (body.formId && (!selected || !formIsOpen(selected))) {
+    throw validationError({ formId: "closed" });
+  }
+  if (selected && formIsOpen(selected)) {
+    const fields = await fieldsForBelongTo(campusId, selected.belongTo);
+    const answers = extraAnswersPayload(
+      fields,
+      (body.answers ?? {}) as Record<string, unknown>,
+    );
+    notes = notesWithAnswers(null, selected.id, answers);
+  }
   for (let attempt = 0; attempt < 5; attempt++) {
     const applicationNo = await nextApplicationNo(campusId);
     try {
@@ -118,6 +153,7 @@ export async function submitApplication(
           feePaid: new Prisma.Decimal(0),
           paymentStatus: "UNPAID",
           status: ApplicationStatus.APPLIED,
+          notes,
         },
       });
     } catch (error) {

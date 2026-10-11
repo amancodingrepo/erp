@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import RemainingOps, { ChatOps } from "./remaining-ops";
+import EngagementOps from "./engagement-ops";
 
 function ops(
   title: string,
@@ -114,26 +115,14 @@ export const REMAINING_LIVE: Record<string, () => ReactNode> = {
   ]),
   "/staff/itemcategory": ops("Item categories", "item-categories", [{ name: "name", required: true }]),
   "/staff/itemstore": ops("Stores", "item-stores", [{ name: "name", required: true }]),
-  "/staff/itemsupplier": ops("Suppliers", "item-suppliers", [
-    { name: "name", required: true },
-    { name: "phone" },
-  ]),
-  "/staff/item": ops("Items", "items", [
-    { name: "name", required: true },
-    { name: "unit" },
-    { name: "categoryId", optionsPath: "/api/v1/ops/item-categories" },
-  ]),
+  "/staff/itemsupplier": () => <EngagementOps mode="vendors" />,
+  "/staff/item": () => <EngagementOps mode="products" />,
   "/staff/itemstock": ops("Add stock", "item-stock", [
     { name: "itemId", required: true, optionsPath: "/api/v1/ops/items" },
     { name: "storeId", required: true, optionsPath: "/api/v1/ops/item-stores" },
     { name: "qty", type: "number", required: true },
   ]),
-  "/staff/issueitem": ops("Issue item", "item-issues", [
-    { name: "itemId", required: true, optionsPath: "/api/v1/ops/items" },
-    { name: "storeId", required: true, optionsPath: "/api/v1/ops/item-stores" },
-    { name: "qty", type: "number", required: true },
-    { name: "studentId", ...students },
-  ]),
+  "/staff/issueitem": () => <EngagementOps mode="orders" />,
   "/staff/report/inventory": ops("Inventory", "items", [{ name: "name", required: true }]),
   "/staff/requisitions": ops("Support topics", "support-topics", [{ name: "name", required: true }]),
   "/staff/requisitions/load-requisition-list": ops("Support tickets", "support-tickets", [

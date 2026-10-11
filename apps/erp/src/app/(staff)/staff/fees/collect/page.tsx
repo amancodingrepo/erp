@@ -32,6 +32,13 @@ type Invoice = {
   paid: string | number;
   lines: Line[];
   master?: { group?: { name: string } };
+  payments?: Array<{
+    id: string;
+    receiptNo: string;
+    amount: string | number;
+    method?: string;
+    cancelledAt?: string | null;
+  }>;
 };
 
 const SELECT =
@@ -295,6 +302,76 @@ export default function CollectFeesPage() {
               Save payment
             </Button>
           </form>
+          <ul className="space-y-2 text-sm">
+            {(invoice.payments ?? []).map((p) => (
+              <li key={p.id} className="flex flex-wrap items-center gap-2">
+                <span>
+                  {p.receiptNo} · {n(p.amount)}
+                  {p.cancelledAt ? " · reversed" : ""}
+                </span>
+                {!p.cancelledAt && n(p.amount) > 0 ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      const reason = window.prompt("Reason to reverse this receipt");
+                      if (!reason?.trim() || !selected) return;
+                      const res = await fetch(`/api/v1/payments/${p.id}/reverse`, {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ reason: reason.trim() }),
+                      });
+                      setMessage(res.ok ? "Payment reversed" : "Could not reverse");
+                      if (res.ok) openCollect(selected);
+                    }}
+                  >
+                    Reverse
+                  </Button>
+                ) : null}
+                {!p.cancelledAt && n(p.amount) > 0 ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      const reason = window.prompt("Reason to refund this receipt");
+                      if (!reason?.trim() || !selected) return;
+                      const res = await fetch(`/api/v1/payments/${p.id}/refund`, {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ reason: reason.trim() }),
+                      });
+                      setMessage(res.ok ? "Payment refunded" : "Could not refund");
+                      if (res.ok) openCollect(selected);
+                    }}
+                  >
+                    Refund
+                  </Button>
+                ) : null}
+                {!p.cancelledAt && n(p.amount) > 0 && p.method === "CHEQUE" ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      const reason = window.prompt("Cheque bounce reason");
+                      if (!reason?.trim() || !selected) return;
+                      const res = await fetch(`/api/v1/payments/${p.id}/cheque-bounce`, {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ reason: reason.trim() }),
+                      });
+                      setMessage(res.ok ? "Cheque bounced" : "Could not bounce cheque");
+                      if (res.ok) openCollect(selected);
+                    }}
+                  >
+                    Bounce cheque
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : selected ? (
         <p className="text-sm text-[var(--muted)]">

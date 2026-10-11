@@ -131,6 +131,7 @@ export async function queueRendered(input: {
 export async function runFeeReminders(
   campusId: string,
   channel: "EMAIL" | "SMS" = "SMS",
+  classId?: string,
 ) {
   const campus = await prisma.campus.findUnique({ where: { id: campusId } });
   if (!campus) throw notFound("campus");
@@ -141,7 +142,20 @@ export async function runFeeReminders(
   const invoices = await prisma.feeInvoice.findMany({
     where: {
       status: { in: [InvoiceStatus.DUE, InvoiceStatus.PARTIAL] },
-      student: { campusId, status: "ACTIVE" },
+      student: {
+        campusId,
+        status: "ACTIVE",
+        ...(classId
+          ? {
+              enrollments: {
+                some: {
+                  isCurrent: true,
+                  OR: [{ classId }, { sectionId: classId }],
+                },
+              },
+            }
+          : {}),
+      },
     },
     include: { student: true },
   });

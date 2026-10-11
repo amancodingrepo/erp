@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { notFound, validationError } from "@/lib/errors";
 import { created, fail, ok } from "@/lib/http";
 import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
-import { saveStudentDocumentFile } from "@/lib/uploads";
+import { saveCampusFile } from "@/lib/services/campus-files";
 
 export async function GET(
   request: Request,
@@ -55,9 +55,11 @@ export async function POST(
       throw validationError({ file: "file required" });
     }
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const saved = await saveStudentDocumentFile({
+    const saved = await saveCampusFile({
       campusId: user.campusId,
-      studentId: id,
+      kind: "student",
+      ownerId: id,
+      name: title,
       filename: file.name,
       mime: file.type,
       bytes,
@@ -66,8 +68,8 @@ export async function POST(
       data: {
         studentId: id,
         title,
-        type: file.type || null,
-        fileUrl: saved.fileUrl,
+        type: file.type || saved.mime || null,
+        fileUrl: saved.url,
       },
     });
     return created(row);

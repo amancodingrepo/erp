@@ -5,6 +5,27 @@ import { conflict } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { issuePasswordReset, randomPasswordHash } from "@/lib/password-reset";
 import { requireApiPermission } from "@/lib/principal";
+import {
+  attachStaffExtras,
+  listStaffExtras,
+  writeStaffExtra,
+} from "@/lib/services/hr-transport";
+import {
+  attachStaffModules,
+  listStaffModules,
+  saveStaffModules,
+} from "@/lib/services/campus-staff-modules";
+import {
+  attachStaffAssignments,
+  listStaffClasses,
+  listStaffSubjects,
+  saveStaffClasses,
+  saveStaffSubjects,
+} from "@/lib/services/campus-staff-assignments";
+import {
+  attachStaffDocuments,
+  listStaffDocuments,
+} from "@/lib/services/campus-staff-docs";
 
 const createSchema = z.object({
   employeeId: z.string().min(1),
@@ -17,6 +38,12 @@ const createSchema = z.object({
   designationId: z.string().optional(),
   joiningDate: z.string().optional(),
   username: z.string().optional(),
+  category: z.string().optional(),
+  licenseNo: z.string().optional(),
+  licenseExpiry: z.string().optional(),
+  modules: z.array(z.string()).optional(),
+  classIds: z.array(z.string()).optional(),
+  subjectIds: z.array(z.string()).optional(),
 });
 
 export async function GET(request: Request) {
@@ -42,7 +69,23 @@ export async function GET(request: Request) {
       include: { department: true, designation: true, user: true },
       orderBy: { firstName: "asc" },
     });
-    return ok({ data });
+    const extras = await listStaffExtras(user.campusId);
+    const modules = await listStaffModules(user.campusId);
+    const [classRows, subjectRows, documents] = await Promise.all([
+      listStaffClasses(user.campusId),
+      listStaffSubjects(user.campusId),
+      listStaffDocuments(user.campusId),
+    ]);
+    return ok({
+      data: attachStaffDocuments(
+        attachStaffAssignments(
+          attachStaffModules(attachStaffExtras(data, extras), modules),
+          classRows,
+          subjectRows,
+        ),
+        documents,
+      ),
+    });
   } catch (error) {
     return fail(error);
   }
@@ -89,7 +132,24 @@ export async function POST(request: Request) {
       if (row.userId) {
         inviteToken = await issuePasswordReset(row.userId);
       }
-      return created({ ...row, inviteToken });
+      const extra =
+        body.category || body.licenseNo || body.licenseExpiry
+          ? await writeStaffExtra(user.campusId, row.id, {
+              category: body.category,
+              licenseNo: body.licenseNo,
+              licenseExpiry: body.licenseExpiry,
+            })
+          : null;
+      const modules = body.modules
+        ? (await saveStaffModules(user.campusId, row.id, body.modules)).modules
+        : [];
+      const classIds = body.classIds
+        ? (await saveStaffClasses(user.campusId, row.id, body.classIds)).classIds
+        : [];
+      const subjectIds = body.subjectIds
+        ? (await saveStaffSubjects(user.campusId, row.id, body.subjectIds)).subjectIds
+        : [];
+      return created({ ...row, extra, modules, classIds, subjectIds, inviteToken });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

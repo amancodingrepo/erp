@@ -16,6 +16,7 @@ type RosterRow = {
   name: string;
   marks: number | string | null;
   isAbsent: boolean;
+  leavePercent?: number | null;
 };
 
 const SELECT =
@@ -192,6 +193,29 @@ export default function ExamsPage() {
               </option>
             ))}
           </select>
+          {groupId ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="mt-2"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/exam-groups/${groupId}`, {
+                  method: "DELETE",
+                });
+                setMessage(res.ok ? "Exam group removed" : "Could not remove");
+                if (res.ok) {
+                  setGroupId("");
+                  setExamId("");
+                  setExamSubjectId("");
+                  setRoster([]);
+                }
+                reload();
+              }}
+            >
+              Remove group
+            </Button>
+          ) : null}
         </div>
         <div>
           <Label>Exam</Label>
@@ -299,7 +323,7 @@ export default function ExamsPage() {
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-[var(--ink)] text-[var(--paper)]">
               <tr>
-                {["Student ID", "Roll Number", "Student Name", "Absent", "Marks Obtained", "Max Marks"].map(
+                {["Student ID", "Roll Number", "Student Name", "Leave %", "Absent", "Marks Obtained", "Max Marks"].map(
                   (h) => (
                     <th key={h} className="px-3 py-2 font-medium">
                       {h}
@@ -314,6 +338,9 @@ export default function ExamsPage() {
                   <td className="px-3 py-2">{row.admissionNo}</td>
                   <td className="px-3 py-2">{row.rollNo ?? "—"}</td>
                   <td className="px-3 py-2">{row.name}</td>
+                  <td className="px-3 py-2">
+                    {row.leavePercent == null ? "—" : `${row.leavePercent}%`}
+                  </td>
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"

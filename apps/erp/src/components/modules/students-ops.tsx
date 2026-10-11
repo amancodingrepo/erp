@@ -34,13 +34,13 @@ function RollsPanel() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const res = await fetch("/api/v1/students/roll-numbers", {
+    const res = await fetch("/api/v1/roll-numbers/assign", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        classId: form.get("classId"),
-        sectionId: form.get("sectionId"),
-        startFrom: Number(form.get("startFrom")),
+        class_id: form.get("classId"),
+        section_id: form.get("sectionId"),
+        start_from: Number(form.get("startFrom")),
         arrangement: form.get("arrangement"),
         sort: form.get("sort"),
       }),
@@ -281,9 +281,23 @@ function MasterPanel({
       {message ? <p className="mt-3 text-sm">{message}</p> : null}
       <ul className="mt-6 space-y-1 text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
-            {r.name}
-            {r.code ? ` (${r.code})` : ""}
+          <li key={r.id} className="flex flex-wrap items-center gap-3">
+            <span>
+              {r.name}
+              {r.code ? ` (${r.code})` : ""}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`${path}/${r.id}`, { method: "DELETE" });
+                setMessage(res.ok ? "Removed" : "Could not remove");
+                load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>

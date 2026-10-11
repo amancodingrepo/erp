@@ -6,6 +6,10 @@ import { dec } from "@/lib/money";
 import type { AuthPrincipal } from "@/lib/permissions";
 import { buildAdmitCardPdf } from "@/lib/pdf/admit-card";
 import { buildMarksheetPdf } from "@/lib/pdf/marksheet";
+import {
+  leavePercentsForStudents,
+  scaleMarksForLeave,
+} from "@/lib/services/academics-masters";
 
 export async function loadExamSubject(campusId: string, examSubjectId: string) {
   const row = await prisma.examSubject.findFirst({
@@ -46,6 +50,11 @@ export async function examRoster(input: {
     orderBy: [{ rollNo: "asc" }, { student: { firstName: "asc" } }],
   });
   const byStudent = new Map(examSubject.marks.map((m) => [m.studentId, m]));
+  const leavePercents = await leavePercentsForStudents({
+    campusId: input.campusId,
+    studentIds: enrollments.map((e) => e.studentId),
+    examDate: examSubject.dateFrom,
+  });
   return {
     examSubjectId: examSubject.id,
     exam: examSubject.exam.name,
@@ -66,6 +75,7 @@ export async function examRoster(input: {
         marks: mark?.marks ?? null,
         isAbsent: mark?.isAbsent ?? false,
         isBlocked: mark?.isBlocked ?? false,
+        leavePercent: leavePercents.get(e.studentId) ?? null,
       };
     }),
   };
@@ -88,8 +98,11 @@ export async function saveMarks(input: {
     throw forbidden("subject is finalized");
   }
   const max = dec(examSubject.maxMarks);
-  const resolved: Array<{ studentId: string; marks: Prisma.Decimal | null; isAbsent: boolean }> =
-    [];
+  const pending: Array<{
+    studentId: string;
+    marks: Prisma.Decimal | null;
+    isAbsent: boolean;
+  }> = [];
   for (const entry of input.entries) {
     let studentId = entry.studentId;
     if (!studentId && entry.rosterId) {
@@ -104,7 +117,7 @@ export async function saveMarks(input: {
     if (!studentId) throw validationError({ studentId: "required" });
     const isAbsent = Boolean(entry.isAbsent);
     if (isAbsent) {
-      resolved.push({ studentId, marks: null, isAbsent: true });
+      pending.push({ studentId, marks: null, isAbsent: true });
       continue;
     }
     if (entry.marks === null || entry.marks === undefined || entry.marks === "") {
@@ -117,8 +130,24 @@ export async function saveMarks(input: {
       });
     }
     if (marks.lt(0)) throw validationError({ marks: "must be >= 0" });
-    resolved.push({ studentId, marks, isAbsent: false });
+    pending.push({ studentId, marks, isAbsent: false });
   }
+  const leavePercents = await leavePercentsForStudents({
+    campusId: input.user.campusId,
+    studentIds: pending.map((row) => row.studentId),
+    examDate: examSubject.dateFrom,
+  });
+  const resolved = pending.map((entry) =>
+    entry.isAbsent || entry.marks == null
+      ? entry
+      : {
+          ...entry,
+          marks: scaleMarksForLeave(
+            entry.marks,
+            leavePercents.get(entry.studentId) ?? null,
+          ),
+        },
+  );
 
   await prisma.$transaction(
     resolved.map((entry) =>

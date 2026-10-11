@@ -14,6 +14,13 @@ type Row = {
   rollNo: string | null;
   enrollmentNo: string | null;
   fatherName: string | null;
+  motherName: string | null;
+  parentLoginEnabled?: boolean;
+  scholarNo: string | null;
+  pen: string | null;
+  apaarId: string | null;
+  rfid?: string | null;
+  isDefaulter?: boolean;
   dob: string | null;
   gender: string | null;
   category: string | null;
@@ -27,7 +34,12 @@ const COLUMNS = [
   "Class",
   "Roll",
   "Enrollment No",
-  "Father/Spouse",
+  "PEN / APAAR",
+  "Father",
+  "Mother",
+  "Parent login",
+  "RFID",
+  "Defaulter",
   "DOB",
   "Gender",
   "Category",
@@ -87,7 +99,7 @@ export default function StudentsList({
             id="q"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Name or admission no"
+            placeholder="Name, parent, admission, PEN, APAAR, RFID…"
           />
         </div>
         <div>
@@ -132,7 +144,16 @@ export default function StudentsList({
                 </td>
                 <td className="px-3 py-2">{row.rollNo ?? "—"}</td>
                 <td className="px-3 py-2">{row.enrollmentNo ?? "—"}</td>
+                <td className="px-3 py-2">
+                  {[row.pen, row.apaarId].filter(Boolean).join(" / ") || "—"}
+                </td>
                 <td className="px-3 py-2">{row.fatherName ?? "—"}</td>
+                <td className="px-3 py-2">{row.motherName ?? "—"}</td>
+                <td className="px-3 py-2">
+                  {row.parentLoginEnabled === false ? "Off" : "On"}
+                </td>
+                <td className="px-3 py-2">{row.rfid ?? "—"}</td>
+                <td className="px-3 py-2">{row.isDefaulter ? "Yes" : "No"}</td>
                 <td className="px-3 py-2">{fmtDate(row.dob)}</td>
                 <td className="px-3 py-2">{row.gender ?? "—"}</td>
                 <td className="px-3 py-2">{row.category ?? "—"}</td>

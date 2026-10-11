@@ -40,6 +40,7 @@ export default function CreateStudentPage() {
   const [classes, setClasses] = useState<Klass[]>([]);
   const [sessions, setSessions] = useState<Option[]>([]);
   const [categories, setCategories] = useState<Option[]>([]);
+  const [houses, setHouses] = useState<Option[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [classId, setClassId] = useState("");
   const [sameAddress, setSameAddress] = useState(true);
@@ -52,11 +53,13 @@ export default function CreateStudentPage() {
       fetch("/api/v1/sessions").then((r) => r.json()),
       fetch("/api/v1/categories").then((r) => r.json()),
       fetch("/api/v1/custom-fields?belongTo=Student").then((r) => r.json()),
-    ]).then(([c, s, cat, cf]) => {
+      fetch("/api/v1/houses").then((r) => r.json()),
+    ]).then(([c, s, cat, cf, h]) => {
       setClasses(c.data ?? []);
       setSessions(s.data ?? []);
       setCategories(cat.data ?? []);
       setCustomFields(cf.data ?? []);
+      setHouses(h.data ?? []);
     });
   }, []);
 
@@ -101,6 +104,23 @@ export default function CreateStudentPage() {
       instituteEmail: str("instituteEmail"),
       aadhaar: str("aadhaar"),
       pan: str("pan"),
+      janAadhaar: str("janAadhaar"),
+      scholarNo: str("scholarNo"),
+      sssmId: str("sssmId"),
+      pen: str("pen"),
+      apaarId: str("apaarId"),
+      grn: str("grn"),
+      saralId: str("saralId"),
+      bloodGroup: str("bloodGroup"),
+      admittedClass: str("admittedClass"),
+      annualIncome: str("annualIncome"),
+      houseId: str("houseId"),
+      rfid: str("rfid"),
+      isRte: form.get("isRte") === "on",
+      isOnlyChild: form.get("isOnlyChild") === "on",
+      lunchFromSchool: form.get("lunchFromSchool") === "on",
+      isDefaulter: form.get("isDefaulter") === "on",
+      parentLoginEnabled: form.get("parentLoginEnabled") !== "off",
       classId: str("classId"),
       sectionId: str("sectionId"),
       sessionId: str("sessionId"),
@@ -291,6 +311,61 @@ export default function CreateStudentPage() {
             <Field id="pan" label="PAN">
               <Input id="pan" name="pan" />
             </Field>
+            <Field id="janAadhaar" label="Jan Aadhaar">
+              <Input id="janAadhaar" name="janAadhaar" />
+            </Field>
+            <Field id="scholarNo" label="Scholar no">
+              <Input id="scholarNo" name="scholarNo" />
+            </Field>
+            <Field id="sssmId" label="SSSM ID">
+              <Input id="sssmId" name="sssmId" />
+            </Field>
+            <Field id="pen" label="PEN">
+              <Input id="pen" name="pen" />
+            </Field>
+            <Field id="apaarId" label="APAAR ID">
+              <Input id="apaarId" name="apaarId" />
+            </Field>
+            <Field id="grn" label="GRN">
+              <Input id="grn" name="grn" />
+            </Field>
+            <Field id="saralId" label="Saral ID">
+              <Input id="saralId" name="saralId" />
+            </Field>
+            <Field id="bloodGroup" label="Blood group">
+              <Input id="bloodGroup" name="bloodGroup" />
+            </Field>
+            <Field id="admittedClass" label="Admitted class">
+              <Input id="admittedClass" name="admittedClass" />
+            </Field>
+            <Field id="annualIncome" label="Annual income">
+              <Input id="annualIncome" name="annualIncome" />
+            </Field>
+            <Field id="rfid" label="RFID">
+              <Input id="rfid" name="rfid" />
+            </Field>
+            <Field id="houseId" label="House">
+              <select id="houseId" name="houseId" className={SELECT}>
+                <option value="">—</option>
+                {houses.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <label className="flex items-center gap-2 text-sm sm:col-span-3">
+              <input type="checkbox" name="isRte" /> RTE
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="isOnlyChild" /> Only child
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="lunchFromSchool" /> Lunch from school
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="isDefaulter" /> Defaulter
+            </label>
           </div>
         </section>
 

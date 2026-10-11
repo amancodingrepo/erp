@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/db";
 import { conflict, notFound, validationError } from "@/lib/errors";
 import { parseDateOnly } from "@/lib/campus";
+import {
+  extraAnswersPayload,
+  fieldsForBelongTo,
+  formIsOpen,
+  listAdmissionForms,
+  packEnquiryRemarks,
+} from "@/lib/services/admission-forms";
 import { submitApplication } from "@/lib/services/applications";
 
 export async function listEnquiries(campusId: string, status?: string) {
@@ -21,8 +28,20 @@ export async function createEnquiry(
     classInterested?: string;
     followUpOn?: string;
     remarks?: string;
+    formId?: string;
+    answers?: Record<string, unknown>;
   },
 ) {
+  const forms = await listAdmissionForms(campusId);
+  const selected = input.formId
+    ? forms.find((form) => form.id === input.formId)
+    : forms.filter((form) => form.kind === "enquiry").find((form) => formIsOpen(form));
+  let remarks = input.remarks;
+  if (selected && formIsOpen(selected) && selected.kind === "enquiry") {
+    const fields = await fieldsForBelongTo(campusId, selected.belongTo);
+    const answers = extraAnswersPayload(fields, input.answers ?? {});
+    remarks = packEnquiryRemarks(input.remarks, answers);
+  }
   return prisma.enquiry.create({
     data: {
       campusId,
@@ -32,7 +51,7 @@ export async function createEnquiry(
       source: input.source,
       classInterested: input.classInterested,
       followUpOn: input.followUpOn ? parseDateOnly(input.followUpOn) : undefined,
-      remarks: input.remarks,
+      remarks,
       status: "UNASSIGNED",
     },
   });

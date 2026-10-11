@@ -184,6 +184,26 @@ export async function listFeedbackResponses(campusId: string) {
   });
 }
 
+export async function assignmentForForm(
+  campusId: string,
+  formId: string,
+  assignmentId?: string,
+) {
+  if (assignmentId) {
+    const row = await prisma.feedbackAssignment.findFirst({
+      where: { id: assignmentId, formId, form: { campusId } },
+    });
+    if (!row) throw notFound("assignment");
+    return row;
+  }
+  const row = await prisma.feedbackAssignment.findFirst({
+    where: { formId, form: { campusId } },
+    orderBy: { closesAt: "desc" },
+  });
+  if (!row) throw validationError({ assignmentId: "required" });
+  return row;
+}
+
 export async function listOpenFeedbackAssignments(campusId: string) {
   const now = new Date();
   return prisma.feedbackAssignment.findMany({

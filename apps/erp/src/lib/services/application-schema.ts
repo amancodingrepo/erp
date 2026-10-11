@@ -31,6 +31,8 @@ export const applicationCreateSchema = z.object({
   categoryCode: optStr,
   score: z.union([z.number(), z.string()]).optional(),
   campusCode: optStr,
+  formId: optStr,
+  answers: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const publicApplicationSchema = z.object({
@@ -59,6 +61,8 @@ export const publicApplicationSchema = z.object({
       return String(value).trim() !== "" && Number.isFinite(n) && n >= 0 && n <= 100;
     }, "enter a percentage from 0 to 100"),
   campusCode: z.string().optional(),
+  formId: z.string().optional(),
+  answers: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const enrollSchema = z.object({

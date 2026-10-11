@@ -11,6 +11,8 @@ const bodySchema = z.object({
   classInterested: z.string().optional(),
   followUpOn: z.string().optional(),
   remarks: z.string().optional(),
+  formId: z.string().optional(),
+  answers: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function GET(request: Request) {

@@ -1,4 +1,5 @@
-import { ActorType } from "@prisma/client";
+import { ActorType, InvoiceStatus } from "@prisma/client";
+import { campusFeeDue } from "@/lib/services/campus-later";
 import { OPTIONAL_MODULES } from "@/lib/catalog/nav-permissions";
 import { ensureSchoolClasses } from "@/lib/school-classes";
 import { prisma } from "@/lib/db";
@@ -83,6 +84,26 @@ export async function listOrgCampuses(orgId: string) {
       _count: { select: { students: true, staff: true, users: true } },
     },
   });
+  const dues = await Promise.all(
+    campuses.map(async (c) => {
+      const agg = await prisma.feeInvoice.aggregate({
+        where: {
+          student: { campusId: c.id },
+          status: { in: [InvoiceStatus.DUE, InvoiceStatus.PARTIAL] },
+        },
+        _sum: { total: true, paid: true, discount: true },
+      });
+      return {
+        campusId: c.id,
+        feeDue: campusFeeDue(
+          agg._sum.total?.toString(),
+          agg._sum.paid?.toString(),
+          agg._sum.discount?.toString(),
+        ),
+      };
+    }),
+  );
+  const dueByCampus = new Map(dues.map((row) => [row.campusId, row.feeDue]));
   return campuses.map((c) => ({
     id: c.id,
     name: c.name,
@@ -90,7 +111,293 @@ export async function listOrgCampuses(orgId: string) {
     studentCount: c._count.students,
     staffCount: c._count.staff,
     userCount: c._count.users,
+    feeDue: dueByCampus.get(c.id) ?? 0,
   }));
+}
+
+export type OrgAlias = { id: string; name: string; code: string };
+export type BranchPrincipal = {
+  id: string;
+  classId: string;
+  staffId: string;
+  signatureUrl: string;
+};
+export type BranchAlias = {
+  id: string;
+  orgId: string;
+  name: string;
+  code: string | null;
+  address: string;
+  phone: string;
+  email: string;
+  logo: string;
+  principals: BranchPrincipal[];
+  studentCount?: number;
+  staffCount?: number;
+  userCount?: number;
+  feeDue?: number;
+};
+
+export function toOrgAlias(org: { id: string; name: string; code: string }): OrgAlias {
+  return { id: org.id, name: org.name, code: org.code };
+}
+
+export function toBranchAlias(
+  campus: {
+    id: string;
+    orgId: string;
+    name: string;
+    code: string | null;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+  },
+  extras?: {
+    logoUrl?: string;
+    principals?: BranchPrincipal[];
+    studentCount?: number;
+    staffCount?: number;
+    userCount?: number;
+    feeDue?: number;
+  },
+): BranchAlias {
+  return {
+    id: campus.id,
+    orgId: campus.orgId,
+    name: campus.name,
+    code: campus.code,
+    address: campus.address ?? "",
+    phone: campus.phone ?? "",
+    email: campus.email ?? "",
+    logo: extras?.logoUrl ?? "",
+    principals: extras?.principals ?? [],
+    studentCount: extras?.studentCount,
+    staffCount: extras?.staffCount,
+    userCount: extras?.userCount,
+    feeDue: extras?.feeDue,
+  };
+}
+
+export function parseOrgCreate(value: unknown) {
+  if (!value || typeof value !== "object") throw validationError({ name: "required" });
+  const rec = value as Record<string, unknown>;
+  const name = String(rec.name ?? "").trim();
+  if (name.length < 2) throw validationError({ name: "required" });
+  return { name, code: normalizeCampusCode(String(rec.code ?? "")) };
+}
+
+export function parseOrgPatch(value: unknown) {
+  if (!value || typeof value !== "object") throw validationError({ name: "required" });
+  const rec = value as Record<string, unknown>;
+  const out: { name?: string; code?: string } = {};
+  if (rec.name !== undefined) {
+    const name = String(rec.name).trim();
+    if (name.length < 2) throw validationError({ name: "required" });
+    out.name = name;
+  }
+  if (rec.code !== undefined) out.code = normalizeCampusCode(String(rec.code));
+  if (!out.name && !out.code) throw validationError({ name: "required" });
+  return out;
+}
+
+export function parseBranchPatch(value: unknown) {
+  if (!value || typeof value !== "object") throw validationError({ name: "required" });
+  const rec = value as Record<string, unknown>;
+  const campus: {
+    name?: string;
+    code?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+  } = {};
+  if (rec.name !== undefined) {
+    const name = String(rec.name).trim();
+    if (name.length < 2) throw validationError({ name: "required" });
+    campus.name = name;
+  }
+  if (rec.code !== undefined) campus.code = normalizeCampusCode(String(rec.code));
+  if (rec.address !== undefined) campus.address = String(rec.address).trim();
+  if (rec.phone !== undefined) campus.phone = String(rec.phone).trim();
+  if (rec.email !== undefined) campus.email = String(rec.email).trim();
+  let logoUrl: string | undefined;
+  if (rec.logo !== undefined || rec.logoUrl !== undefined) {
+    logoUrl = String(rec.logo ?? rec.logoUrl ?? "").trim();
+  }
+  let principals:
+    | Array<{ id?: string; classId: string; staffId: string; signatureUrl?: string }>
+    | undefined;
+  if (rec.principals !== undefined) {
+    if (!Array.isArray(rec.principals)) throw validationError({ principals: "array" });
+    principals = rec.principals.map((row) => {
+      if (!row || typeof row !== "object") throw validationError({ principals: "invalid" });
+      const p = row as Record<string, unknown>;
+      const classId = String(p.classId ?? "").trim();
+      const staffId = String(p.staffId ?? "").trim();
+      if (!classId) throw validationError({ classId: "required" });
+      if (!staffId) throw validationError({ staffId: "required" });
+      return {
+        id: p.id != null ? String(p.id) : undefined,
+        classId,
+        staffId,
+        signatureUrl: p.signatureUrl != null ? String(p.signatureUrl) : undefined,
+      };
+    });
+  }
+  if (
+    !campus.name &&
+    !campus.code &&
+    campus.address === undefined &&
+    campus.phone === undefined &&
+    campus.email === undefined &&
+    logoUrl === undefined &&
+    principals === undefined
+  ) {
+    throw validationError({ name: "required" });
+  }
+  return { campus, logoUrl, principals };
+}
+
+export async function listOrgs() {
+  const orgs = await prisma.organization.findMany({ orderBy: { name: "asc" } });
+  return orgs.map(toOrgAlias);
+}
+
+export async function getOrg(orgId: string) {
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw notFound("org");
+  return toOrgAlias(org);
+}
+
+export async function createOrg(input: { name: string; code: string }) {
+  const parsed = parseOrgCreate(input);
+  const clash = await prisma.organization.findFirst({ where: { code: parsed.code } });
+  if (clash) throw conflict("org code already used");
+  return toOrgAlias(await prisma.organization.create({ data: parsed }));
+}
+
+export async function patchOrg(orgId: string, value: unknown) {
+  const patch = parseOrgPatch(value);
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw notFound("org");
+  if (patch.code && patch.code !== org.code) {
+    const clash = await prisma.organization.findFirst({ where: { code: patch.code } });
+    if (clash) throw conflict("org code already used");
+  }
+  return toOrgAlias(await prisma.organization.update({ where: { id: orgId }, data: patch }));
+}
+
+export async function patchCampusFields(
+  orgId: string,
+  campusId: string,
+  campus: {
+    name?: string;
+    code?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+  },
+) {
+  const row = await campusInOrg(orgId, campusId);
+  if (campus.code && campus.code !== row.code) {
+    const clash = await prisma.campus.findFirst({ where: { code: campus.code } });
+    if (clash) throw conflict("campus code already used");
+  }
+  if (
+    !campus.name &&
+    !campus.code &&
+    campus.address === undefined &&
+    campus.phone === undefined &&
+    campus.email === undefined
+  ) {
+    return row;
+  }
+  return prisma.campus.update({
+    where: { id: row.id },
+    data: {
+      ...(campus.name ? { name: campus.name } : {}),
+      ...(campus.code ? { code: campus.code } : {}),
+      ...(campus.address !== undefined ? { address: campus.address } : {}),
+      ...(campus.phone !== undefined ? { phone: campus.phone } : {}),
+      ...(campus.email !== undefined ? { email: campus.email } : {}),
+    },
+  });
+}
+
+export async function attachBranchExtras(
+  campus: {
+    id: string;
+    orgId: string;
+    name: string;
+    code: string | null;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+  },
+  counts?: {
+    studentCount?: number;
+    staffCount?: number;
+    userCount?: number;
+    feeDue?: number;
+  },
+) {
+  const { getWebsite, listPrincipals } = await import("@/lib/services/campus-branch");
+  const [site, principals] = await Promise.all([
+    getWebsite(campus.id),
+    listPrincipals(campus.id),
+  ]);
+  return toBranchAlias(campus, {
+    logoUrl: site.logoUrl,
+    principals,
+    studentCount: counts?.studentCount,
+    staffCount: counts?.staffCount,
+    userCount: counts?.userCount,
+    feeDue: counts?.feeDue,
+  });
+}
+
+export async function listBranches(orgId: string) {
+  const [rows, campuses] = await Promise.all([
+    listOrgCampuses(orgId),
+    prisma.campus.findMany({
+      where: { orgId },
+      select: {
+        id: true,
+        orgId: true,
+        name: true,
+        code: true,
+        address: true,
+        phone: true,
+        email: true,
+      },
+    }),
+  ]);
+  const byId = new Map(campuses.map((row) => [row.id, row]));
+  return Promise.all(
+    rows.map((row) => {
+      const campus = byId.get(row.id);
+      if (!campus) {
+        return toBranchAlias(
+          {
+            id: row.id,
+            orgId,
+            name: row.name,
+            code: row.code,
+            address: null,
+            phone: null,
+            email: null,
+          },
+          row,
+        );
+      }
+      return attachBranchExtras(campus, row);
+    }),
+  );
+}
+
+export async function getBranch(orgId: string, campusId: string) {
+  const campus = await campusInOrg(orgId, campusId);
+  const counts = (await listOrgCampuses(orgId)).find((row) => row.id === campus.id);
+  return attachBranchExtras(campus, counts);
 }
 
 async function ensurePermissions() {

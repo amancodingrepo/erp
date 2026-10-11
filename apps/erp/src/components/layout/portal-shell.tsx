@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle, useI18n } from "@/lib/i18n/provider";
 
@@ -22,6 +22,21 @@ export function PortalShell({
   const path = usePathname();
   const router = useRouter();
   const { t } = useI18n();
+  const [memberships, setMemberships] = useState<
+    Array<{
+      userId: string;
+      actorType: string;
+      campusName: string;
+      current: boolean;
+    }>
+  >([]);
+
+  useEffect(() => {
+    fetch("/api/v1/auth/memberships")
+      .then((r) => r.json())
+      .then((json) => setMemberships(json.data ?? []))
+      .catch(() => setMemberships([]));
+  }, []);
 
   async function logout() {
     await fetch("/api/v1/auth/logout", { method: "POST" });
@@ -47,6 +62,28 @@ export function PortalShell({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {memberships.length > 1 ? (
+              <select
+                className="h-9 rounded-md border border-white/20 bg-white/10 px-3 text-sm"
+                value={memberships.find((row) => row.current)?.userId ?? ""}
+                onChange={async (event) => {
+                  const userId = event.target.value;
+                  const res = await fetch("/api/v1/auth/switch", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ membership_id: userId }),
+                  });
+                  const json = await res.json().catch(() => ({}));
+                  if (res.ok) window.location.assign(json.home ?? home);
+                }}
+              >
+                {memberships.map((row) => (
+                  <option key={row.userId} value={row.userId}>
+                    {row.actorType} · {row.campusName}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             {extra}
             <LanguageToggle />
             <Button type="button" variant="ghost" size="sm" onClick={logout}>

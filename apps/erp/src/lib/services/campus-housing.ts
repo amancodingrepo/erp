@@ -1,6 +1,6 @@
 import { InvoiceStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { conflict, notFound, validationError } from "@/lib/errors";
+import { conflict, notFound, prismaErrorCode, validationError } from "@/lib/errors";
 import { dec } from "@/lib/money";
 
 async function ensureFeeType(campusId: string, name: string) {
@@ -47,6 +47,64 @@ async function chargeFeeHead(input: {
     },
   });
   return invoice.id;
+}
+
+export function hostelDeleteBlocked(roomCount: number) {
+  return roomCount > 0;
+}
+
+export function hostelPatchData(
+  existing: { name: string },
+  patch: { name?: string; feeAmount?: number | string },
+) {
+  const name = patch.name !== undefined ? patch.name.trim() : existing.name;
+  if (!name) throw validationError({ name: "required" });
+  const feeAmount =
+    patch.feeAmount !== undefined ? dec(patch.feeAmount) : undefined;
+  if (feeAmount !== undefined && feeAmount.lt(0)) {
+    throw validationError({ feeAmount: "invalid" });
+  }
+  return {
+    name,
+    ...(feeAmount !== undefined ? { feeAmount } : {}),
+  };
+}
+
+export async function getHostel(campusId: string, id: string) {
+  const row = await prisma.hostel.findFirst({
+    where: { id: id.trim(), campusId },
+    include: { rooms: true },
+  });
+  if (!row) throw notFound("hostel");
+  return row;
+}
+
+export async function patchHostel(
+  campusId: string,
+  id: string,
+  patch: { name?: string; feeAmount?: number | string },
+) {
+  const existing = await getHostel(campusId, id);
+  const data = hostelPatchData(existing, patch);
+  try {
+    return await prisma.hostel.update({
+      where: { id: existing.id },
+      data,
+      include: { rooms: true },
+    });
+  } catch (error) {
+    if (prismaErrorCode(error) === "P2002") throw conflict("duplicate name");
+    throw error;
+  }
+}
+
+export async function removeHostel(campusId: string, id: string) {
+  const existing = await getHostel(campusId, id);
+  if (hostelDeleteBlocked(existing.rooms.length)) {
+    throw conflict("hostel is in use");
+  }
+  await prisma.hostel.delete({ where: { id: existing.id } });
+  return { id: existing.id, deleted: true };
 }
 
 export async function createHostel(
@@ -166,6 +224,47 @@ export async function createRoute(
   });
 }
 
+export async function updateRoute(
+  campusId: string,
+  id: string,
+  input: { name?: string; feeAmount?: number | string },
+) {
+  const existing = await prisma.transportRoute.findFirst({
+    where: { id, campusId },
+  });
+  if (!existing) throw notFound("route");
+  return prisma.transportRoute.update({
+    where: { id },
+    data: {
+      ...(input.name ? { name: input.name.trim() } : {}),
+      ...(input.feeAmount !== undefined ? { feeAmount: dec(input.feeAmount) } : {}),
+    },
+    include: { pickups: { orderBy: { sortOrder: "asc" as const } } },
+  });
+}
+
+export async function deleteRoute(campusId: string, id: string) {
+  const existing = await prisma.transportRoute.findFirst({
+    where: { id, campusId },
+    include: {
+      _count: { select: { riders: true, outRiders: true } },
+    },
+  });
+  if (!existing) throw notFound("route");
+  if (existing._count.riders > 0 || existing._count.outRiders > 0) {
+    throw conflict("route is in use");
+  }
+  await prisma.$transaction(async (tx) => {
+    await tx.vehicle.updateMany({
+      where: { routeId: id, campusId },
+      data: { routeId: null },
+    });
+    await tx.pickupPoint.deleteMany({ where: { routeId: id } });
+    await tx.transportRoute.delete({ where: { id } });
+  });
+  return { id, deleted: true };
+}
+
 export async function createVehicle(
   campusId: string,
   input: { registrationNo: string; routeId?: string },
@@ -190,6 +289,8 @@ export async function assignTransport(input: {
   studentId: string;
   routeId: string;
   pickupPointId: string;
+  outRouteId?: string;
+  outPickupPointId?: string;
 }) {
   const student = await prisma.student.findFirst({
     where: { id: input.studentId, campusId: input.campusId },
@@ -202,19 +303,41 @@ export async function assignTransport(input: {
   if (!route) throw notFound("route");
   const pickup = route.pickups.find((p) => p.id === input.pickupPointId);
   if (!pickup) throw validationError({ pickupPointId: "not on this route" });
+  let outRouteId: string | undefined;
+  let outPickupPointId: string | undefined;
+  if (input.outRouteId || input.outPickupPointId) {
+    if (!input.outRouteId || !input.outPickupPointId) {
+      throw validationError({ outPickupPointId: "out route and stop required together" });
+    }
+    const outRoute = await prisma.transportRoute.findFirst({
+      where: { id: input.outRouteId, campusId: input.campusId },
+      include: { pickups: true },
+    });
+    if (!outRoute) throw notFound("out route");
+    const outPickup = outRoute.pickups.find((p) => p.id === input.outPickupPointId);
+    if (!outPickup) throw validationError({ outPickupPointId: "not on this route" });
+    outRouteId = outRoute.id;
+    outPickupPointId = outPickup.id;
+  }
   const existing = await prisma.studentTransport.findUnique({
     where: { studentId: student.id },
   });
+  const data = {
+    routeId: route.id,
+    pickupPointId: pickup.id,
+    ...(outRouteId
+      ? { outRouteId, outPickupPointId }
+      : {}),
+  };
   const row = existing
     ? await prisma.studentTransport.update({
         where: { studentId: student.id },
-        data: { routeId: route.id, pickupPointId: pickup.id },
+        data,
       })
     : await prisma.studentTransport.create({
         data: {
           studentId: student.id,
-          routeId: route.id,
-          pickupPointId: pickup.id,
+          ...data,
         },
       });
   const invoiceId = existing

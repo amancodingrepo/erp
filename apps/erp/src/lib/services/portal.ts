@@ -5,6 +5,13 @@ import type { AuthPrincipal } from "@/lib/permissions";
 import { monthlyReport } from "@/lib/services/attendance";
 import { studentMarksheet } from "@/lib/services/exams";
 import { studentLedger } from "@/lib/services/fees";
+import {
+  attachNoticeMedia,
+  attachNoticeReplies,
+  listNoticeAttachments,
+  listNoticeReplies,
+} from "@/lib/services/diary";
+import { listCoScholastic } from "@/lib/services/campus-coscholastic";
 
 export async function portalDashboard(user: AuthPrincipal, childId?: string) {
   const studentId =
@@ -44,6 +51,7 @@ export async function portalDashboard(user: AuthPrincipal, childId?: string) {
       isPublished: true,
       audience: { in: ["all", "students"] },
     },
+    include: { reads: { where: { userId: user.id } } },
     orderBy: { publishAt: "desc" },
     take: 8,
   });
@@ -71,13 +79,29 @@ export async function portalDashboard(user: AuthPrincipal, childId?: string) {
     children,
     dues: { balance: ledger.balance, paid: ledger.paid, total: ledger.total },
     attendancePercent: selfAttendance?.percent ?? 0,
-    notices: notices.map((n) => ({ id: n.id, title: n.title, publishAt: n.publishAt })),
+    notices: attachNoticeReplies(
+      attachNoticeMedia(
+        notices.map((n) => ({
+          id: n.id,
+          title: n.title,
+          body: n.body,
+          publishAt: n.publishAt,
+          read: n.reads.length > 0,
+          allowReply: n.allowReply,
+        })),
+        await listNoticeAttachments(user.campusId),
+      ),
+      await listNoticeReplies(user.campusId),
+    ),
     timetable: {
       placeholder: true,
       nextClass: enrollment
         ? `${enrollment.class.name} / ${enrollment.section.name}`
         : null,
     },
-    exams: exams.json,
+    exams: {
+      ...exams.json,
+      coScholastic: await listCoScholastic(user.campusId, student.id),
+    },
   };
 }

@@ -12,6 +12,26 @@ import { dec, moneyMin, ZERO } from "@/lib/money";
 import type { AuthPrincipal } from "@/lib/permissions";
 import { campusLetterhead } from "@/lib/letterhead";
 import { buildReceiptPdf, type ReceiptView } from "@/lib/pdf/receipt";
+import { standingDiscountId } from "@/lib/services/fees-concessions";
+import {
+  listFeeInstallments,
+  listMasterInstallments,
+  resolveFeeInstallmentId,
+  saveMasterInstallments,
+  upsertMasterInstallment,
+} from "@/lib/services/campus-fee-installments";
+import {
+  isContraNote,
+  isRefundOf,
+  refundableAmount,
+  requestedRefund,
+} from "@/lib/services/fees-refund";
+import {
+  allocateSessionNumber,
+  attachInvoiceNos,
+  listInvoiceNos,
+  writeInvoiceNoTx,
+} from "@/lib/services/campus-session-prefixes";
 
 export const collectSchema = z.object({
   enrollmentId: z.string().min(1),
@@ -30,6 +50,41 @@ export const collectSchema = z.object({
 });
 
 export type CollectInput = z.infer<typeof collectSchema>;
+
+export function installmentGroups(
+  lines: Array<{
+    feeTypeId: string;
+    amount: number | string;
+    dueDate?: string | null;
+    installmentId?: string | null;
+  }>,
+) {
+  const groups = new Map<
+    string,
+    {
+      dueDate: string | null;
+      installmentId: string | null;
+      lines: Array<{ feeTypeId: string; amount: number }>;
+    }
+  >();
+  for (const line of lines) {
+    const feeTypeId = line.feeTypeId?.trim();
+    const amount = Number(line.amount);
+    if (!feeTypeId || !Number.isFinite(amount) || amount <= 0) continue;
+    const installmentId = line.installmentId?.trim() || "";
+    const due = line.dueDate?.trim() || "";
+    const key = installmentId ? `i:${installmentId}` : `d:${due}`;
+    const current = groups.get(key) ?? {
+      dueDate: due || null,
+      installmentId: installmentId || null,
+      lines: [],
+    };
+    if (!current.dueDate && due) current.dueDate = due;
+    current.lines.push({ feeTypeId, amount });
+    groups.set(key, current);
+  }
+  return [...groups.values()];
+}
 
 function lineDue(line: Pick<FeeInvoiceLine, "amount" | "paid" | "discount" | "fine">) {
   return dec(line.amount).plus(line.fine).minus(line.discount).minus(line.paid);
@@ -52,19 +107,62 @@ async function nextReceiptNo(
   campusId: string,
   session: { id: string; name: string; code: string | null },
 ) {
-  const key = `fees.receiptSeq.${session.id}`;
-  const row = await tx.setting.findUnique({
-    where: { campusId_key: { campusId, key } },
+  return allocateSessionNumber(tx, campusId, session, "receipt");
+}
+
+export async function createFeeMastersFromInstallments(input: {
+  campusId: string;
+  sessionId: string;
+  groupId: string;
+  lines: Array<{
+    feeTypeId: string;
+    amount: number | string;
+    dueDate?: string | null;
+    installmentId?: string | null;
+  }>;
+}) {
+  const named = await listFeeInstallments(input.campusId);
+  const groups = installmentGroups(
+    input.lines.map((line) => ({
+      ...line,
+      installmentId: line.installmentId
+        ? resolveFeeInstallmentId(named, line.installmentId)
+        : "",
+    })),
+  );
+  if (!groups.length) throw validationError({ lines: "required" });
+  await sessionInCampus(input.campusId, input.sessionId);
+  const group = await prisma.feeGroup.findFirst({
+    where: { id: input.groupId, campusId: input.campusId },
   });
-  const last = Number(row?.value ?? 0) || 0;
-  const next = last + 1;
-  await tx.setting.upsert({
-    where: { campusId_key: { campusId, key } },
-    create: { campusId, key, value: next },
-    update: { value: next },
-  });
-  const code = (session.code ?? session.name).replace(/\s+/g, "");
-  return `RCP-${code}-${String(next).padStart(5, "0")}`;
+  if (!group) throw notFound("fee group");
+  const created = [];
+  let mappings = await listMasterInstallments(input.campusId);
+  for (const installment of groups) {
+    const row = await prisma.feeMaster.create({
+      data: {
+        campusId: input.campusId,
+        sessionId: input.sessionId,
+        groupId: input.groupId,
+        dueDate: installment.dueDate
+          ? new Date(`${installment.dueDate}T00:00:00.000Z`)
+          : undefined,
+        lines: {
+          create: installment.lines.map((line) => ({
+            feeTypeId: line.feeTypeId,
+            amount: line.amount,
+          })),
+        },
+      },
+      include: { lines: true, group: true },
+    });
+    created.push(row);
+    if (installment.installmentId) {
+      mappings = upsertMasterInstallment(mappings, row.id, installment.installmentId);
+    }
+  }
+  await saveMasterInstallments(input.campusId, mappings);
+  return created;
 }
 
 export async function assignMasterToClass(input: {
@@ -97,6 +195,13 @@ export async function assignMasterToClass(input: {
   });
   const total = master.lines.reduce((sum, line) => sum.plus(line.amount), ZERO);
   const createdIds: string[] = [];
+  const session =
+    master.session?.id === sessionId
+      ? master.session
+      : await prisma.academicSession.findFirst({
+          where: { id: sessionId, campusId: input.campusId },
+          select: { id: true, name: true, code: true },
+        });
   await prisma.$transaction(async (tx) => {
     for (const enrollment of enrollments) {
       const existing = await tx.feeInvoice.findFirst({
@@ -124,6 +229,15 @@ export async function assignMasterToClass(input: {
           },
         },
       });
+      if (session) {
+        const invoiceNo = await allocateSessionNumber(
+          tx,
+          input.campusId,
+          session,
+          "invoice",
+        );
+        await writeInvoiceNoTx(tx, input.campusId, invoice.id, invoiceNo);
+      }
       createdIds.push(invoice.id);
     }
   });
@@ -180,7 +294,7 @@ async function replayInvoice(tx: Prisma.TransactionClient, invoiceId: string) {
     });
   }
   const live = invoice.payments
-    .filter((p) => !p.cancelledAt && dec(p.amount).gt(0))
+    .filter((p) => !p.cancelledAt && !isContraNote(p.note))
     .sort((a, b) => a.paidAt.getTime() - b.paidAt.getTime() || a.createdAt.getTime() - b.createdAt.getTime());
 
   const lines = invoice.lines.map((l) => ({
@@ -190,7 +304,10 @@ async function replayInvoice(tx: Prisma.TransactionClient, invoiceId: string) {
     fine: ZERO,
   }));
 
-  for (const payment of live) {
+  const credits = live.filter((p) => dec(p.amount).gt(0));
+  const refunds = live.filter((p) => dec(p.amount).lt(0));
+
+  for (const payment of credits) {
     let remaining = dec(payment.amount);
     const discount = dec(payment.discount);
     const fine = dec(payment.fine);
@@ -210,6 +327,23 @@ async function replayInvoice(tx: Prisma.TransactionClient, invoiceId: string) {
     }
     if (remaining.gt(0)) {
       throw validationError({ amount: "exceeds invoice balance" });
+    }
+  }
+
+  for (const payment of refunds) {
+    let remaining = dec(payment.amount).abs();
+    const targets = payment.lineId
+      ? lines.filter((l) => l.id === payment.lineId)
+      : [...lines].reverse();
+    if (!targets.length) throw validationError({ lineId: "line not on invoice" });
+    for (const line of targets) {
+      if (remaining.lte(0)) break;
+      const take = moneyMin(remaining, line.paid);
+      line.paid = line.paid.minus(take);
+      remaining = remaining.minus(take);
+    }
+    if (remaining.gt(0)) {
+      throw validationError({ amount: "exceeds paid" });
     }
   }
 
@@ -281,9 +415,14 @@ export async function collectPayment(input: {
 
   const paidAt = input.body.paidAt ? new Date(input.body.paidAt) : new Date();
   let discount = dec(input.body.discount);
-  if (input.body.discountId) {
+  const discountId =
+    input.body.discountId ||
+    (input.body.discount === undefined
+      ? await standingDiscountId(input.campusId, invoice.studentId)
+      : undefined);
+  if (discountId) {
     const named = await prisma.feeDiscount.findFirst({
-      where: { id: input.body.discountId, campusId: input.campusId },
+      where: { id: discountId, campusId: input.campusId },
     });
     if (!named) throw notFound("discount");
     if (discount.eq(0)) {
@@ -376,6 +515,14 @@ export async function cancelPayment(input: {
         note: [payment.note, `cancel:${input.reason}`].filter(Boolean).join(" | "),
       },
     });
+    await tx.payment.updateMany({
+      where: {
+        invoiceId: payment.invoiceId,
+        cancelledAt: null,
+        note: { startsWith: `refund of ${payment.receiptNo}` },
+      },
+      data: { cancelledAt: new Date() },
+    });
     const receiptNo = await nextReceiptNo(tx, input.campusId, session);
     const contra = await tx.payment.create({
       data: {
@@ -393,6 +540,55 @@ export async function cancelPayment(input: {
     });
     const invoice = await replayInvoice(tx, payment.invoiceId);
     return { payment: original, contra, invoice };
+  });
+}
+
+export async function refundPayment(input: {
+  campusId: string;
+  paymentId: string;
+  reason: string;
+  amount?: number | string;
+}) {
+  const reason = String(input.reason ?? "").trim();
+  if (!reason) throw validationError({ reason: "required" });
+  const payment = await prisma.payment.findFirst({
+    where: { id: input.paymentId, invoice: { student: { campusId: input.campusId } } },
+    include: { invoice: { include: { payments: true, student: true } } },
+  });
+  if (!payment) throw notFound("payment");
+  if (payment.cancelledAt) throw conflict("payment already cancelled");
+  if (dec(payment.amount).lte(0)) throw conflict("cannot refund a contra row");
+  const session = await prisma.academicSession.findFirst({
+    where: { id: payment.invoice.sessionId, campusId: input.campusId },
+  });
+  if (!session) throw notFound("session");
+  const already = payment.invoice.payments
+    .filter((row) => !row.cancelledAt && isRefundOf(row.note, payment.receiptNo))
+    .map((row) => Math.abs(Number(row.amount)));
+  const amount = requestedRefund(
+    input.amount,
+    refundableAmount(Number(payment.amount), already),
+  );
+
+  return prisma.$transaction(async (tx) => {
+    const receiptNo = await nextReceiptNo(tx, input.campusId, session);
+    const refund = await tx.payment.create({
+      data: {
+        invoiceId: payment.invoiceId,
+        amount: dec(amount).negated(),
+        discount: ZERO,
+        fine: ZERO,
+        method: payment.method,
+        reference: payment.receiptNo,
+        lineId: payment.lineId,
+        receiptNo,
+        note: `refund of ${payment.receiptNo}: ${reason}`,
+        paidAt: new Date(),
+        collectedBy: payment.collectedBy,
+      },
+    });
+    const invoice = await replayInvoice(tx, payment.invoiceId);
+    return { payment, refund, invoice };
   });
 }
 
@@ -571,5 +767,9 @@ export async function listInvoices(input: {
     include: { lines: true, payments: true, master: { include: { group: true } } },
     orderBy: { createdAt: "desc" },
   });
-  return { data, enrollmentId: input.enrollmentId ?? null, studentId };
+  return {
+    data: attachInvoiceNos(data, await listInvoiceNos(input.campusId)),
+    enrollmentId: input.enrollmentId ?? null,
+    studentId,
+  };
 }

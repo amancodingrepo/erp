@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { NAV } from "@/lib/catalog/nav";
+import { NAV, type NavItem } from "@/lib/catalog/nav";
 import {
   filterNav,
   isTeacherDesk,
@@ -23,6 +23,14 @@ type Me = {
 };
 
 type TenantRow = { id: string; name: string; code: string | null };
+type Membership = {
+  userId: string;
+  actorType: string;
+  campusName: string;
+  campusCode: string | null;
+  current: boolean;
+};
+type SessionOption = { id: string; name: string; isCurrent?: boolean };
 
 export function StaffShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -36,6 +44,9 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
     receipts: Array<{ receiptNo: string; student: string; href: string }>;
   }>({ students: [], receipts: [] });
   const [tenants, setTenants] = useState<TenantRow[]>([]);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [sessions, setSessions] = useState<SessionOption[]>([]);
+  const [viewingSessionId, setViewingSessionId] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/v1/auth/me")
@@ -51,6 +62,27 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
       })
       .catch(() => router.replace("/login"));
   }, [router]);
+
+  useEffect(() => {
+    fetch("/api/v1/auth/memberships")
+      .then((r) => r.json())
+      .then((json) => setMemberships(json.data ?? []))
+      .catch(() => setMemberships([]));
+  }, [me?.user.id]);
+
+  useEffect(() => {
+    if (!me?.user.id) return;
+    fetch("/api/v1/sessions/context")
+      .then((r) => r.json())
+      .then((json) => {
+        setSessions(json.data ?? []);
+        setViewingSessionId(json.viewingSessionId ?? json.currentSessionId ?? "");
+      })
+      .catch(() => {
+        setSessions([]);
+        setViewingSessionId("");
+      });
+  }, [me?.user.id, me?.user.campusId]);
 
   useEffect(() => {
     if (!me?.user.roles.includes("PlatformAdmin")) return;
@@ -73,7 +105,73 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const groups = useMemo(() => {
-    const gated = filterNav(NAV, me?.user, me?.modules ?? {});
+    const gated = filterNav(NAV, me?.user, me?.modules ?? {}).map((g) => {
+      const extra: NavItem[] = [];
+      function add(label: string, href: string, module: string) {
+        if (!g.items.some((item) => item.href === href)) {
+          extra.push({ label, href, source: "", module });
+        }
+      }
+      if (g.label === "Communicate") {
+        add("Requests", "/staff/messages", "communicate");
+        add("Campus events", "/staff/events", "communicate");
+        add("One-way communication", "/staff/one-way", "communicate");
+        add("Student diary", "/staff/diary", "communicate");
+        add("Emergency SMS", "/staff/emergency-sms", "communicate");
+      }
+      if (g.label === "Student Information") {
+        add("Search users", "/staff/search-users", "students");
+        add("Contacts", "/staff/contacts", "students");
+        add("Daycare", "/staff/daycare", "students");
+        add("Admission forms", "/staff/admission-forms", "admission");
+        add("Admission tests", "/staff/admission-tests", "admission");
+        add("Change house", "/staff/change-house", "students");
+        add("Bulk photos", "/staff/bulk-photos", "students");
+        add("Corporates", "/staff/corporates", "students");
+        add("Birthdays", "/staff/birthdays", "students");
+        add("Class eligibility", "/staff/eligibility", "students");
+      }
+      if (g.label === "Attendance") {
+        add("Attendance dashboard", "/staff/attendance-dashboard", "attendance");
+        add("Attendance modes", "/staff/attendance-modes", "attendance");
+      }
+      if (g.label === "Academics") {
+        add("Class teachers", "/staff/teacher/assign-class-teacher", "academics");
+        add("Questionnaires", "/staff/questionnaires", "academics");
+        add("Report templates", "/staff/performance-templates", "exams");
+        add("Performance report", "/staff/student-performance", "exams");
+        add("Principal details", "/staff/principals", "academics");
+        add("Subject categories", "/staff/subject-categories", "academics");
+        add("Subject types", "/staff/subject-types", "academics");
+        add("Leave marks percent", "/staff/leave-marks-percent", "exams");
+        add("EYFS", "/staff/eyfs", "academics");
+      }
+      if (g.label === "Human Resource") {
+        add("Staff categories", "/staff/staff-categories", "hr");
+        add("Drivers", "/staff/driver", "hr");
+      }
+      if (g.label === "Fees Collection") {
+        add("Bulk fee upload", "/staff/fees-upload", "fees");
+        add("Bulk pay", "/staff/fees-bulk-pay", "fees");
+        add("Deposit slips", "/staff/deposit-slips", "fees");
+      }
+      if (g.label === "Transport") {
+        add("Bus location", "/staff/gps", "transport");
+        add("Pickup authorisation", "/staff/pickup-auth", "transport");
+        add("Fuel log", "/staff/transport/fuel", "transport");
+        add("Fee slabs", "/staff/transport/slabs", "transport");
+      }
+      if (g.label === "Library") {
+        add("Book centers", "/staff/library/centers", "library");
+      }
+      if (g.label === "Front Office") {
+        add("CCTV cameras", "/staff/cctv", "front-office");
+        add("External links", "/staff/links", "front-office");
+        add("School website", "/staff/website", "front-office");
+      }
+      if (!extra.length) return g;
+      return { ...g, items: [...extra, ...g.items] };
+    });
     const needle = q.trim().toLowerCase();
     if (!needle) return gated;
     return gated
@@ -129,6 +227,17 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   }
 
+  async function switchMembership(userId: string) {
+    if (!userId || userId === me?.user.id) return;
+    const res = await fetch("/api/v1/auth/switch", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ membership_id: userId }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) window.location.assign(json.home ?? "/staff/dashboard");
+  }
+
   async function switchCampus(campusId: string) {
     if (!campusId || campusId === me?.user.campusId) return;
     const res = await fetch("/api/v1/auth/switch-campus", {
@@ -137,6 +246,16 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ campusId }),
     });
     if (res.ok) window.location.assign("/staff/dashboard");
+  }
+
+  async function switchSession(sessionId: string) {
+    if (!sessionId || sessionId === viewingSessionId) return;
+    const res = await fetch("/api/v1/sessions/context", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+    if (res.ok) window.location.reload();
   }
 
   return (
@@ -157,6 +276,23 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
         </div>
+          {memberships.length > 1 ? (
+            <label className="mb-3 block">
+              <span className="sr-only">{t("Membership")}</span>
+              <select
+                value={me?.user.id ?? ""}
+                onChange={(e) => switchMembership(e.target.value)}
+                className="h-9 w-full text-xs"
+              >
+                {memberships.map((row) => (
+                  <option key={row.userId} value={row.userId}>
+                    {row.actorType} · {row.campusName}
+                    {row.campusCode ? ` (${row.campusCode})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           {tenants.length > 1 ? (
             <label className="mb-3 block">
               <span className="sr-only">Switch campus</span>
@@ -219,9 +355,27 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="mt-auto rounded-[18px] bg-[linear-gradient(160deg,#8aa15a_0%,#3d6b3e_55%,#2b5533_100%)] p-4 text-white shadow-[0_10px_24px_rgba(45,85,50,0.22)]">
-          <p className="text-[12px] font-medium opacity-90">
-            {me?.campus.session?.name ?? "Session"}
-          </p>
+          {sessions.length > 0 ? (
+            <label className="block">
+              <span className="sr-only">{t("Academic year")}</span>
+              <select
+                value={viewingSessionId}
+                onChange={(e) => switchSession(e.target.value)}
+                className="h-9 w-full rounded-md border-0 bg-white/15 px-2 text-[12px] font-medium text-white"
+              >
+                {sessions.map((row) => (
+                  <option key={row.id} value={row.id} className="text-[#1f2937]">
+                    {row.name}
+                    {row.isCurrent ? ` · ${t("current")}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="text-[12px] font-medium opacity-90">
+              {me?.campus.session?.name ?? t("Session")}
+            </p>
+          )}
           <p className="mt-1 text-[13px] font-semibold">{me?.user.roles.join(", ") || "Staff"}</p>
           <button
             type="button"

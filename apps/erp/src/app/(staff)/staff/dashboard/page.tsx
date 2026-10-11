@@ -11,7 +11,12 @@ type Stats = {
   students: number;
   feeCollected: number;
   feeDue: number;
-  attendanceToday: { present: number; marked: number; percent: number };
+  attendanceToday: {
+    present: number;
+    marked: number;
+    percent: number;
+    notTaken?: number;
+  };
 };
 
 function rupees(value: number) {
@@ -52,7 +57,11 @@ export default function DashboardPage() {
         {
           label: "Today's attendance",
           value: stats
-            ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0})`
+            ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0}${
+                stats.attendanceToday.notTaken
+                  ? `, ${stats.attendanceToday.notTaken} not taken`
+                  : ""
+              })`
             : "—",
         },
       ]
@@ -63,7 +72,11 @@ export default function DashboardPage() {
         {
           label: "Today's attendance",
           value: stats
-            ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0})`
+            ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0}${
+                stats.attendanceToday.notTaken
+                  ? `, ${stats.attendanceToday.notTaken} not taken`
+                  : ""
+              })`
             : "—",
         },
       ];
@@ -101,6 +114,7 @@ export default function DashboardPage() {
               ["/staff/exam", "Marks"],
               ["/staff/timetable/mytimetable", "Timetable"],
               ["/staff/homework", "Homework"],
+              ["/staff/messages", "Requests"],
               ["/staff/student/search", "Find a student"],
             ].map(([href, label]) => (
               <Link

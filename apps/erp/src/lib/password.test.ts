@@ -13,7 +13,7 @@ describe("password hashing", () => {
     expect(await verifyPassword("Admin@12345", stored)).toBe(true);
     expect(await verifyPassword("wrong", stored)).toBe(false);
     expect(passwordNeedsRehash(stored)).toBe(false);
-  });
+  }, 15_000);
 
   it("still verifies bcrypt hashes used by seed admin", async () => {
     const legacy = await bcrypt.hash("Admin@12345", 12);

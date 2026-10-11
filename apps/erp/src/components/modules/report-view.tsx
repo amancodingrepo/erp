@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { reportLabel } from "@/lib/reports/aggregate";
 import { REPORT_KEYS, type ReportKey } from "@/lib/reports/keys";
 
 type ReportPayload = {
@@ -67,12 +68,14 @@ export default function ReportView({ reportKey }: { reportKey: ReportKey }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="font-display text-4xl">{data?.title ?? "Report"}</h1>
-        <a
-          className="text-sm underline"
-          href={`/api/v1/reports/${key}?${query()}&format=csv`}
-        >
-          Download CSV
-        </a>
+        <div className="flex gap-3 text-sm">
+          <a className="underline" href={`/api/v1/reports/${key}?${query()}&format=csv`}>
+            Download CSV
+          </a>
+          <a className="underline" href={`/api/v1/reports/${key}/export.xlsx?${query()}`}>
+            Download Excel
+          </a>
+        </div>
       </div>
       <form className="grid gap-3 sm:grid-cols-6" onSubmit={load}>
         <div>
@@ -84,7 +87,7 @@ export default function ReportView({ reportKey }: { reportKey: ReportKey }) {
           >
             {REPORT_KEYS.map((k) => (
               <option key={k} value={k}>
-                {k}
+                {reportLabel(k)}
               </option>
             ))}
           </select>

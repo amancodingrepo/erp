@@ -27,13 +27,30 @@ function EnquiryPanel() {
   >([]);
   const [sources, setSources] = useState<Array<{ name: string }>>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [formMeta, setFormMeta] = useState<{
+    id: string;
+    fields: Array<{
+      id: string;
+      name: string;
+      required: boolean;
+      control: string;
+      options: string[];
+    }>;
+  } | null>(null);
   async function load() {
-    const [e, s] = await Promise.all([
+    const [e, s, f] = await Promise.all([
       fetch("/api/v1/enquiries").then((r) => r.json()),
       fetch("/api/v1/front-office-types?kind=source").then((r) => r.json()),
+      fetch("/api/v1/admission/forms?kind=enquiry&open=1").then((r) => r.json()),
     ]);
     setRows(e.data ?? []);
     setSources(s.data ?? []);
+    const open = (f.data ?? [])[0];
+    setFormMeta(
+      open
+        ? { id: open.id, fields: open.fields ?? [] }
+        : null,
+    );
   }
   useEffect(() => {
     load();
@@ -41,6 +58,10 @@ function EnquiryPanel() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const answers: Record<string, string> = {};
+    for (const field of formMeta?.fields ?? []) {
+      answers[field.id] = String(form.get(`extra-${field.id}`) ?? "");
+    }
     const res = await fetch("/api/v1/enquiries", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -52,6 +73,8 @@ function EnquiryPanel() {
         classInterested: form.get("classInterested") || undefined,
         followUpOn: form.get("followUpOn") || undefined,
         remarks: form.get("remarks") || undefined,
+        formId: formMeta?.id,
+        answers,
       }),
     });
     setMessage(res.ok ? "Enquiry saved" : "Could not save");
@@ -92,6 +115,14 @@ function EnquiryPanel() {
         <Input name="classInterested" placeholder="Class / program interested" />
         <Input name="followUpOn" type="date" />
         <Input name="remarks" placeholder="Remarks" />
+        {(formMeta?.fields ?? []).map((field) => (
+          <Input
+            key={field.id}
+            name={`extra-${field.id}`}
+            placeholder={field.name}
+            required={field.required}
+          />
+        ))}
         <Button type="submit">Add enquiry</Button>
       </form>
       <table className="w-full min-w-[640px] text-left text-sm">
@@ -201,6 +232,17 @@ function VisitorsPanel() {
                 Check out
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/visitors/${r.id}`, { method: "DELETE" });
+                setMessage(res.ok ? "Visitor removed" : "Could not remove visitor");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>
@@ -210,6 +252,7 @@ function VisitorsPanel() {
 
 function SetupPanel() {
   const [rows, setRows] = useState<Array<{ id: string; kind: string; name: string }>>([]);
+  const [message, setMessage] = useState<string | null>(null);
   async function load() {
     const j = await fetch("/api/v1/front-office-types").then((r) => r.json());
     setRows(j.data ?? []);
@@ -233,6 +276,7 @@ function SetupPanel() {
   return (
     <div className="max-w-xl space-y-4">
       <h1 className="font-display text-4xl">Front office setup</h1>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
       <form className="grid gap-3" onSubmit={onSubmit}>
         <select name="kind" className={SELECT} defaultValue="source">
           <option value="source">Source</option>
@@ -244,8 +288,21 @@ function SetupPanel() {
       </form>
       <ul className="text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
+          <li key={r.id} className="flex items-center gap-3">
             {r.kind}: {r.name}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/front-office-types/${r.id}`, {
+                  method: "DELETE",
+                });
+                setMessage(res.ok ? "Type removed" : "Could not remove type");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>

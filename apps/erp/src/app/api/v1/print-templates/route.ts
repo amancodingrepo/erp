@@ -8,7 +8,7 @@ import {
 } from "@/lib/services/print-docs";
 
 const bodySchema = z.object({
-  kind: z.enum(["CERTIFICATE", "ID_CARD", "STAFF_ID"]),
+  kind: z.enum(["CERTIFICATE", "ID_CARD", "STAFF_ID", "MARKSHEET"]),
   name: z.string().min(1),
   body: z.string().min(1),
 });

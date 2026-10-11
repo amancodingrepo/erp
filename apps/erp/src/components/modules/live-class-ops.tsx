@@ -105,11 +105,22 @@ function MeetingsPanel({
       ) : null}
       <ul className="text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
+          <li key={r.id} className="flex items-center gap-3">
             {r.title} · {new Date(r.startsAt).toLocaleString()} ·{" "}
             <a className="underline" href={r.meetingUrl} rel="noopener noreferrer" target="_blank">
               Join
             </a>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/live-classes/${r.id}`, { method: "DELETE" });
+                setMessage(res.ok ? "Link removed" : "Could not remove link");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>

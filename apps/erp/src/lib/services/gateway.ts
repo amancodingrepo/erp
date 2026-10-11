@@ -10,6 +10,11 @@ import {
 } from "@/lib/gateway-signature";
 import { markApplicationPaid } from "@/lib/services/applications";
 import { collectPayment } from "@/lib/services/fees";
+import {
+  attachGatewayToStoreOrder,
+  createStoreOrder,
+  payStoreOrderByGateway,
+} from "@/lib/services/engagement";
 import { dec } from "@/lib/money";
 
 export type GatewayProvider = "razorpay" | "cashfree";
@@ -161,6 +166,53 @@ export async function createFeeOrder(input: {
   };
 }
 
+export async function createStoreCheckout(input: {
+  campusId: string;
+  studentId: string;
+  itemId: string;
+  qty: number;
+  provider?: GatewayProvider;
+}) {
+  const order = await createStoreOrder(input.campusId, {
+    studentId: input.studentId,
+    itemId: input.itemId,
+    qty: input.qty,
+    source: "parent",
+  });
+  if (order.amount <= 0) {
+    return { order, pay: null as null };
+  }
+  const provider = input.provider ?? "razorpay";
+  const merchant = await pickMerchant(input.campusId, provider);
+  const gateway = await prisma.gatewayOrder.create({
+    data: {
+      campusId: input.campusId,
+      merchantId: merchant.id.startsWith("env-") ? null : merchant.id,
+      provider,
+      providerOrderId: `order_${randomBytes(8).toString("hex")}`,
+      amount: dec(order.amount),
+      purpose: "STORE",
+      studentId: input.studentId,
+    },
+  });
+  const paidReady = await attachGatewayToStoreOrder(
+    input.campusId,
+    order.id,
+    gateway.providerOrderId,
+  );
+  return {
+    order: paidReady ?? { ...order, gatewayOrderId: gateway.providerOrderId },
+    pay: {
+      orderId: gateway.providerOrderId,
+      keyId: merchant.keyId,
+      amount: order.amount.toString(),
+      amountPaise: amountPaise(order.amount),
+      currency: "INR",
+      provider,
+    },
+  };
+}
+
 export async function createApplicationOrder(input: {
   campusId: string;
   applicationId: string;
@@ -262,6 +314,8 @@ export async function fulfillGatewayPayment(input: {
         note: `${order.provider} ${input.providerOrderId}`,
       },
     });
+  } else if (order.purpose === "STORE") {
+    await payStoreOrderByGateway(order.campusId, order.providerOrderId);
   } else {
     throw validationError({ purpose: "incomplete order" });
   }

@@ -37,6 +37,7 @@ export default function UsersPage() {
   const [roles, setRoles] = useState<RoleOpt[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [invite, setInvite] = useState<string | null>(null);
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
 
   async function load(nextTab = tab, query = q) {
     const params = new URLSearchParams({ actorType: nextTab, q: query });
@@ -92,6 +93,7 @@ export default function UsersPage() {
   async function sendInvite(id: string) {
     setError(null);
     setInvite(null);
+    setTemporaryPassword(null);
     const res = await fetch(`/api/v1/users/${id}/invite`, { method: "POST" });
     const json = await res.json();
     if (!res.ok) {
@@ -99,6 +101,21 @@ export default function UsersPage() {
       return;
     }
     setInvite(json.token);
+  }
+
+  async function resetPassword(id: string) {
+    setError(null);
+    setInvite(null);
+    setTemporaryPassword(null);
+    const res = await fetch(`/api/v1/users/${id}/reset-password`, {
+      method: "POST",
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error ?? "reset failed");
+      return;
+    }
+    setTemporaryPassword(json.temporaryPassword ?? null);
   }
 
   return (
@@ -144,6 +161,11 @@ export default function UsersPage() {
       {invite ? (
         <p className="mt-3 break-all text-sm text-[var(--muted)]">
           Invite token (share once): {invite}
+        </p>
+      ) : null}
+      {temporaryPassword ? (
+        <p className="mt-3 break-all text-sm text-[var(--muted)]">
+          Temporary password (share once): {temporaryPassword}
         </p>
       ) : null}
       <div className="mt-6 overflow-x-auto border border-[var(--rule)]">
@@ -252,6 +274,14 @@ export default function UsersPage() {
                       onClick={() => sendInvite(row.id)}
                     >
                       Send password
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => resetPassword(row.id)}
+                    >
+                      Reset password
                     </Button>
                   </div>
                 </td>

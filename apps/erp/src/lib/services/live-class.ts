@@ -2,6 +2,7 @@ import { LiveClassProvider } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { notFound, validationError } from "@/lib/errors";
 import { liveMeetingUrl, liveRecordingUrl } from "@/lib/live-class-url";
+import { assertVirtualClassroom } from "@/lib/services/campus-comms";
 
 export async function createLiveClass(
   campusId: string,
@@ -35,6 +36,7 @@ export async function createLiveClass(
       where: { id: input.classId, program: { department: { campusId } } },
     });
     if (!klass) throw notFound("class");
+    await assertVirtualClassroom(campusId, klass.id);
   }
   if (input.subjectId) {
     const subject = await prisma.subject.findFirst({

@@ -1,44 +1,41 @@
 import { prisma } from "@/lib/db";
 import { fail, ok } from "@/lib/http";
 import { assertStaff, principalFromRequest } from "@/lib/principal";
+import { searchPeople } from "@/lib/services/directory";
 
 export async function GET(request: Request) {
   try {
     const user = await principalFromRequest(request);
     assertStaff(user);
-    const q = new URL(request.url).searchParams.get("q")?.trim() ?? "";
-    if (q.length < 2) {
-      return ok({ students: [], receipts: [] });
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q")?.trim() ?? "";
+    const people = await searchPeople(user.campusId, {
+      q: q || undefined,
+      firstName: url.searchParams.get("firstName") ?? undefined,
+      lastName: url.searchParams.get("lastName") ?? undefined,
+      phone: url.searchParams.get("phone") ?? undefined,
+      email: url.searchParams.get("email") ?? undefined,
+      id: url.searchParams.get("id") ?? undefined,
+      exact: url.searchParams.get("exact") === "1",
+      toFees: url.searchParams.get("to") === "fees",
+    });
+    if (q.length < 2 && !url.searchParams.get("firstName") && !url.searchParams.get("id")) {
+      return ok({ students: people.students, receipts: [] });
     }
-    const students = await prisma.student.findMany({
-      where: {
-        campusId: user.campusId,
-        OR: [
-          { firstName: { contains: q, mode: "insensitive" } },
-          { lastName: { contains: q, mode: "insensitive" } },
-          { admissionNo: { contains: q, mode: "insensitive" } },
-          { enrollmentNo: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      take: 8,
-      orderBy: { lastName: "asc" },
-    });
-    const receipts = await prisma.payment.findMany({
-      where: {
-        receiptNo: { contains: q, mode: "insensitive" },
-        invoice: { student: { campusId: user.campusId } },
-      },
-      take: 8,
-      include: { invoice: { include: { student: true } } },
-      orderBy: { paidAt: "desc" },
-    });
+    const receipts =
+      q.length >= 2
+        ? await prisma.payment.findMany({
+            where: {
+              receiptNo: { contains: q, mode: "insensitive" },
+              invoice: { student: { campusId: user.campusId } },
+            },
+            take: 8,
+            include: { invoice: { include: { student: true } } },
+            orderBy: { paidAt: "desc" },
+          })
+        : [];
     return ok({
-      students: students.map((s) => ({
-        id: s.id,
-        admissionNo: s.admissionNo,
-        name: [s.firstName, s.lastName].filter(Boolean).join(" "),
-        href: `/staff/students/${s.id}`,
-      })),
+      students: people.students,
       receipts: receipts.map((p) => ({
         receiptNo: p.receiptNo,
         student: [p.invoice.student.firstName, p.invoice.student.lastName]

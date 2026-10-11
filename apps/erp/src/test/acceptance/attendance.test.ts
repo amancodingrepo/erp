@@ -93,7 +93,7 @@ describe("acceptance Attendance", () => {
           date: workDate,
           sectionId,
           entries: [{ studentId, status: "PRESENT" }],
-        }),
+        }, { "idempotency-key": `acc-att-ok-${suffix}` }),
       ),
     );
     expect(okMark.status).toBe(200);
@@ -106,7 +106,7 @@ describe("acceptance Attendance", () => {
           date: holiday,
           sectionId,
           entries: [{ studentId, status: "ABSENT" }],
-        }),
+        }, { "idempotency-key": `acc-att-hol-${suffix}` }),
       ),
     );
     expect(blocked.status).toBe(422);
@@ -117,7 +117,7 @@ describe("acceptance Attendance", () => {
           sectionId,
           override: true,
           entries: [{ studentId, status: "HOLIDAY" }],
-        }),
+        }, { "idempotency-key": `acc-att-ovr-${suffix}` }),
       ),
     );
     expect(forced.status).toBe(200);

@@ -3,11 +3,26 @@ import { parseDateOnly } from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { forbidden, notFound, validationError } from "@/lib/errors";
 import type { AuthPrincipal } from "@/lib/permissions";
+import { queueAbsentSms } from "@/lib/services/campus-comms";
+import { enrollmentScope } from "@/lib/services/session-context";
 
 const DAILY_SUBJECT = "";
 
 export function subjectKey(subjectId?: string | null) {
   return subjectId || DAILY_SUBJECT;
+}
+
+export function markedAttendanceEntries(
+  entries: Array<{ studentId: string; status?: AttendanceStatus | string | null }>,
+) {
+  return entries.flatMap((entry) => {
+    const status = entry.status;
+    if (!status) return [];
+    if (!Object.values(AttendanceStatus).includes(status as AttendanceStatus)) {
+      return [];
+    }
+    return [{ studentId: entry.studentId, status: status as AttendanceStatus }];
+  });
 }
 
 export function eachUtcDate(from: Date, to: Date) {
@@ -62,7 +77,7 @@ export async function markStudents(input: {
   sectionId: string;
   subjectId?: string;
   override?: boolean;
-  entries: Array<{ studentId: string; status: AttendanceStatus }>;
+  entries: Array<{ studentId: string; status?: AttendanceStatus | string | null }>;
 }) {
   const date = parseDateOnly(input.date);
   await assertMarkableDate({
@@ -72,6 +87,7 @@ export async function markStudents(input: {
     override: input.override,
   });
   const subjectId = subjectKey(input.subjectId);
+  const marked = markedAttendanceEntries(input.entries);
   const ids = input.entries.map((e) => e.studentId);
   const allowed = await prisma.studentEnrollment.findMany({
     where: {
@@ -82,9 +98,24 @@ export async function markStudents(input: {
     },
   });
   const allowedSet = new Set(allowed.map((e) => e.studentId));
-  const entries = input.entries.filter((e) => allowedSet.has(e.studentId));
-  await prisma.$transaction(
-    entries.map((entry) =>
+  const entries = marked.filter((e) => allowedSet.has(e.studentId));
+  const clearIds = ids.filter(
+    (id) =>
+      allowedSet.has(id) && !entries.some((entry) => entry.studentId === id),
+  );
+  if (!entries.length && !clearIds.length) {
+    return { ok: true, count: 0, cleared: 0 };
+  }
+  const section = await prisma.section.findFirst({
+    where: {
+      id: input.sectionId,
+      class: { program: { department: { campusId: input.user.campusId } } },
+    },
+    select: { classId: true, class: { select: { name: true } } },
+  });
+  if (!section) throw notFound("section");
+  await prisma.$transaction([
+    ...entries.map((entry) =>
       prisma.studentAttendance.upsert({
         where: {
           studentId_date_subjectId: {
@@ -103,8 +134,29 @@ export async function markStudents(input: {
         },
       }),
     ),
-  );
-  return { ok: true, count: entries.length };
+    ...(clearIds.length
+      ? [
+          prisma.studentAttendance.deleteMany({
+            where: {
+              date,
+              subjectId,
+              studentId: { in: clearIds },
+            },
+          }),
+        ]
+      : []),
+  ]);
+  const absentIds = entries
+    .filter((entry) => entry.status === AttendanceStatus.ABSENT)
+    .map((entry) => entry.studentId);
+  const sms = await queueAbsentSms({
+    campusId: input.user.campusId,
+    classId: section.classId,
+    className: section.class.name,
+    date: input.date,
+    studentIds: absentIds,
+  });
+  return { ok: true, count: entries.length, cleared: clearIds.length, absentSms: sms.queued };
 }
 
 export async function roster(input: {
@@ -112,11 +164,12 @@ export async function roster(input: {
   sectionId?: string;
   date: string;
   subjectId?: string;
+  sessionId?: string | null;
 }) {
   const date = parseDateOnly(input.date);
   const enrollments = await prisma.studentEnrollment.findMany({
     where: {
-      isCurrent: true,
+      ...enrollmentScope(input.sessionId),
       ...(input.sectionId ? { sectionId: input.sectionId } : {}),
       student: { campusId: input.campusId },
     },
@@ -132,6 +185,7 @@ export async function roster(input: {
   const byStudent = new Map(marks.map((m) => [m.studentId, m]));
   return {
     date: input.date,
+    statuses: Object.values(AttendanceStatus),
     data: enrollments.map((e) => ({
       studentId: e.studentId,
       admissionNo: e.student.admissionNo,

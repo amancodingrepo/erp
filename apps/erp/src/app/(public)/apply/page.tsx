@@ -13,10 +13,20 @@ import {
 } from "@/lib/services/application-schema";
 import { LanguageToggle, useI18n } from "@/lib/i18n/provider";
 
+type ExtraField = {
+  id: string;
+  name: string;
+  required: boolean;
+  control: string;
+  options: string[];
+};
+
 type Catalog = {
   campus: { name: string; code?: string | null };
   applicationFee: string;
   programs: Array<{ id: string; name: string; level: string }>;
+  form?: { id: string; name: string } | null;
+  fields?: ExtraField[];
 };
 
 type ApplyValues = z.infer<typeof publicApplicationSchema>;
@@ -62,6 +72,7 @@ export default function ApplyPage() {
   const [appId, setAppId] = useState<string | null>(null);
   const [lookup, setLookup] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const form = useForm<ApplyValues>({
     resolver: zodResolver(publicApplicationSchema),
@@ -100,10 +111,23 @@ export default function ApplyPage() {
 
   async function onSubmit(values: ApplyValues) {
     setMessage(null);
+    const extra = catalog?.fields ?? [];
+    const missing = extra.filter(
+      (field) => field.required && !String(answers[field.id] ?? "").trim(),
+    );
+    if (missing.length) {
+      setMessage(`${t("Required")}: ${missing.map((field) => field.name).join(", ")}`);
+      return;
+    }
     const res = await fetch("/api/v1/public/applications", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...values, campusCode }),
+      body: JSON.stringify({
+        ...values,
+        campusCode,
+        formId: catalog?.form?.id,
+        answers,
+      }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -358,6 +382,56 @@ export default function ApplyPage() {
           />
           <FieldError message={form.formState.errors.score?.message} />
         </div>
+        {(catalog?.fields ?? []).map((field) => (
+          <div key={field.id}>
+            {field.required ? (
+              <ReqLabel htmlFor={field.id}>{t(field.name)}</ReqLabel>
+            ) : (
+              <Label htmlFor={field.id}>{t(field.name)}</Label>
+            )}
+            {field.control === "select" ? (
+              <select
+                id={field.id}
+                className={SELECT}
+                value={answers[field.id] ?? ""}
+                onChange={(event) =>
+                  setAnswers((prev) => ({ ...prev, [field.id]: event.target.value }))
+                }
+              >
+                <option value="">{t("Select")}</option>
+                {field.options.map((option) => (
+                  <option key={option} value={option}>
+                    {t(option)}
+                  </option>
+                ))}
+              </select>
+            ) : field.control === "textarea" ? (
+              <textarea
+                id={field.id}
+                className="min-h-24 w-full rounded-xl border border-[var(--rule)] bg-white px-3 py-2 text-sm"
+                value={answers[field.id] ?? ""}
+                onChange={(event) =>
+                  setAnswers((prev) => ({ ...prev, [field.id]: event.target.value }))
+                }
+              />
+            ) : (
+              <Input
+                id={field.id}
+                type={
+                  field.control === "number"
+                    ? "number"
+                    : field.control === "date"
+                      ? "date"
+                      : "text"
+                }
+                value={answers[field.id] ?? ""}
+                onChange={(event) =>
+                  setAnswers((prev) => ({ ...prev, [field.id]: event.target.value }))
+                }
+              />
+            )}
+          </div>
+        ))}
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? t("Submitting…") : t("Submit application")}
         </Button>

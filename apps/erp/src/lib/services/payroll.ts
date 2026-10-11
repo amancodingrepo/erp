@@ -245,7 +245,11 @@ export async function generatePayrollRun(
 export async function listPayrollRuns(campusId: string) {
   return prisma.payrollRun.findMany({
     where: { campusId },
-    include: { slips: true },
+    include: {
+      slips: {
+        include: { staff: { select: { employeeId: true, firstName: true } } },
+      },
+    },
     orderBy: [{ year: "desc" }, { month: "desc" }],
   });
 }

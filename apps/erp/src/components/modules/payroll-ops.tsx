@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type Mode = "elements" | "structure" | "slabs" | "run" | "report";
+type Mode = "elements" | "structure" | "slabs" | "run" | "report" | "loans" | "payslips";
 const SELECT =
   "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
 
@@ -12,7 +12,154 @@ export default function PayrollOps({ mode }: { mode: Mode }) {
   if (mode === "structure") return <StructurePanel />;
   if (mode === "slabs") return <SlabsPanel />;
   if (mode === "run" || mode === "report") return <RunPanel />;
+  if (mode === "loans") return <LoansPanel />;
+  if (mode === "payslips") return <PayslipsPanel />;
   return <ElementsPanel />;
+}
+
+function LoansPanel() {
+  const [staff, setStaff] = useState<
+    Array<{ id: string; firstName: string; lastName?: string; employeeId?: string }>
+  >([]);
+  const [rows, setRows] = useState<
+    Array<{
+      id: string;
+      staffId: string;
+      amount: number;
+      balance: number;
+      issuedOn: string;
+      note?: string;
+    }>
+  >([]);
+  const [message, setMessage] = useState<string | null>(null);
+  async function load() {
+    const [s, l] = await Promise.all([
+      fetch("/api/v1/staff").then((r) => r.json()),
+      fetch("/api/v1/payroll/loans").then((r) => r.json()),
+    ]);
+    setStaff(s.data ?? []);
+    setRows(l.data ?? []);
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/payroll/loans", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        staffId: form.get("staffId"),
+        amount: form.get("amount"),
+        issuedOn: form.get("issuedOn") || undefined,
+        dueOn: form.get("dueOn") || undefined,
+        note: form.get("note") || undefined,
+      }),
+    });
+    setMessage(res.ok ? "Loan saved" : "Could not save loan");
+    if (res.ok) {
+      event.currentTarget.reset();
+      load();
+    }
+  }
+  return (
+    <div className="space-y-4">
+      <h1 className="font-display text-4xl">Staff loans</h1>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid max-w-xl gap-3" onSubmit={onSubmit}>
+        <select name="staffId" className={SELECT} required>
+          <option value="">Staff</option>
+          {staff.map((s) => (
+            <option key={s.id} value={s.id}>
+              {[s.firstName, s.lastName].filter(Boolean).join(" ")}
+              {s.employeeId ? ` (${s.employeeId})` : ""}
+            </option>
+          ))}
+        </select>
+        <Input name="amount" placeholder="Amount" required />
+        <Input name="issuedOn" type="date" />
+        <Input name="dueOn" type="date" />
+        <Input name="note" placeholder="Note" />
+        <Button type="submit">Record loan</Button>
+      </form>
+      <ul className="text-sm">
+        {rows.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center gap-3">
+            {staff.find((s) => s.id === r.staffId)?.employeeId ?? r.staffId} · ₹
+            {r.balance} of ₹{r.amount}
+            {r.note ? ` · ${r.note}` : ""}
+            <form
+              className="flex gap-2"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                const form = new FormData(event.currentTarget);
+                const res = await fetch(`/api/v1/payroll/loans/${r.id}/repay`, {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({ amount: form.get("amount") }),
+                });
+                setMessage(res.ok ? "Repayment saved" : "Could not repay");
+                if (res.ok) load();
+              }}
+            >
+              <Input name="amount" placeholder="Repay" />
+              <Button type="submit" size="sm">
+                Repay
+              </Button>
+            </form>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PayslipsPanel() {
+  const [rows, setRows] = useState<
+    Array<{
+      id: string;
+      employeeId: string;
+      staffName: string;
+      year: number;
+      month: number;
+      gross: string;
+      pf: string;
+      esi: string;
+      tds: string;
+      net: string;
+    }>
+  >([]);
+  async function load() {
+    const j = await fetch("/api/v1/payslips").then((r) => r.json());
+    setRows(j.data ?? []);
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  return (
+    <div className="space-y-4">
+      <h1 className="font-display text-4xl">Payslips</h1>
+      <p className="text-sm text-[var(--muted)]">
+        PF, ESI, PT, and TDS from live payroll runs. PDF uses the same slip.
+      </p>
+      <ul className="text-sm">
+        {rows.map((row) => (
+          <li key={row.id}>
+            {row.employeeId || row.staffName} · {row.year}-
+            {String(row.month).padStart(2, "0")} · net ₹{row.net} · PF ₹{row.pf} ·
+            ESI ₹{row.esi} · TDS ₹{row.tds}{" "}
+            <a className="underline" href={`/api/v1/payslips/${row.id}?format=pdf`}>
+              PDF
+            </a>
+          </li>
+        ))}
+        {!rows.length ? (
+          <li className="text-[var(--muted)]">No payslips yet. Generate a payroll run.</li>
+        ) : null}
+      </ul>
+    </div>
+  );
 }
 
 function ElementsPanel() {
@@ -201,7 +348,16 @@ function RunPanel() {
       id: string;
       year: number;
       month: number;
-      slips: Array<{ employeeId?: string; gross: string; pf: string; esi: string; pt: string; tds: string; net: string }>;
+      slips: Array<{
+        id?: string;
+        employeeId?: string;
+        gross: string;
+        pf: string;
+        esi: string;
+        pt: string;
+        tds: string;
+        net: string;
+      }>;
     }>
   >([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -242,9 +398,21 @@ function RunPanel() {
             {r.year}-{String(r.month).padStart(2, "0")}
             <ul>
               {r.slips.map((s, i) => (
-                <li key={i}>
+                <li key={s.id ?? i}>
+                  {s.employeeId ? `${s.employeeId} · ` : ""}
                   gross ₹{s.gross} · PF ₹{s.pf} · ESI ₹{s.esi} · PT ₹{s.pt} · TDS ₹{s.tds} · net ₹
                   {s.net}
+                  {s.id ? (
+                    <>
+                      {" "}
+                      <a
+                        className="underline"
+                        href={`/api/v1/payslips/${s.id}?format=pdf`}
+                      >
+                        Payslip PDF
+                      </a>
+                    </>
+                  ) : null}
                 </li>
               ))}
             </ul>

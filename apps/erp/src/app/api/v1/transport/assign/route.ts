@@ -7,6 +7,8 @@ const bodySchema = z.object({
   studentId: z.string().min(1),
   routeId: z.string().min(1),
   pickupPointId: z.string().min(1),
+  outRouteId: z.string().min(1).optional(),
+  outPickupPointId: z.string().min(1).optional(),
 });
 
 export async function POST(request: Request) {

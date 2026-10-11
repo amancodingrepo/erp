@@ -70,9 +70,22 @@ function WindowPanel({ kind }: { kind: "ATKT" | "REVAL" }) {
       </form>
       <ul className="text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
+          <li key={r.id} className="flex items-center gap-3">
             {r.examGroup.name} · ₹{r.feeAmount} · {new Date(r.opensAt).toLocaleString()} –{" "}
             {new Date(r.closesAt).toLocaleString()}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/exam-forms/windows/${r.id}`, {
+                  method: "DELETE",
+                });
+                setMessage(res.ok ? "Window removed" : "Could not remove window");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>
@@ -169,19 +182,34 @@ function ReportPanel() {
       examGroup: { name: string };
     }>
   >([]);
+  const [message, setMessage] = useState<string | null>(null);
+  async function load() {
+    const j = await fetch("/api/v1/exam-forms").then((r) => r.json());
+    setRows(j.data ?? []);
+  }
   useEffect(() => {
-    fetch("/api/v1/exam-forms")
-      .then((r) => r.json())
-      .then((j) => setRows(j.data ?? []));
+    load();
   }, []);
   return (
     <div className="space-y-4">
       <h1 className="font-display text-4xl">Exam forms</h1>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
       <ul className="text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
+          <li key={r.id} className="flex items-center gap-3">
             {r.kind} · {r.student.admissionNo} {r.student.name} · {r.examGroup.name} · ₹
             {r.feeAmount}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/exam-forms/${r.id}`, { method: "DELETE" });
+                setMessage(res.ok ? "Form removed" : "Could not remove form");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
         {!rows.length ? <li>No forms yet.</li> : null}

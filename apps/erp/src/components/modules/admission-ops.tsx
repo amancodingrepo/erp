@@ -3,8 +3,16 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import AdmissionFormsOps from "@/components/modules/admission-forms-ops";
 
-type Mode = "inbox" | "settings" | "cutoff" | "import" | "generate" | "manage";
+type Mode =
+  | "inbox"
+  | "settings"
+  | "cutoff"
+  | "import"
+  | "generate"
+  | "manage"
+  | "tests";
 type Row = {
   id: string;
   applicationNo: string;
@@ -29,6 +37,7 @@ export default function AdmissionOps({ mode }: { mode: Mode }) {
   if (mode === "import") return <ImportPanel />;
   if (mode === "generate") return <GeneratePanel />;
   if (mode === "manage") return <ManagePanel />;
+  if (mode === "tests") return <TestsPanel />;
   return <InboxPanel />;
 }
 
@@ -50,25 +59,28 @@ function SettingsPanel() {
     setMessage(res.ok ? "Saved" : "Could not save");
   }
   return (
-    <div className="max-w-xl space-y-4">
-      <h1 className="font-display text-4xl">Online admission settings</h1>
-      <p className="text-sm text-[var(--muted)]">
-        Application fee is collected at the counter in Phase B-1. Razorpay is the
-        next Phase B item.
-      </p>
-      <p className="text-sm text-[var(--muted)]">{message}</p>
-      <form className="grid gap-3" onSubmit={onSubmit}>
-        <div>
-          <Label htmlFor="applicationFee">Application fee (INR)</Label>
-          <Input
-            id="applicationFee"
-            value={fee}
-            onChange={(e) => setFee(e.target.value)}
-            inputMode="decimal"
-          />
-        </div>
-        <Button type="submit">Save</Button>
-      </form>
+    <div className="space-y-8">
+      <div className="max-w-xl space-y-4">
+        <h1 className="font-display text-4xl">Online admission settings</h1>
+        <p className="text-sm text-[var(--muted)]">
+          Application fee is collected at the counter in Phase B-1. Razorpay is the
+          next Phase B item.
+        </p>
+        <p className="text-sm text-[var(--muted)]">{message}</p>
+        <form className="grid gap-3" onSubmit={onSubmit}>
+          <div>
+            <Label htmlFor="applicationFee">Application fee (INR)</Label>
+            <Input
+              id="applicationFee"
+              value={fee}
+              onChange={(e) => setFee(e.target.value)}
+              inputMode="decimal"
+            />
+          </div>
+          <Button type="submit">Save</Button>
+        </form>
+      </div>
+      <AdmissionFormsOps />
     </div>
   );
 }
@@ -115,13 +127,13 @@ function InboxPanel() {
   async function enroll(event: FormEvent<HTMLFormElement>, id: string) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const res = await fetch(`/api/v1/applications/${id}/enroll`, {
+    const res = await fetch(`/api/v1/applications/${id}/convert-to-student`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        classId: form.get("classId"),
-        sectionId: form.get("sectionId"),
-        admissionNo: form.get("admissionNo") || undefined,
+        class_id: form.get("classId"),
+        section_id: form.get("sectionId"),
+        admission_no: form.get("admissionNo") || undefined,
       }),
     });
     const json = await res.json();
@@ -496,6 +508,179 @@ function ManagePanel() {
                   </span>
                 ) : null}
               </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function TestsPanel() {
+  const [tests, setTests] = useState<
+    Array<{
+      id: string;
+      name: string;
+      date: string;
+      classId: string;
+      className: string;
+      venue: string;
+      sitCount: number;
+    }>
+  >([]);
+  const [sits, setSits] = useState<
+    Array<{
+      id: string;
+      testId: string;
+      applicationId: string;
+      score: number | null;
+      appeared: boolean;
+    }>
+  >([]);
+  const [applications, setApplications] = useState<
+    Array<{ id: string; applicationNo: string; name: string }>
+  >([]);
+  const [classes, setClasses] = useState<Klass[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function load() {
+    const [t, a, c] = await Promise.all([
+      fetch("/api/v1/admission-tests").then((r) => r.json()),
+      fetch("/api/v1/applications").then((r) => r.json()),
+      fetch("/api/v1/classes").then((r) => r.json()),
+    ]);
+    setTests(t.data ?? []);
+    setSits(t.sits ?? []);
+    setApplications(a.data ?? []);
+    setClasses(c.data ?? []);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function onTest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/admission-tests", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: form.get("name"),
+        date: form.get("date"),
+        classId: form.get("classId") || undefined,
+        venue: form.get("venue") || undefined,
+      }),
+    });
+    setMessage(res.ok ? "Test saved" : "Could not save test");
+    event.currentTarget.reset();
+    load();
+  }
+
+  async function onSit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/admission-tests/sits", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        testId: form.get("testId"),
+        applicationId: form.get("applicationId"),
+        score: form.get("score") || undefined,
+        appeared: form.get("appeared") === "on",
+      }),
+    });
+    setMessage(res.ok ? "Score saved" : "Could not save score");
+    event.currentTarget.reset();
+    load();
+  }
+
+  const appName = new Map(applications.map((row) => [row.id, row.name]));
+  const appNo = new Map(applications.map((row) => [row.id, row.applicationNo]));
+  const testName = new Map(tests.map((row) => [row.id, row.name]));
+
+  return (
+    <div className="space-y-6">
+      <h1 className="font-display text-4xl">Admission tests</h1>
+      <p className="text-sm text-[var(--muted)]">
+        Named entrance tests for live applications. Appeared scores write onto the
+        applicant score used by merit.
+      </p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid max-w-3xl gap-3 sm:grid-cols-4" onSubmit={onTest}>
+        <Input name="name" placeholder="Entrance" required />
+        <Input name="date" type="date" required />
+        <select name="classId" className={SELECT}>
+          <option value="">Class (optional)</option>
+          {classes.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.name}
+            </option>
+          ))}
+        </select>
+        <Input name="venue" placeholder="Venue" />
+        <Button type="submit">Save test</Button>
+      </form>
+      <form className="grid max-w-3xl gap-3 sm:grid-cols-4" onSubmit={onSit}>
+        <select name="testId" className={SELECT} required>
+          <option value="">Test</option>
+          {tests.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.name}
+            </option>
+          ))}
+        </select>
+        <select name="applicationId" className={SELECT} required>
+          <option value="">Applicant</option>
+          {applications.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.applicationNo} · {row.name}
+            </option>
+          ))}
+        </select>
+        <Input name="score" type="number" min={0} step="0.01" placeholder="Score" />
+        <label className="flex items-center gap-2 text-sm">
+          <input name="appeared" type="checkbox" defaultChecked />
+          Appeared
+        </label>
+        <Button type="submit">Save score</Button>
+      </form>
+      <ul className="text-sm">
+        {tests.map((row) => (
+          <li key={row.id} className="flex flex-wrap items-center gap-2">
+            <span>
+              {row.name} · {row.date}
+              {row.className ? ` · ${row.className}` : ""}
+              {row.venue ? ` · ${row.venue}` : ""} · {row.sitCount} sits
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/admission-tests/${row.id}`, {
+                  method: "DELETE",
+                });
+                setMessage(res.ok ? "Removed" : "Could not remove");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
+          </li>
+        ))}
+      </ul>
+      <table className="w-full text-left text-sm">
+        <tbody>
+          {sits.map((row) => (
+            <tr key={row.id}>
+              <td className="py-1">{testName.get(row.testId) ?? row.testId}</td>
+              <td>
+                {appNo.get(row.applicationId) ?? row.applicationId}
+                {appName.get(row.applicationId)
+                  ? ` · ${appName.get(row.applicationId)}`
+                  : ""}
+              </td>
+              <td>{row.appeared ? row.score ?? "—" : "absent"}</td>
             </tr>
           ))}
         </tbody>

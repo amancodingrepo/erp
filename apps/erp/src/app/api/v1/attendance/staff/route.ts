@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 import { markStaff } from "@/lib/services/attendance";
+import { withAttendanceIdempotency } from "@/lib/services/campus-attendance-idempotency";
 
 const putSchema = z.object({
   date: z.string(),
@@ -55,12 +56,14 @@ export async function PUT(request: Request) {
     const user = await requireApiPermission(request, "hr", "staff", "edit");
     const body = putSchema.parse(await readJson(request));
     return ok(
-      await markStaff({
-        user,
-        date: body.date,
-        override: body.override,
-        entries: body.entries,
-      }),
+      await withAttendanceIdempotency(user.campusId, request, body, () =>
+        markStaff({
+          user,
+          date: body.date,
+          override: body.override,
+          entries: body.entries,
+        }),
+      ),
     );
   } catch (error) {
     return fail(error);

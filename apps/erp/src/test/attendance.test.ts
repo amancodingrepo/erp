@@ -19,12 +19,22 @@ import { prisma } from "@/lib/db";
 const SEED_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "Admin@12345";
 const suffix = `t5-${Date.now()}`;
 
-function req(method: string, path: string, token: string, payload?: unknown) {
+function req(
+  method: string,
+  path: string,
+  token: string,
+  payload?: unknown,
+  extra?: HeadersInit,
+) {
   return new Request(`http://local${path}`, {
     method,
     headers: {
       authorization: `Bearer ${token}`,
       ...(payload !== undefined ? { "content-type": "application/json" } : {}),
+      ...(method === "PUT" && path.includes("/attendance/")
+        ? { "idempotency-key": `att-${suffix}-${Math.random()}` }
+        : {}),
+      ...extra,
     },
     body: payload !== undefined ? JSON.stringify(payload) : undefined,
   });

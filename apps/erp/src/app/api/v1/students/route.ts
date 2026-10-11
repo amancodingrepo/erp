@@ -1,5 +1,6 @@
 import { created, fail, ok, readJson } from "@/lib/http";
 import { assertStaff, requireApiPermission, visibleStudentIds } from "@/lib/principal";
+import { viewingSessionId } from "@/lib/services/session-context";
 import {
   createStudent,
   listStudents,
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
         classId: params.get("classId") ?? undefined,
         sectionId: params.get("sectionId") ?? undefined,
         status: params.get("status"),
+        sessionId: await viewingSessionId(request, user),
         page,
         pageSize,
         studentIds: visibleStudentIds(user),

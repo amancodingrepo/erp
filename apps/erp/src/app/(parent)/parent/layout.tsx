@@ -10,6 +10,13 @@ const LINKS = [
   { href: "/parent/attendance", label: "Attendance" },
   { href: "/parent/exams", label: "Exams" },
   { href: "/parent/notices", label: "Notices" },
+  { href: "/parent/diary", label: "Diary" },
+  { href: "/parent/eyfs", label: "EYFS" },
+  { href: "/parent/messages", label: "Requests" },
+  { href: "/parent/store", label: "Store" },
+  { href: "/parent/transport", label: "Bus" },
+  { href: "/parent/pickup", label: "Pickup" },
+  { href: "/parent/cctv", label: "CCTV" },
 ];
 
 export default function ParentLayout({ children }: { children: ReactNode }) {

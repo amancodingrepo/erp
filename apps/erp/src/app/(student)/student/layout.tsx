@@ -8,6 +8,8 @@ const LINKS = [
   { href: "/student/attendance", label: "Attendance" },
   { href: "/student/timetable", label: "Timetable" },
   { href: "/student/notices", label: "Notices" },
+  { href: "/student/diary", label: "Diary" },
+  { href: "/student/eyfs", label: "EYFS" },
   { href: "/student/exams", label: "Exams" },
 ];
 

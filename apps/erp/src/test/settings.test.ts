@@ -180,6 +180,7 @@ describe("Task 7 staff notices settings", () => {
           title: `Holiday ${suffix}`,
           body: "Campus closed",
           audience: "staff",
+          isPublished: true,
         }),
       ),
     );

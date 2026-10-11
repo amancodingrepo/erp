@@ -15,6 +15,12 @@ import {
   validationError,
 } from "@/lib/errors";
 import type { AuthPrincipal } from "@/lib/permissions";
+import { feeLedgerFromInvoices } from "@/lib/services/diary";
+import {
+  attachGuardianExtras,
+  listGuardianExtras,
+} from "@/lib/services/campus-student-guardians";
+import { enrollmentScope } from "@/lib/services/session-context";
 
 const emptyToUndef = (value: unknown) =>
   value === "" || value === null ? undefined : value;
@@ -79,6 +85,23 @@ export const studentCreateSchema = z.object({
   instituteEmail: optEmail,
   aadhaar: optStr,
   pan: optStr,
+  janAadhaar: optStr,
+  scholarNo: optStr,
+  sssmId: optStr,
+  pen: optStr,
+  apaarId: optStr,
+  grn: optStr,
+  saralId: optStr,
+  bloodGroup: optStr,
+  isRte: z.boolean().optional(),
+  isOnlyChild: z.boolean().optional(),
+  admittedClass: optStr,
+  annualIncome: optStr,
+  lunchFromSchool: z.boolean().optional(),
+  houseId: optStr,
+  isDefaulter: z.boolean().optional(),
+  rfid: optStr,
+  parentLoginEnabled: z.boolean().optional(),
   fatherName: optStr,
   addresses: z
     .object({
@@ -247,7 +270,53 @@ function displayName(s: {
   return [s.firstName, s.middleName, s.lastName].filter(Boolean).join(" ");
 }
 
-function listRow(s: {
+export function studentListSearchOr(q: string): Prisma.StudentWhereInput[] {
+  const term = q.trim();
+  if (!term) return [];
+  const contains = { contains: term, mode: "insensitive" as const };
+  return [
+    { firstName: contains },
+    { lastName: contains },
+    { middleName: contains },
+    { admissionNo: contains },
+    { enrollmentNo: contains },
+    { mobile: { contains: term } },
+    { scholarNo: contains },
+    { pen: contains },
+    { apaarId: contains },
+    { sssmId: contains },
+    { grn: contains },
+    { saralId: contains },
+    { janAadhaar: contains },
+    { rollNo: contains },
+    { rfid: contains },
+    { guardians: { some: { guardian: { name: contains } } } },
+  ];
+}
+
+export function namedGuardianPairs(input: {
+  fatherName?: string | null;
+  motherName?: string | null;
+}) {
+  const pairs: Array<{ relation: "father" | "mother"; name: string }> = [];
+  const father = input.fatherName?.trim();
+  const mother = input.motherName?.trim();
+  if (father) pairs.push({ relation: "father", name: father });
+  if (mother) pairs.push({ relation: "mother", name: mother });
+  return pairs;
+}
+
+export function splitStudentPatch<
+  T extends { fatherName?: string | null; motherName?: string | null },
+>(body: T) {
+  const { fatherName, motherName, ...student } = body;
+  return {
+    student,
+    guardians: namedGuardianPairs({ fatherName, motherName }),
+  };
+}
+
+export function toStudentListRow(s: {
   id: string;
   admissionNo: string;
   firstName: string;
@@ -255,6 +324,13 @@ function listRow(s: {
   lastName?: string | null;
   rollNo?: string | null;
   enrollmentNo?: string | null;
+  scholarNo?: string | null;
+  pen?: string | null;
+  apaarId?: string | null;
+  rfid?: string | null;
+  isDefaulter?: boolean;
+  photoUrl?: string | null;
+  parentLoginEnabled?: boolean;
   dob?: Date | null;
   gender?: Gender | null;
   mobile?: string | null;
@@ -272,6 +348,7 @@ function listRow(s: {
   const father =
     s.guardians.find((g) => g.relation === "father")?.guardian ??
     s.guardians.find((g) => g.relation === "spouse")?.guardian;
+  const mother = s.guardians.find((g) => g.relation === "mother")?.guardian;
   return {
     id: s.id,
     admissionNo: s.admissionNo,
@@ -282,12 +359,26 @@ function listRow(s: {
     enrollmentNo: s.enrollmentNo,
     enrollmentId: enrollment?.id ?? null,
     fatherName: father?.name ?? null,
+    motherName: mother?.name ?? null,
+    parentLoginEnabled: s.parentLoginEnabled ?? true,
+    scholarNo: s.scholarNo ?? null,
+    pen: s.pen ?? null,
+    apaarId: s.apaarId ?? null,
+    rfid: s.rfid ?? null,
+    isDefaulter: s.isDefaulter ?? false,
+    photoUrl: s.photoUrl ?? null,
     dob: s.dob,
     gender: s.gender,
     category: s.category?.name ?? null,
     mobile: s.mobile,
     status: s.status,
   };
+}
+
+function listRow(
+  s: Parameters<typeof toStudentListRow>[0],
+) {
+  return toStudentListRow(s);
 }
 
 function filled(obj?: object | null) {
@@ -389,6 +480,33 @@ async function writeRelated(
   }
 }
 
+export async function writeNamedGuardians(
+  tx: Prisma.TransactionClient,
+  studentId: string,
+  pairs: Array<{ relation: "father" | "mother"; name: string }>,
+) {
+  for (const pair of pairs) {
+    const existing = await tx.studentGuardian.findFirst({
+      where: { studentId, relation: pair.relation },
+    });
+    if (existing) {
+      await tx.guardian.update({
+        where: { id: existing.guardianId },
+        data: { name: pair.name },
+      });
+      continue;
+    }
+    const guardian = await tx.guardian.create({ data: { name: pair.name } });
+    await tx.studentGuardian.create({
+      data: {
+        studentId,
+        guardianId: guardian.id,
+        relation: pair.relation,
+      },
+    });
+  }
+}
+
 export async function createStudent(input: {
   campusId: string;
   body: StudentCreateInput;
@@ -420,6 +538,12 @@ export async function createStudent(input: {
       where: { id: body.categoryId, campusId: input.campusId },
     });
     if (!category) throw notFound("category");
+  }
+  if (body.houseId) {
+    const house = await prisma.house.findFirst({
+      where: { id: body.houseId, campusId: input.campusId },
+    });
+    if (!house) throw notFound("house");
   }
 
   try {
@@ -456,6 +580,23 @@ export async function createStudent(input: {
           instituteEmail: body.instituteEmail,
           aadhaarEnc: encryptField(body.aadhaar),
           panEnc: encryptField(body.pan),
+          janAadhaar: body.janAadhaar,
+          scholarNo: body.scholarNo,
+          sssmId: body.sssmId,
+          pen: body.pen,
+          apaarId: body.apaarId,
+          grn: body.grn,
+          saralId: body.saralId,
+          bloodGroup: body.bloodGroup,
+          isRte: body.isRte ?? false,
+          isOnlyChild: body.isOnlyChild ?? false,
+          admittedClass: body.admittedClass,
+          annualIncome: body.annualIncome,
+          lunchFromSchool: body.lunchFromSchool ?? false,
+          houseId: body.houseId,
+          isDefaulter: body.isDefaulter ?? false,
+          rfid: body.rfid,
+          parentLoginEnabled: body.parentLoginEnabled ?? true,
         },
       });
       if (body.classId && body.sectionId && sessionId) {
@@ -505,6 +646,7 @@ export async function listStudents(input: {
   q?: string;
   classId?: string;
   sectionId?: string;
+  sessionId?: string | null;
   status?: string | null;
   page: number;
   pageSize: number;
@@ -523,23 +665,12 @@ export async function listStudents(input: {
     campusId: input.campusId,
     ...(input.studentIds ? { id: { in: input.studentIds } } : {}),
     ...(status ? { status } : {}),
-    ...(q
-      ? {
-          OR: [
-            { firstName: { contains: q, mode: "insensitive" } },
-            { lastName: { contains: q, mode: "insensitive" } },
-            { middleName: { contains: q, mode: "insensitive" } },
-            { admissionNo: { contains: q, mode: "insensitive" } },
-            { enrollmentNo: { contains: q, mode: "insensitive" } },
-            { mobile: { contains: q } },
-          ],
-        }
-      : {}),
-    ...(input.classId || input.sectionId
+    ...(q ? { OR: studentListSearchOr(q) } : {}),
+    ...(input.classId || input.sectionId || input.sessionId
       ? {
           enrollments: {
             some: {
-              isCurrent: true,
+              ...enrollmentScope(input.sessionId),
               ...(input.classId ? { classId: input.classId } : {}),
               ...(input.sectionId ? { sectionId: input.sectionId } : {}),
             },
@@ -554,7 +685,7 @@ export async function listStudents(input: {
       include: {
         category: true,
         enrollments: {
-          where: { isCurrent: true },
+          where: enrollmentScope(input.sessionId),
           include: { class: true, section: true },
           take: 1,
         },
@@ -582,7 +713,25 @@ export async function getStudent360(campusId: string, id: string) {
       previousEdu: true,
       bank: true,
       documents: { orderBy: { createdAt: "desc" } },
-      invoices: { orderBy: { createdAt: "desc" } },
+      house: { select: { id: true, name: true } },
+      invoices: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          lines: { include: { feeType: true } },
+          payments: { orderBy: { paidAt: "asc" } },
+          master: { include: { group: true } },
+        },
+      },
+      transport: {
+        include: {
+          route: true,
+          pickup: true,
+          outRoute: true,
+          outPickup: true,
+        },
+      },
+      daycare: true,
+      immunizations: { orderBy: { createdAt: "asc" } },
       attendances: { orderBy: { date: "desc" }, take: 30 },
       marks: {
         include: {
@@ -594,8 +743,17 @@ export async function getStudent360(campusId: string, id: string) {
     },
   });
   if (!student) throw notFound("student");
-  const { aadhaarEnc, panEnc, bank, marks, invoices, attendances, ...rest } =
-    student;
+  const extras = await listGuardianExtras(campusId);
+  const {
+    aadhaarEnc,
+    panEnc,
+    bank,
+    marks,
+    invoices,
+    attendances,
+    transport,
+    ...rest
+  } = student;
   const total = invoices.reduce((sum, inv) => sum + Number(inv.total), 0);
   const paid = invoices.reduce((sum, inv) => sum + Number(inv.paid), 0);
   const examMarks = marks.map((m) => {
@@ -635,6 +793,7 @@ export async function getStudent360(campusId: string, id: string) {
   ];
   return {
     ...rest,
+    guardians: attachGuardianExtras(rest.guardians, extras),
     aadhaarMasked: maskId(decryptField(aadhaarEnc)),
     panMasked: maskId(decryptField(panEnc)),
     bank: bank
@@ -656,7 +815,31 @@ export async function getStudent360(campusId: string, id: string) {
         paid: inv.paid,
         createdAt: inv.createdAt,
       })),
+      payments: invoices.flatMap((inv) =>
+        inv.payments.map((payment) => ({
+          id: payment.id,
+          invoiceId: inv.id,
+          receiptNo: payment.receiptNo,
+          amount: Number(payment.amount),
+          method: payment.method,
+          cancelledAt: payment.cancelledAt,
+          paidAt: payment.paidAt,
+        })),
+      ),
     },
+    feeLedger: feeLedgerFromInvoices(invoices),
+    transport: transport
+      ? {
+          inRoute: transport.route.name,
+          inStop: transport.pickup.name,
+          outRoute: transport.outRoute?.name ?? null,
+          outStop: transport.outPickup?.name ?? null,
+          routeId: transport.routeId,
+          pickupPointId: transport.pickupPointId,
+          outRouteId: transport.outRouteId,
+          outPickupPointId: transport.outPickupPointId,
+        }
+      : null,
     attendance: attendances,
     exams: {
       withheld: examMarks.some((m) => m.status === "withheld"),

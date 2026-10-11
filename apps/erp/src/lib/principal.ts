@@ -74,16 +74,13 @@ export async function loadPrincipal(
   };
 }
 
-export async function authenticateCredentials(input: {
+export async function findPortalUser(input: {
   username: string;
-  password: string;
   portal: string;
   campusCode?: string | null;
-}): Promise<AuthPrincipal> {
+}) {
   const actorType = PORTAL_ACTOR[input.portal];
-  if (!actorType) {
-    throw unauthenticated();
-  }
+  if (!actorType) return null;
   const { DEFAULT_CAMPUS_CODE, normalizeCampusCode } = await import(
     "./services/tenants"
   );
@@ -93,19 +90,17 @@ export async function authenticateCredentials(input: {
       campusCode = normalizeCampusCode(input.campusCode);
     }
   } catch {
-    throw unauthenticated();
+    return null;
   }
   const campus = await prisma.campus.findFirst({
     where: { code: campusCode },
   });
-  if (!campus) {
-    throw unauthenticated();
-  }
+  if (!campus) return null;
   let user = await prisma.user.findFirst({
     where: { username: input.username, actorType, campusId: campus.id },
   });
   if (!user) {
-    const platform = await prisma.user.findFirst({
+    user = await prisma.user.findFirst({
       where: {
         username: input.username,
         actorType,
@@ -114,25 +109,38 @@ export async function authenticateCredentials(input: {
         campus: { orgId: campus.orgId },
       },
     });
-    user = platform;
   }
-  if (!user || !user.isActive) {
-    throw unauthenticated();
-  }
-  const matches = await verifyPassword(input.password, user.passwordHash);
+  if (!user || !user.isActive) return null;
+  return {
+    id: user.id,
+    username: user.username,
+    campusId: campus.id,
+    passwordHash: user.passwordHash,
+  };
+}
+
+export async function authenticateCredentials(input: {
+  username: string;
+  password: string;
+  portal: string;
+  campusCode?: string | null;
+}): Promise<AuthPrincipal> {
+  const found = await findPortalUser(input);
+  if (!found) throw unauthenticated();
+  const matches = await verifyPassword(input.password, found.passwordHash);
   if (!matches) {
     throw unauthenticated();
   }
   await prisma.user.update({
-    where: { id: user.id },
+    where: { id: found.id },
     data: {
       lastLoginAt: new Date(),
-      ...(passwordNeedsRehash(user.passwordHash)
+      ...(passwordNeedsRehash(found.passwordHash)
         ? { passwordHash: await hashPassword(input.password) }
         : {}),
     },
   });
-  return loadPrincipal(user.id, campus.id);
+  return loadPrincipal(found.id, found.campusId);
 }
 
 export async function principalFromRequest(

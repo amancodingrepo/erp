@@ -19,7 +19,9 @@ export async function GET(request: Request) {
         month: r.month,
         status: r.status,
         slips: r.slips.map((s) => ({
+          id: s.id,
           staffId: s.staffId,
+          employeeId: s.staff.employeeId,
           gross: s.gross.toString(),
           pf: s.pf.toString(),
           esi: s.esi.toString(),
@@ -44,6 +46,7 @@ export async function POST(request: Request) {
       year: run.year,
       month: run.month,
       slips: run.slips.map((s) => ({
+        id: s.id,
         staffId: s.staffId,
         employeeId: s.staff.employeeId,
         gross: s.gross.toString(),

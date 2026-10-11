@@ -21,6 +21,8 @@ function LoginForm() {
   const from = useSearchParams().get("from") ?? "/staff/dashboard";
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [useOtp, setUseOtp] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [campuses, setCampuses] = useState<Array<{ name: string; code: string | null }>>(
     [],
   );
@@ -32,32 +34,7 @@ function LoginForm() {
       .catch(() => setCampuses([]));
   }, []);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPending(true);
-    setError(null);
-    const form = new FormData(event.currentTarget);
-    const response = await fetch("/api/v1/auth/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        username: form.get("username"),
-        password: form.get("password"),
-        portal: form.get("portal") || "staff",
-        campusCode: form.get("campusCode") || "MAIN",
-      }),
-    });
-    setPending(false);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(
-        payload.error === "rate_limited"
-          ? t("Too many attempts. Wait and try again.")
-          : t("Username or password is wrong, or this login is disabled."),
-      );
-      return;
-    }
-    const payload = await response.json().catch(() => ({}));
+  function goHome(payload: { user?: { actorType?: string } }) {
     const actor = payload.user?.actorType as string | undefined;
     const home =
       actor === "STUDENT"
@@ -72,6 +49,63 @@ function LoginForm() {
         ? from
         : home;
     router.replace(dest);
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    const form = new FormData(event.currentTarget);
+    const body = {
+      username: form.get("username"),
+      portal: form.get("portal") || "staff",
+      campusCode: form.get("campusCode") || "MAIN",
+    };
+    if (useOtp && !otpSent) {
+      const response = await fetch("/api/v1/auth/otp/request", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      setPending(false);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        setError(
+          payload.error === "rate_limited"
+            ? t("Too many attempts. Wait and try again.")
+            : t("Could not send a code."),
+        );
+        return;
+      }
+      setOtpSent(true);
+      return;
+    }
+    const response = await fetch(
+      useOtp ? "/api/v1/auth/otp/verify" : "/api/v1/auth/login",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(
+          useOtp
+            ? { ...body, code: form.get("code") }
+            : { ...body, password: form.get("password") },
+        ),
+      },
+    );
+    setPending(false);
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      setError(
+        payload.error === "rate_limited"
+          ? t("Too many attempts. Wait and try again.")
+          : useOtp
+            ? t("That code is wrong or has expired.")
+            : t("Username or password is wrong, or this login is disabled."),
+      );
+      return;
+    }
+    const payload = await response.json().catch(() => ({}));
+    goHome(payload);
   }
 
   return (
@@ -131,25 +165,56 @@ function LoginForm() {
             <Label htmlFor="username">{t("Username")}</Label>
             <Input id="username" name="username" autoComplete="username" required />
           </div>
-          <div>
-            <Label htmlFor="password">{t("Password")}</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </div>
+          {useOtp ? (
+            otpSent ? (
+              <div>
+                <Label htmlFor="code">{t("One-time code")}</Label>
+                <Input
+                  id="code"
+                  name="code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                />
+              </div>
+            ) : null
+          ) : (
+            <div>
+              <Label htmlFor="password">{t("Password")}</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+          )}
           {error ? (
             <p className="text-sm text-[var(--stamp)]" role="alert">
               {error}
             </p>
           ) : null}
           <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? t("Checking…") : t("Enter desk")}
+            {pending
+              ? t("Checking…")
+              : useOtp && !otpSent
+                ? t("Send code")
+                : t("Enter desk")}
           </Button>
           <p className="text-center text-sm">
+            <button
+              type="button"
+              className="underline-offset-4 hover:underline"
+              onClick={() => {
+                setUseOtp((v) => !v);
+                setOtpSent(false);
+                setError(null);
+              }}
+            >
+              {useOtp ? t("Use password") : t("Use OTP")}
+            </button>
+            {" · "}
             <Link href="/forgot-password" className="underline-offset-4 hover:underline">
               {t("Forgot password")}
             </Link>

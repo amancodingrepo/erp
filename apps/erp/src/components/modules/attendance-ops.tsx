@@ -17,6 +17,7 @@ export default function AttendanceOps({ mode }: { mode: Mode }) {
 
 function LeaveTypes() {
   const [rows, setRows] = useState<Array<{ id: string; name: string; daysYear: number }>>([]);
+  const [message, setMessage] = useState<string | null>(null);
   async function load() {
     setRows(((await (await fetch("/api/v1/leave-types")).json()) as { data: typeof rows }).data ?? []);
   }
@@ -40,6 +41,7 @@ function LeaveTypes() {
   return (
     <div className="space-y-4">
       <h1 className="font-display text-4xl">Leave types</h1>
+      {message ? <p className="text-sm text-[var(--muted)]">{message}</p> : null}
       <form className="flex flex-wrap gap-3" onSubmit={onSubmit}>
         <Input name="name" placeholder="Name" required />
         <Input name="daysYear" type="number" min="0" placeholder="Days / year" />
@@ -47,8 +49,23 @@ function LeaveTypes() {
       </form>
       <ul className="text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
-            {r.name} · {r.daysYear} days
+          <li key={r.id} className="flex flex-wrap items-center gap-2">
+            <span>
+              {r.name} · {r.daysYear} days
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/leave-types/${r.id}`, {
+                  method: "DELETE",
+                });
+                setMessage(res.ok ? "Leave type removed" : "Could not remove leave type");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>
@@ -117,16 +134,23 @@ function StaffAttendance() {
   const [message, setMessage] = useState<string | null>(null);
   async function load(event?: FormEvent) {
     event?.preventDefault();
-    const json = await (await fetch(`/api/v1/attendance/staff?date=${date}`)).json();
+    const json = await (await fetch(`/api/v1/attendance?book=staff&date=${date}`)).json();
     setRows(json.data ?? []);
   }
   async function save() {
-    const res = await fetch("/api/v1/attendance/staff", {
+    const res = await fetch("/api/v1/attendance/day", {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "Idempotency-Key": crypto.randomUUID(),
+      },
       body: JSON.stringify({
+        book: "staff",
         date,
-        entries: rows.map((r) => ({ staffId: r.staffId, status: r.status ?? "PRESENT" })),
+        entries: rows.map((r) => ({
+          staff_id: r.staffId,
+          status: r.status ?? "present",
+        })),
       }),
     });
     setMessage(res.ok ? "Saved" : "Could not save");

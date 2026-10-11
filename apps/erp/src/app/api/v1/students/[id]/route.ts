@@ -4,7 +4,13 @@ import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
-import { getStudent360 } from "@/lib/services/students";
+import { assertHouseInCampus } from "@/lib/services/diary";
+import { siblingsFor } from "@/lib/services/engagement";
+import {
+  getStudent360,
+  splitStudentPatch,
+  writeNamedGuardians,
+} from "@/lib/services/students";
 
 const patchSchema = z.object({
   firstName: z.string().optional(),
@@ -15,6 +21,26 @@ const patchSchema = z.object({
   status: z.nativeEnum(StudentStatus).optional(),
   rollNo: z.string().optional(),
   enrollmentNo: z.string().optional(),
+  janAadhaar: z.string().optional(),
+  scholarNo: z.string().optional(),
+  sssmId: z.string().optional(),
+  pen: z.string().optional(),
+  apaarId: z.string().optional(),
+  grn: z.string().optional(),
+  saralId: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  isRte: z.boolean().optional(),
+  isOnlyChild: z.boolean().optional(),
+  admittedClass: z.string().optional(),
+  annualIncome: z.string().optional(),
+  lunchFromSchool: z.boolean().optional(),
+  houseId: z.string().nullable().optional(),
+  isDefaulter: z.boolean().optional(),
+  rfid: z.string().optional(),
+  photoUrl: z.string().optional(),
+  parentLoginEnabled: z.boolean().optional(),
+  fatherName: z.string().optional(),
+  motherName: z.string().optional(),
 });
 
 export async function GET(
@@ -30,7 +56,9 @@ export async function GET(
     );
     const { id } = await context.params;
     assertCanAccessStudent(user, id);
-    return ok(await getStudent360(user.campusId, id));
+    const student = await getStudent360(user.campusId, id);
+    const siblings = await siblingsFor(user.campusId, id);
+    return ok({ ...student, siblings });
   } catch (error) {
     return fail(error);
   }
@@ -53,12 +81,22 @@ export async function PATCH(
     });
     if (!existing) throw notFound("student");
     const body = patchSchema.parse(await readJson(request));
-    const updated = await prisma.student.update({
-      where: { id },
-      data: {
-        ...body,
-        email: body.email === "" ? null : body.email,
-      },
+    if (body.houseId) {
+      await assertHouseInCampus(user.campusId, body.houseId);
+    }
+    const { student: fields, guardians } = splitStudentPatch(body);
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.student.update({
+        where: { id },
+        data: {
+          ...fields,
+          email: fields.email === "" ? null : fields.email,
+        },
+      });
+      if (guardians.length) {
+        await writeNamedGuardians(tx, id, guardians);
+      }
+      return row;
     });
     return ok({
       id: updated.id,
@@ -66,6 +104,7 @@ export async function PATCH(
       firstName: updated.firstName,
       lastName: updated.lastName,
       status: updated.status,
+      parentLoginEnabled: updated.parentLoginEnabled,
     });
   } catch (error) {
     if (

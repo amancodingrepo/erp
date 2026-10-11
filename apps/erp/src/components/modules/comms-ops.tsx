@@ -4,7 +4,13 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
-type Mode = "email-template" | "sms-template" | "compose" | "log" | "reminder";
+type Mode =
+  | "email-template"
+  | "sms-template"
+  | "compose"
+  | "log"
+  | "reminder"
+  | "emergency";
 const SELECT =
   "h-10 w-full rounded-md border border-[var(--rule)] bg-[var(--paper)] px-3 text-sm";
 
@@ -13,6 +19,7 @@ export default function CommsOps({ mode }: { mode: Mode }) {
   if (mode === "compose") return <ComposePanel />;
   if (mode === "log") return <LogPanel />;
   if (mode === "reminder") return <ReminderPanel />;
+  if (mode === "emergency") return <EmergencyPanel />;
   return <TemplatePanel channel="EMAIL" />;
 }
 
@@ -66,8 +73,21 @@ function TemplatePanel({ channel }: { channel: "EMAIL" | "SMS" }) {
       </form>
       <ul className="text-sm">
         {rows.map((r) => (
-          <li key={r.id}>
+          <li key={r.id} className="flex items-center gap-3">
             <strong>{r.name}</strong> — {r.body.slice(0, 80)}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                const res = await fetch(`/api/v1/message-templates/${r.id}`, {
+                  method: "DELETE",
+                });
+                setMessage(res.ok ? "Template removed" : "Could not remove template");
+                if (res.ok) load();
+              }}
+            >
+              Remove
+            </Button>
           </li>
         ))}
       </ul>
@@ -156,7 +176,7 @@ function LogPanel() {
 function ReminderPanel() {
   const [message, setMessage] = useState<string | null>(null);
   async function run(channel: "SMS" | "EMAIL") {
-    const res = await fetch("/api/v1/reminders/fees", {
+    const res = await fetch("/api/v1/fees/remind", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ channel }),
@@ -180,6 +200,56 @@ function ReminderPanel() {
           Run email reminders
         </Button>
       </div>
+    </div>
+  );
+}
+
+function EmergencyPanel() {
+  const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/v1/classes")
+      .then((r) => r.json())
+      .then((j) => setClasses(j.data ?? []));
+  }, []);
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const res = await fetch("/api/v1/sms/emergency", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        body: form.get("body"),
+        classId: form.get("classId") || undefined,
+      }),
+    });
+    const json = await res.json();
+    setMessage(res.ok ? `Queued ${json.queued}` : "Could not send");
+  }
+  return (
+    <div className="max-w-xl space-y-4">
+      <h1 className="font-display text-4xl">Emergency SMS</h1>
+      <p className="text-sm text-[var(--muted)]">
+        Queues SMS to parent mobiles on the class (or whole campus). Delivery uses SMS_WEBHOOK_URL when set.
+      </p>
+      <p className="text-sm text-[var(--muted)]">{message}</p>
+      <form className="grid gap-3" onSubmit={onSubmit}>
+        <select name="classId" className={SELECT} defaultValue="">
+          <option value="">All classes</option>
+          {classes.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.name}
+            </option>
+          ))}
+        </select>
+        <textarea
+          name="body"
+          required
+          className="min-h-24 rounded-md border border-[var(--rule)] bg-[var(--paper)] p-2 text-sm"
+          placeholder="Message"
+        />
+        <Button type="submit">Queue SMS</Button>
+      </form>
     </div>
   );
 }

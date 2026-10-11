@@ -6,9 +6,27 @@ export type PortalData = {
   student: { id: string; admissionNo: string; name: string; class: string | null; section: string | null };
   dues: { balance: string; paid: string; total: string };
   attendancePercent: number;
-  notices: Array<{ id: string; title: string; publishAt: string }>;
+  notices: Array<{
+    id: string;
+    title: string;
+    body?: string;
+    publishAt: string;
+    read?: boolean;
+    allowReply?: boolean;
+    attachments?: Array<{ id: string; name: string; url: string }>;
+    replies?: Array<{
+      id: string;
+      body: string;
+      authorRole: "parent" | "staff";
+      at: string;
+    }>;
+  }>;
   timetable: { placeholder: boolean; nextClass: string | null };
-  exams: { status: string; marks: Array<{ exam: string; marks: unknown; isAbsent?: boolean }> };
+  exams: {
+    status: string;
+    marks: Array<{ exam: string; marks: unknown; isAbsent?: boolean }>;
+    coScholastic?: Array<{ aspect: string; grade: string; remark: string }>;
+  };
 };
 
 export function usePortal() {

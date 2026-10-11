@@ -2,6 +2,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { attachFeeMasterInstallments } from "@/lib/services/campus-fee-installments";
+import { createFeeMastersFromInstallments } from "@/lib/services/fees";
 
 const createSchema = z.object({
   sessionId: z.string().min(1),
@@ -12,6 +14,8 @@ const createSchema = z.object({
       z.object({
         feeTypeId: z.string(),
         amount: z.number().nonnegative(),
+        dueDate: z.string().optional(),
+        installmentId: z.string().optional(),
       }),
     )
     .min(1),
@@ -29,7 +33,7 @@ export async function GET(request: Request) {
       include: { group: true, lines: { include: { feeType: true } } },
       orderBy: { dueDate: "asc" },
     });
-    return ok({ data });
+    return ok({ data: await attachFeeMasterInstallments(user.campusId, data) });
   } catch (error) {
     return fail(error);
   }
@@ -39,6 +43,15 @@ export async function POST(request: Request) {
   try {
     const user = await requireApiPermission(request, "fees", "master", "create");
     const body = createSchema.parse(await readJson(request));
+    if (body.lines.some((line) => line.dueDate || line.installmentId)) {
+      const rows = await createFeeMastersFromInstallments({
+        campusId: user.campusId,
+        sessionId: body.sessionId,
+        groupId: body.groupId,
+        lines: body.lines,
+      });
+      return created({ data: rows, created: rows.length });
+    }
     const row = await prisma.feeMaster.create({
       data: {
         campusId: user.campusId,
