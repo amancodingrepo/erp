@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { fail, ok } from "@/lib/http";
 import { assertStaff, principalFromRequest } from "@/lib/principal";
-import { parseReportFilters, runReport, toCsv, toXlsx, xlsxFilename } from "@/lib/reports";
+import {
+  parseReportFilters,
+  pdfFilename,
+  runReport,
+  toCsv,
+  toPdf,
+  toXlsx,
+  xlsxFilename,
+} from "@/lib/reports";
 
 export async function GET(
   request: Request,
@@ -37,6 +45,14 @@ export async function GET(
           "content-type":
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           "content-disposition": `attachment; filename="${xlsxFilename(key)}"`,
+        },
+      });
+    }
+    if (params.get("format") === "pdf") {
+      return new NextResponse(Buffer.from(toPdf(report)), {
+        headers: {
+          "content-type": "application/pdf",
+          "content-disposition": `attachment; filename="${pdfFilename(key)}"`,
         },
       });
     }

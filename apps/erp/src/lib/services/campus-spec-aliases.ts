@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { validationError } from "@/lib/errors";
+import { parseAttendanceSource } from "@/lib/services/campus-attendance-source";
 
 function trim(value: unknown) {
   return String(value ?? "").trim();
@@ -629,6 +630,7 @@ export function parseAttendanceDay(input: unknown) {
       studentId: book === "class" ? personId : undefined,
       staffId: book === "staff" ? personId : undefined,
       status: parseAttendanceStatus(item.status),
+      source: parseAttendanceSource(item.source),
       inTime: firstId(item, ["inTime", "in_time"]) || undefined,
       outTime: firstId(item, ["outTime", "out_time"]) || undefined,
     };

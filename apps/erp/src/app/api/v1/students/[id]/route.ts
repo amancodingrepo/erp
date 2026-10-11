@@ -105,6 +105,7 @@ export async function PATCH(
       lastName: updated.lastName,
       status: updated.status,
       parentLoginEnabled: updated.parentLoginEnabled,
+      studentLoginEnabled: Boolean(updated.userId),
     });
   } catch (error) {
     if (

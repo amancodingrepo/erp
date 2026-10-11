@@ -425,10 +425,18 @@ describe("attendance book and day", () => {
       classId: "sec-a",
       date: "2026-04-10",
       entries: [
-        { studentId: "s1", staffId: undefined, status: "HALFDAY" },
-        { studentId: "s2", staffId: undefined, status: "" },
+        { studentId: "s1", staffId: undefined, status: "HALFDAY", source: "manual" },
+        { studentId: "s2", staffId: undefined, status: "", source: "manual" },
       ],
     });
+    expect(
+      parseAttendanceDay({
+        book: "class",
+        class_id: "sec-a",
+        date: "2026-04-10",
+        marks: [{ person_id: "s1", status: "present", source: "rfid" }],
+      }).entries[0],
+    ).toMatchObject({ studentId: "s1", source: "rfid" });
     expect(
       parseAttendanceDay({
         book: "teacher",

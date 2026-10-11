@@ -19,6 +19,7 @@ const putSchema = z.object({
         .or(z.literal(""))
         .nullable()
         .optional(),
+      source: z.enum(["manual", "rfid", "gps"]).optional(),
     }),
   ),
 });

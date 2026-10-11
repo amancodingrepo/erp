@@ -43,6 +43,7 @@ describe("toStudentListRow", () => {
       pen: "P1",
       apaarId: "AP1",
       parentLoginEnabled: false,
+      userId: "u-stu",
       dob: null,
       gender: null,
       mobile: null,
@@ -64,6 +65,7 @@ describe("toStudentListRow", () => {
     expect(row.fatherName).toBe("Rahul");
     expect(row.motherName).toBe("Meera");
     expect(row.parentLoginEnabled).toBe(false);
+    expect(row.studentLoginEnabled).toBe(true);
     expect(row.pen).toBe("P1");
     expect(row.apaarId).toBe("AP1");
   });

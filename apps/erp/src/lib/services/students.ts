@@ -331,6 +331,7 @@ export function toStudentListRow(s: {
   isDefaulter?: boolean;
   photoUrl?: string | null;
   parentLoginEnabled?: boolean;
+  userId?: string | null;
   dob?: Date | null;
   gender?: Gender | null;
   mobile?: string | null;
@@ -361,6 +362,7 @@ export function toStudentListRow(s: {
     fatherName: father?.name ?? null,
     motherName: mother?.name ?? null,
     parentLoginEnabled: s.parentLoginEnabled ?? true,
+    studentLoginEnabled: Boolean(s.userId),
     scholarNo: s.scholarNo ?? null,
     pen: s.pen ?? null,
     apaarId: s.apaarId ?? null,
@@ -793,6 +795,7 @@ export async function getStudent360(campusId: string, id: string) {
   ];
   return {
     ...rest,
+    studentLoginEnabled: Boolean(student.userId),
     guardians: attachGuardianExtras(rest.guardians, extras),
     aadhaarMasked: maskId(decryptField(aadhaarEnc)),
     panMasked: maskId(decryptField(panEnc)),

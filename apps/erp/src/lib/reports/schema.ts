@@ -1,4 +1,5 @@
 import { notFound } from "@/lib/errors";
+import { buildPagedPdf } from "@/lib/pdf/simple";
 import { REPORT_KEYS, isReportKey, type ReportKey, type ReportResult } from "./keys";
 
 export type ReportFilterName = "classId" | "sectionId" | "from" | "to" | "feeGroupId";
@@ -388,4 +389,25 @@ export function toXlsx(report: ReportResult) {
 
 export function xlsxFilename(key: string) {
   return `${resolveReportKey(key)}.xlsx`;
+}
+
+function pdfCell(value: string | number | null) {
+  if (value == null) return "";
+  return String(value).replace(/[\r\n]+/g, " ");
+}
+
+export function toPdf(report: ReportResult) {
+  const cols = report.columns;
+  const width = Math.max(6, Math.min(28, Math.floor(110 / Math.max(cols.length, 1))));
+  const line = (cells: Array<string | number | null>) =>
+    cells.map((cell) => pdfCell(cell).slice(0, width).padEnd(width)).join(" ");
+  return buildPagedPdf([
+    report.title || "Report",
+    line(cols),
+    ...report.rows.map((row) => line(cols.map((col) => row[col] ?? ""))),
+  ]);
+}
+
+export function pdfFilename(key: string) {
+  return `${resolveReportKey(key)}.pdf`;
 }

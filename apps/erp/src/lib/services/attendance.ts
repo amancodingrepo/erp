@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { forbidden, notFound, validationError } from "@/lib/errors";
 import type { AuthPrincipal } from "@/lib/permissions";
 import { queueAbsentSms } from "@/lib/services/campus-comms";
+import {
+  loadAttendanceSources,
+  lookupAttendanceSource,
+  persistAttendanceSources,
+} from "@/lib/services/campus-attendance-source";
 import { enrollmentScope } from "@/lib/services/session-context";
 
 const DAILY_SUBJECT = "";
@@ -77,7 +82,11 @@ export async function markStudents(input: {
   sectionId: string;
   subjectId?: string;
   override?: boolean;
-  entries: Array<{ studentId: string; status?: AttendanceStatus | string | null }>;
+  entries: Array<{
+    studentId: string;
+    status?: AttendanceStatus | string | null;
+    source?: string | null;
+  }>;
 }) {
   const date = parseDateOnly(input.date);
   await assertMarkableDate({
@@ -156,6 +165,18 @@ export async function markStudents(input: {
     date: input.date,
     studentIds: absentIds,
   });
+  const sourceByStudent = new Map(
+    input.entries.map((row) => [row.studentId, row.source]),
+  );
+  await persistAttendanceSources(input.user.campusId, {
+    date: input.date,
+    subjectId,
+    marked: entries.map((entry) => ({
+      studentId: entry.studentId,
+      source: sourceByStudent.get(entry.studentId),
+    })),
+    cleared: clearIds,
+  });
   return { ok: true, count: entries.length, cleared: clearIds.length, absentSms: sms.queued };
 }
 
@@ -183,15 +204,23 @@ export async function roster(input: {
     },
   });
   const byStudent = new Map(marks.map((m) => [m.studentId, m]));
+  const sources = await loadAttendanceSources(input.campusId);
+  const period = subjectKey(input.subjectId);
   return {
     date: input.date,
     statuses: Object.values(AttendanceStatus),
-    data: enrollments.map((e) => ({
-      studentId: e.studentId,
-      admissionNo: e.student.admissionNo,
-      name: [e.student.firstName, e.student.lastName].filter(Boolean).join(" "),
-      status: byStudent.get(e.studentId)?.status ?? null,
-    })),
+    data: enrollments.map((e) => {
+      const mark = byStudent.get(e.studentId);
+      return {
+        studentId: e.studentId,
+        admissionNo: e.student.admissionNo,
+        name: [e.student.firstName, e.student.lastName].filter(Boolean).join(" "),
+        status: mark?.status ?? null,
+        source: mark
+          ? lookupAttendanceSource(sources, e.studentId, input.date, period)
+          : null,
+      };
+    }),
   };
 }
 

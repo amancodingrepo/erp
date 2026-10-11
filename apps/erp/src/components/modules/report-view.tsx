@@ -75,6 +75,9 @@ export default function ReportView({ reportKey }: { reportKey: ReportKey }) {
           <a className="underline" href={`/api/v1/reports/${key}/export.xlsx?${query()}`}>
             Download Excel
           </a>
+          <a className="underline" href={`/api/v1/reports/${key}/export.pdf?${query()}`}>
+            Download PDF
+          </a>
         </div>
       </div>
       <form className="grid gap-3 sm:grid-cols-6" onSubmit={load}>

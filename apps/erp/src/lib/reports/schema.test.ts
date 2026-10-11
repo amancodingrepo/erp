@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  pdfFilename,
   pickReportColumns,
   reportSchema,
   resolveReportKey,
+  toPdf,
   toXlsx,
 } from "./schema";
 
@@ -58,5 +60,28 @@ describe("toXlsx", () => {
     expect(text).toContain("A &amp; B");
     expect(text).toContain("12.5");
     expect(text).toContain("xl/worksheets/sheet1.xml");
+  });
+});
+
+describe("toPdf", () => {
+  it("builds a multi-page PDF with title, headers, and escaped cells", () => {
+    const bytes = toPdf({
+      title: "Due (A)",
+      columns: ["name", "amount"],
+      rows: [
+        { name: "A & B (1)", amount: 12.5 },
+        ...Array.from({ length: 80 }, (_, i) => ({
+          name: `Row ${i}`,
+          amount: i,
+        })),
+      ],
+    });
+    const text = new TextDecoder().decode(bytes);
+    expect(text.startsWith("%PDF")).toBe(true);
+    expect(text).toContain("/Count 2");
+    expect(text).toContain("Due \\(A\\)");
+    expect(text).toContain("A & B \\(1\\)");
+    expect(text).toContain("12.5");
+    expect(pdfFilename("paid_fee")).toBe("daily-collection.pdf");
   });
 });

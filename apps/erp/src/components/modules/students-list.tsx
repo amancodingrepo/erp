@@ -16,6 +16,7 @@ type Row = {
   fatherName: string | null;
   motherName: string | null;
   parentLoginEnabled?: boolean;
+  studentLoginEnabled?: boolean;
   scholarNo: string | null;
   pen: string | null;
   apaarId: string | null;
@@ -38,6 +39,7 @@ const COLUMNS = [
   "Father",
   "Mother",
   "Parent login",
+  "Student login",
   "RFID",
   "Defaulter",
   "DOB",
@@ -151,6 +153,9 @@ export default function StudentsList({
                 <td className="px-3 py-2">{row.motherName ?? "—"}</td>
                 <td className="px-3 py-2">
                   {row.parentLoginEnabled === false ? "Off" : "On"}
+                </td>
+                <td className="px-3 py-2">
+                  {row.studentLoginEnabled ? "On" : "Off"}
                 </td>
                 <td className="px-3 py-2">{row.rfid ?? "—"}</td>
                 <td className="px-3 py-2">{row.isDefaulter ? "Yes" : "No"}</td>

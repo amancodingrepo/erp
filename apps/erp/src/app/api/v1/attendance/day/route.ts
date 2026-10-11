@@ -61,6 +61,7 @@ export async function PUT(request: Request) {
           entries: parsed.entries.map((row) => ({
             studentId: row.studentId!,
             status: row.status,
+            source: row.source,
           })),
         }),
       ),

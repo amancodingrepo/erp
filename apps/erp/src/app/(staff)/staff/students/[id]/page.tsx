@@ -53,6 +53,7 @@ type Student = {
   rfid?: string | null;
   photoUrl?: string | null;
   parentLoginEnabled?: boolean;
+  studentLoginEnabled?: boolean;
   siblings?: {
     groupId: string | null;
     siblings: Array<{
@@ -305,6 +306,7 @@ export default function StudentProfilePage() {
             <Item label="Admitted class" value={student.admittedClass} />
             <Item label="Annual income" value={student.annualIncome} />
             <Item label="Parent login" value={student.parentLoginEnabled === false ? "Off" : "On"} />
+            <Item label="Student login" value={student.studentLoginEnabled ? "On" : "Off"} />
             <Item label="RTE" value={student.isRte ? "Yes" : "No"} />
             <Item label="Only child" value={student.isOnlyChild ? "Yes" : "No"} />
             <Item label="Lunch from school" value={student.lunchFromSchool ? "Yes" : "No"} />

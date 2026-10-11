@@ -152,6 +152,9 @@ Safety used while mapping: GET/view only. Never clicked Save, Submit, Post, Dele
 - [x] Houses / hostels / visitors item CRUD
 - [x] Links / front-office-types / message-templates item CRUD
 - [x] Live-classes / programs / exam-forms (windows + submissions) item CRUD
+- [x] Report PDF export (`GET /reports/{key}/export.pdf` and `?format=pdf`) on the same runner
+- [x] Attendance source `manual|rfid|gps` on mark/roster (Setting `attendance.sources`)
+- [x] `student_login_enabled` from the linked student portal user
 
 ## Pages explicitly not mutated
 
