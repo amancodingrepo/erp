@@ -105,12 +105,12 @@ describe("acceptance Students", () => {
 
   it("Search by name fragment and by admissionNo", async () => {
     const byName = await json(
-      await studentsGet(req("GET", `/api/v1/students?q=Kavya`, token)),
+      await studentsGet(req("GET", `/api/v1/students?q=Kavya&sessionId=${sessionId}`, token)),
     );
     const rows = (byName.body as { data: Array<{ admissionNo: string }> }).data;
     expect(rows.some((r) => r.admissionNo === admissionNo)).toBe(true);
     const byId = await json(
-      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}`, token)),
+      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}&sessionId=${sessionId}`, token)),
     );
     expect((byId.body as { data: unknown[] }).data).toHaveLength(1);
   });
@@ -126,12 +126,12 @@ describe("acceptance Students", () => {
     );
     expect(disabled.status).toBe(200);
     const active = await json(
-      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}`, token)),
+      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}&sessionId=${sessionId}`, token)),
     );
     expect((active.body as { data: unknown[] }).data).toHaveLength(0);
     const listed = await json(
       await studentsGet(
-        req("GET", `/api/v1/students?q=${admissionNo}&status=DISABLED`, token),
+        req("GET", `/api/v1/students?q=${admissionNo}&status=DISABLED&sessionId=${sessionId}`, token),
       ),
     );
     expect((listed.body as { data: unknown[] }).data).toHaveLength(1);

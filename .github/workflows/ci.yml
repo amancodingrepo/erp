@@ -66,3 +66,31 @@ jobs:
       - run: npx prisma migrate deploy
       - run: npx prisma db seed
       - run: npx vitest run src/test
+
+  deploy:
+    name: railway-up
+    needs: [unit, integration]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: railway-web-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        working-directory: .
+        run: npm i -g @railway/cli
+      - name: Deploy web
+        working-directory: apps/erp
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Set GitHub secret RAILWAY_TOKEN to a Railway project token for this environment"
+            exit 1
+          fi
+          railway up --ci --service web \
+            --project 5839f917-2aeb-49d3-a6ef-3954e23062e6 \
+            --environment 31e38090-d678-482a-acae-448a8018a54b \
+            -m "github ${GITHUB_SHA}"

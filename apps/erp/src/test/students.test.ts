@@ -182,7 +182,7 @@ describe("Task 3 students SIS", () => {
 
     const list = await json(
       await studentsGet(
-        req("GET", `/api/v1/students?q=${admissionNo}`, token),
+        req("GET", `/api/v1/students?q=${admissionNo}&sessionId=${sessionId}`, token),
       ),
     );
     expect(list.status).toBe(200);
@@ -217,13 +217,13 @@ describe("Task 3 students SIS", () => {
 
   it("searches by name fragment and admissionNo", async () => {
     const byName = await json(
-      await studentsGet(req("GET", `/api/v1/students?q=Kavya`, token)),
+      await studentsGet(req("GET", `/api/v1/students?q=Kavya&sessionId=${sessionId}`, token)),
     );
     const rows = (byName.body as { data: Array<{ admissionNo: string }> }).data;
     expect(rows.some((r) => r.admissionNo === admissionNo)).toBe(true);
 
     const byId = await json(
-      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}`, token)),
+      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}&sessionId=${sessionId}`, token)),
     );
     expect(
       (byId.body as { data: Array<{ admissionNo: string }> }).data,
@@ -330,13 +330,13 @@ describe("Task 3 students SIS", () => {
     expect(missingReason.status).toBe(422);
 
     const active = await json(
-      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}`, token)),
+      await studentsGet(req("GET", `/api/v1/students?q=${admissionNo}&sessionId=${sessionId}`, token)),
     );
     expect((active.body as { data: unknown[] }).data).toHaveLength(0);
 
     const disabledList = await json(
       await studentsGet(
-        req("GET", `/api/v1/students?q=${admissionNo}&status=DISABLED`, token),
+        req("GET", `/api/v1/students?q=${admissionNo}&status=DISABLED&sessionId=${sessionId}`, token),
       ),
     );
     expect((disabledList.body as { data: unknown[] }).data).toHaveLength(1);
@@ -459,8 +459,8 @@ describe("Task 3 students SIS", () => {
       ),
     );
     expect(saved.status).toBe(201);
-    expect((saved.body as { fileUrl: string }).fileUrl).toContain(
-      `/students/${studentId}/`,
+    expect((saved.body as { fileUrl: string }).fileUrl).toMatch(
+      /^\/api\/v1\/files\/[0-9a-f-]{36}$/i,
     );
 
     const listed = await json(

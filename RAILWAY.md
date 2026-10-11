@@ -41,7 +41,7 @@ Uploads: volume at `/app/uploads`, `UPLOAD_DIR=/app/uploads`.
 
 Uploads: volume at `/app/uploads`, `UPLOAD_DIR=/app/uploads`.
 
-**CI** (`.github/workflows/ci.yml`): on push/PR to `apps/erp` — unit tests + `tsc`, then integration tests against Postgres 16. Push to GitHub to start it.
+**CI** (`.github/workflows/ci.yml`): on push/PR to `apps/erp` — unit tests + `tsc`, then integration tests against Postgres 16. On `main`, after both jobs pass, the `railway-up` job runs `railway up --ci` from `apps/erp`. GitHub secret `RAILWAY_TOKEN` must be a Railway **project token** for this environment (dashboard → project → Tokens). PRs never deploy.
 
 **Backup job**
 - In-app: SuperAdmin `/staff/admin/backup` (snapshot JSON + `pg_dump` onto the uploads volume, last 7 files). Production also dumps ~1 minute after boot, then daily.
