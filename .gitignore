@@ -20,3 +20,5 @@ erp-crawl/pages.jsonl
 erp-crawl/crawl.log
 *.tsbuildinfo
 .prisma/
+.skillgod/
+.agents/
