@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
@@ -152,9 +153,9 @@ export default function UsersPage() {
       <h1 className="font-display text-4xl">Users</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
         Enable or disable login. To add a teacher or platform admin with a staff ID, use{" "}
-        <a className="underline" href="/staff/staff">
+        <Link className="underline" href="/staff/staff">
           Manage staff
-        </a>
+        </Link>
         . This page also creates a staff login and role.
       </p>
       <form
