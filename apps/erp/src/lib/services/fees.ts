@@ -7,7 +7,13 @@ import {
 import { z } from "zod";
 import { classInCampus, currentSessionId, sessionInCampus } from "@/lib/campus";
 import { prisma } from "@/lib/db";
-import { conflict, notFound, validationError } from "@/lib/errors";
+import {
+  conflict,
+  notFound,
+  prismaErrorCode,
+  uniqueConstraintHits,
+  validationError,
+} from "@/lib/errors";
 import { dec, moneyMin, ZERO } from "@/lib/money";
 import type { AuthPrincipal } from "@/lib/permissions";
 import { campusLetterhead } from "@/lib/letterhead";
@@ -108,6 +114,22 @@ async function nextReceiptNo(
   session: { id: string; name: string; code: string | null },
 ) {
   return allocateSessionNumber(tx, campusId, session, "receipt");
+}
+
+async function withReceiptRetry<T>(run: () => Promise<T>): Promise<T> {
+  let last: unknown;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await run();
+    } catch (error) {
+      last = error;
+      if (prismaErrorCode(error) === "P2002" && uniqueConstraintHits(error, "receiptNo")) {
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw last;
 }
 
 export async function createFeeMastersFromInstallments(input: {
@@ -451,33 +473,32 @@ export async function collectPayment(input: {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const receiptNo = await nextReceiptNo(tx, input.campusId, session);
-      const payment = await tx.payment.create({
-        data: {
-          invoiceId: invoice.id,
-          amount,
-          discount,
-          fine,
-          method: input.body.method,
-          reference: input.body.reference,
-          idempotencyKey: input.idempotencyKey,
-          lineId: input.body.lineId,
-          receiptNo,
-          note: input.body.note,
-          paidAt,
-          collectedBy: input.userId,
-        },
-      });
-      const updated = await replayInvoice(tx, invoice.id);
-      return { payment, invoice: updated };
-    });
+    const result = await withReceiptRetry(() =>
+      prisma.$transaction(async (tx) => {
+        const receiptNo = await nextReceiptNo(tx, input.campusId, session);
+        const payment = await tx.payment.create({
+          data: {
+            invoiceId: invoice.id,
+            amount,
+            discount,
+            fine,
+            method: input.body.method,
+            reference: input.body.reference,
+            idempotencyKey: input.idempotencyKey,
+            lineId: input.body.lineId,
+            receiptNo,
+            note: input.body.note,
+            paidAt,
+            collectedBy: input.userId,
+          },
+        });
+        const updated = await replayInvoice(tx, invoice.id);
+        return { payment, invoice: updated };
+      }),
+    );
     return { replayed: false, ...result };
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (prismaErrorCode(error) === "P2002") {
       const raced = await prisma.payment.findUnique({
         where: { idempotencyKey: input.idempotencyKey },
         include: { invoice: { include: { lines: true, student: true } } },
@@ -507,40 +528,42 @@ export async function cancelPayment(input: {
   });
   if (!session) throw notFound("session");
 
-  return prisma.$transaction(async (tx) => {
-    const original = await tx.payment.update({
-      where: { id: payment.id },
-      data: {
-        cancelledAt: new Date(),
-        note: [payment.note, `cancel:${input.reason}`].filter(Boolean).join(" | "),
-      },
-    });
-    await tx.payment.updateMany({
-      where: {
-        invoiceId: payment.invoiceId,
-        cancelledAt: null,
-        note: { startsWith: `refund of ${payment.receiptNo}` },
-      },
-      data: { cancelledAt: new Date() },
-    });
-    const receiptNo = await nextReceiptNo(tx, input.campusId, session);
-    const contra = await tx.payment.create({
-      data: {
-        invoiceId: payment.invoiceId,
-        amount: dec(payment.amount).negated(),
-        discount: dec(payment.discount).negated(),
-        fine: dec(payment.fine).negated(),
-        method: payment.method,
-        reference: payment.receiptNo,
-        receiptNo,
-        note: `contra of ${payment.receiptNo}: ${input.reason}`,
-        paidAt: new Date(),
-        collectedBy: payment.collectedBy,
-      },
-    });
-    const invoice = await replayInvoice(tx, payment.invoiceId);
-    return { payment: original, contra, invoice };
-  });
+  return withReceiptRetry(() =>
+    prisma.$transaction(async (tx) => {
+      const original = await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          cancelledAt: new Date(),
+          note: [payment.note, `cancel:${input.reason}`].filter(Boolean).join(" | "),
+        },
+      });
+      await tx.payment.updateMany({
+        where: {
+          invoiceId: payment.invoiceId,
+          cancelledAt: null,
+          note: { startsWith: `refund of ${payment.receiptNo}` },
+        },
+        data: { cancelledAt: new Date() },
+      });
+      const receiptNo = await nextReceiptNo(tx, input.campusId, session);
+      const contra = await tx.payment.create({
+        data: {
+          invoiceId: payment.invoiceId,
+          amount: dec(payment.amount).negated(),
+          discount: dec(payment.discount).negated(),
+          fine: dec(payment.fine).negated(),
+          method: payment.method,
+          reference: payment.receiptNo,
+          receiptNo,
+          note: `contra of ${payment.receiptNo}: ${input.reason}`,
+          paidAt: new Date(),
+          collectedBy: payment.collectedBy,
+        },
+      });
+      const invoice = await replayInvoice(tx, payment.invoiceId);
+      return { payment: original, contra, invoice };
+    }),
+  );
 }
 
 export async function refundPayment(input: {
@@ -570,26 +593,28 @@ export async function refundPayment(input: {
     refundableAmount(Number(payment.amount), already),
   );
 
-  return prisma.$transaction(async (tx) => {
-    const receiptNo = await nextReceiptNo(tx, input.campusId, session);
-    const refund = await tx.payment.create({
-      data: {
-        invoiceId: payment.invoiceId,
-        amount: dec(amount).negated(),
-        discount: ZERO,
-        fine: ZERO,
-        method: payment.method,
-        reference: payment.receiptNo,
-        lineId: payment.lineId,
-        receiptNo,
-        note: `refund of ${payment.receiptNo}: ${reason}`,
-        paidAt: new Date(),
-        collectedBy: payment.collectedBy,
-      },
-    });
-    const invoice = await replayInvoice(tx, payment.invoiceId);
-    return { payment, refund, invoice };
-  });
+  return withReceiptRetry(() =>
+    prisma.$transaction(async (tx) => {
+      const receiptNo = await nextReceiptNo(tx, input.campusId, session);
+      const refund = await tx.payment.create({
+        data: {
+          invoiceId: payment.invoiceId,
+          amount: dec(amount).negated(),
+          discount: ZERO,
+          fine: ZERO,
+          method: payment.method,
+          reference: payment.receiptNo,
+          lineId: payment.lineId,
+          receiptNo,
+          note: `refund of ${payment.receiptNo}: ${reason}`,
+          paidAt: new Date(),
+          collectedBy: payment.collectedBy,
+        },
+      });
+      const invoice = await replayInvoice(tx, payment.invoiceId);
+      return { payment, refund, invoice };
+    }),
+  );
 }
 
 export async function studentLedger(input: {

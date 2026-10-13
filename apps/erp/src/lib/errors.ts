@@ -63,3 +63,18 @@ export function prismaErrorCode(error: unknown): string | null {
   }
   return null;
 }
+
+export function uniqueConstraintFields(error: unknown): string[] {
+  if (!error || typeof error !== "object") return [];
+  const target = (error as { meta?: { target?: unknown } }).meta?.target;
+  if (Array.isArray(target)) return target.map(String);
+  if (typeof target === "string" && target.trim()) return [target];
+  if (error instanceof Error && /receiptNo/i.test(error.message)) return ["receiptNo"];
+  return [];
+}
+
+export function uniqueConstraintHits(error: unknown, field: string) {
+  return uniqueConstraintFields(error).some((item) =>
+    item.toLowerCase().includes(field.toLowerCase()),
+  );
+}

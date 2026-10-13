@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { conflict } from "./errors";
+import { conflict, uniqueConstraintHits } from "./errors";
 import { fail } from "./http";
 
 describe("fail", () => {
@@ -8,6 +8,15 @@ describe("fail", () => {
     expect(res.status).toBe(409);
     const body = (await res.json()) as { error: string };
     expect(body.error).toBe("conflict");
+  });
+
+  it("detects receiptNo unique collisions from Prisma meta", () => {
+    expect(
+      uniqueConstraintHits({ code: "P2002", meta: { target: ["receiptNo"] } }, "receiptNo"),
+    ).toBe(true);
+    expect(
+      uniqueConstraintHits({ code: "P2002", meta: { target: ["idempotencyKey"] } }, "receiptNo"),
+    ).toBe(false);
   });
 
   it("keeps HttpError conflict as 409", async () => {

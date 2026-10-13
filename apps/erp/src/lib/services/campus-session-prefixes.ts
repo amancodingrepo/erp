@@ -302,23 +302,43 @@ export async function saveInvoiceNo(
   return next.find((row) => row.invoiceId === invoiceId)!;
 }
 
+export function sessionSeqKey(kind: "receipt" | "invoice", sessionId: string) {
+  return kind === "receipt"
+    ? `fees.receiptSeq.${sessionId}`
+    : `fees.invoiceSeq.${sessionId}`;
+}
+
+/** Row-locked increment so parallel cashiers (and CI files) cannot reuse a receipt number. */
+export async function bumpSessionSeq(
+  tx: Prisma.TransactionClient,
+  campusId: string,
+  seqKey: string,
+) {
+  await tx.$executeRaw`
+    INSERT INTO "Setting" (id, "campusId", key, value)
+    VALUES (${crypto.randomUUID()}, ${campusId}, ${seqKey}, '0'::jsonb)
+    ON CONFLICT ("campusId", key) DO NOTHING
+  `;
+  const rows = await tx.$queryRaw<Array<{ next: number | bigint | string }>>`
+    UPDATE "Setting"
+    SET value = to_jsonb(COALESCE((NULLIF(btrim(value #>> '{}'), ''))::int, 0) + 1)
+    WHERE "campusId" = ${campusId} AND key = ${seqKey}
+    RETURNING (value #>> '{}')::int AS next
+  `;
+  const next = Number(rows[0]?.next);
+  if (!Number.isFinite(next) || next < 1) {
+    throw validationError({ sequence: "failed" });
+  }
+  return next;
+}
+
 export async function allocateSessionNumber(
   tx: Prisma.TransactionClient,
   campusId: string,
   session: { id: string; name: string; code: string | null },
   kind: "receipt" | "invoice",
 ) {
-  const seqKey =
-    kind === "receipt" ? `fees.receiptSeq.${session.id}` : `fees.invoiceSeq.${session.id}`;
-  const seqRow = await tx.setting.findUnique({
-    where: { campusId_key: { campusId, key: seqKey } },
-  });
-  const next = (Number(seqRow?.value ?? 0) || 0) + 1;
-  await tx.setting.upsert({
-    where: { campusId_key: { campusId, key: seqKey } },
-    create: { campusId, key: seqKey, value: next },
-    update: { value: next },
-  });
+  const next = await bumpSessionSeq(tx, campusId, sessionSeqKey(kind, session.id));
   const prefixRow = await tx.setting.findUnique({
     where: { campusId_key: { campusId, key: SESSION_PREFIXES_KEY } },
   });

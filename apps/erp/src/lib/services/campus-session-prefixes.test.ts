@@ -6,6 +6,7 @@ import {
   formatSessionNumber,
   nextSeqFromLast,
   parseInvoiceNos,
+  sessionSeqKey,
   parseSessionPrefixes,
   prefixForSession,
   sanitizePrefix,
@@ -20,6 +21,8 @@ describe("academic year prefixes", () => {
     expect(sanitizePrefix(" rcp-26 ", "RCP")).toBe("RCP26");
     expect(sanitizePrefix("  ", "RCP")).toBe("RCP");
     expect(formatSessionNumber("RCP", "2026-27", 1, 5)).toBe("RCP-2026-27-00001");
+    expect(sessionSeqKey("receipt", "s1")).toBe("fees.receiptSeq.s1");
+    expect(sessionSeqKey("invoice", "s1")).toBe("fees.invoiceSeq.s1");
     expect(nextSeqFromLast(undefined, "ADM-2026-", 1001)).toBe(1001);
     expect(nextSeqFromLast("ADM-2026-1001", "ADM-2026-", 1001)).toBe(1002);
 
