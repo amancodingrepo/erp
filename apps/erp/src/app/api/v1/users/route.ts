@@ -3,7 +3,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
+import { hashPassword } from "@/lib/password";
 import { issuePasswordReset, randomPasswordHash } from "@/lib/password-reset";
+import { parseStaffCreatePassword } from "@/lib/services/campus-staff-login";
 import { requireApiPermission } from "@/lib/principal";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
@@ -21,6 +23,7 @@ const PORTAL_ACTOR: Record<string, ActorType> = {
 const createSchema = z.object({
   username: z.string().min(1),
   email: z.string().email().optional(),
+  password: z.string().optional(),
   actorType: z.nativeEnum(ActorType).optional(),
   tab: z.string().optional(),
   roleIds: z.array(z.string()).optional(),
@@ -133,7 +136,10 @@ export async function POST(request: Request) {
       if (!guardian) throw notFound("guardian");
       guardianId = guardian.id;
     }
-    const passwordHash = await randomPasswordHash();
+    const parsedPassword = parseStaffCreatePassword(body.password);
+    const passwordHash = parsedPassword.set
+      ? await hashPassword(parsedPassword.password)
+      : await randomPasswordHash();
     const createdUser = await prisma.user.create({
       data: {
         campusId: user.campusId,
@@ -178,11 +184,14 @@ export async function POST(request: Request) {
         data: { userId: createdUser.id },
       });
     }
-    const inviteToken = await issuePasswordReset(createdUser.id);
+    const inviteToken = parsedPassword.set
+      ? undefined
+      : await issuePasswordReset(createdUser.id);
     return created({
       id: createdUser.id,
       username: createdUser.username,
       inviteToken,
+      passwordSet: parsedPassword.set,
     });
   } catch (error) {
     return fail(error);

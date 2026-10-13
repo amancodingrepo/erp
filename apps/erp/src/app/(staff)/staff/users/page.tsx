@@ -38,6 +38,7 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [invite, setInvite] = useState<string | null>(null);
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
+  const [createdLogin, setCreatedLogin] = useState<string | null>(null);
 
   async function load(nextTab = tab, query = q) {
     const params = new URLSearchParams({ actorType: nextTab, q: query });
@@ -103,6 +104,34 @@ export default function UsersPage() {
     setInvite(json.token);
   }
 
+  async function createLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setCreatedLogin(null);
+    const form = new FormData(event.currentTarget);
+    const roleId = String(form.get("roleId") ?? "");
+    const res = await fetch("/api/v1/users", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        username: form.get("username"),
+        password: form.get("password"),
+        email: form.get("email") || undefined,
+        actorType: "STAFF",
+        roleIds: roleId ? [roleId] : [],
+      }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error ?? json.message ?? "Could not create login");
+      return;
+    }
+    setCreatedLogin(json.username ?? String(form.get("username")));
+    event.currentTarget.reset();
+    load("Staff");
+    setTab("Staff");
+  }
+
   async function resetPassword(id: string) {
     setError(null);
     setInvite(null);
@@ -122,8 +151,38 @@ export default function UsersPage() {
     <div>
       <h1 className="font-display text-4xl">Users</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Enable or disable login. Invites set a password — no shared default.
+        Enable or disable login. To add a teacher or platform admin with a staff ID, use{" "}
+        <a className="underline" href="/staff/staff">
+          Manage staff
+        </a>
+        . This page also creates a staff login and role.
       </p>
+      <form
+        className="mt-6 grid max-w-3xl gap-3 sm:grid-cols-4"
+        onSubmit={createLogin}
+      >
+        <Input name="username" placeholder="Username *" required />
+        <Input name="password" type="password" placeholder="Password * (min 8)" required />
+        <Input name="email" type="email" placeholder="Email" />
+        <select
+          name="roleId"
+          className="h-10 rounded-md border border-[var(--rule)] bg-[var(--paper)] px-2 text-sm"
+          required
+        >
+          <option value="">Role *</option>
+          {roles.map((role) => (
+            <option key={role.id} value={role.id}>
+              {role.name}
+            </option>
+          ))}
+        </select>
+        <Button type="submit" className="sm:col-span-4 w-fit">
+          Add login
+        </Button>
+      </form>
+      {createdLogin ? (
+        <p className="mt-2 text-sm text-[var(--muted)]">Login created: {createdLogin}</p>
+      ) : null}
       <div className="mt-6 flex gap-2">
         {(["Staff", "Student", "Parent"] as Tab[]).map((name) => (
           <Button

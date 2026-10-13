@@ -43,6 +43,8 @@ export type OptionalModuleId = (typeof OPTIONAL_MODULES)[number];
 export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/dashboard": "dashboard.home.view",
   "/staff/admin/dashboard": "dashboard.home.view",
+  "/staff/my-branch": "dashboard.home.view",
+  "/staff/admin/managebranch": "dashboard.home.view",
   "/staff/student/search": "students.profile.view",
   "/staff/student/create": "students.profile.create",
   "/staff/student/disablestudentslist": "students.profile.view",
@@ -77,6 +79,7 @@ export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/roles": "settings.roles.view",
   "/staff/users": "settings.users.view",
   "/staff/staff": "hr.staff.view",
+  "/staff/staff/add": "hr.staff.create",
   "/staff/staff-categories": "hr.staff.view",
   "/staff/driver": "hr.staff.view",
   "/staff/designation": "hr.staff.view",
@@ -309,6 +312,8 @@ export function isModuleEnabled(
 const TEACHER_HREF_PREFIXES = [
   "/staff/dashboard",
   "/staff/admin/dashboard",
+  "/staff/my-branch",
+  "/staff/admin/managebranch",
   "/staff/stuattendence",
   "/staff/attendencereports",
   "/staff/timetable/mytimetable",

@@ -198,6 +198,98 @@ describe("Task 5 attendance and leave", () => {
     expect(row?.percent).toBe(100);
   });
 
+  it("monthly percent is present over working days minus leave", async () => {
+    const dayA = "2026-11-01";
+    const dayB = "2026-11-02";
+    await workingDaysPut(
+      req("PUT", "/api/v1/working-days", admin, {
+        date: dayA,
+        isWorking: true,
+        sessionId,
+      }),
+    );
+    await workingDaysPut(
+      req("PUT", "/api/v1/working-days", admin, {
+        date: dayB,
+        isWorking: true,
+        sessionId,
+      }),
+    );
+    const marked = await json(
+      await attendancePut(
+        req("PUT", "/api/v1/attendance/students", admin, {
+          date: dayA,
+          sectionId,
+          entries: [{ studentId, status: "PRESENT" }],
+        }),
+      ),
+    );
+    expect(marked.status).toBe(200);
+
+    const half = await json(
+      await reportGet(
+        req(
+          "GET",
+          `/api/v1/attendance/students/report?sectionId=${sectionId}&from=${dayA}&to=${dayB}`,
+          admin,
+        ),
+      ),
+    );
+    expect(half.status).toBe(200);
+    const halfRow = (
+      half.body as { data: Array<{ studentId: string; present: number; total: number; percent: number }> }
+    ).data.find((r) => r.studentId === studentId);
+    expect(halfRow?.present).toBe(1);
+    expect(halfRow?.total).toBe(2);
+    expect(halfRow?.percent).toBe(50);
+
+    const type = await json(
+      await leaveTypesPost(
+        req("POST", "/api/v1/leave-types", admin, { name: `WD ${suffix}`, daysYear: 12 }),
+      ),
+    );
+    const applied = await json(
+      await leavePost(
+        req("POST", "/api/v1/leave-requests", admin, {
+          leaveTypeId: (type.body as { id: string }).id,
+          studentId,
+          fromDate: dayB,
+          toDate: dayB,
+          reason: "clinic",
+        }),
+      ),
+    );
+    expect(applied.status).toBe(201);
+    const approved = await json(
+      await approvePost(
+        req(
+          "POST",
+          `/api/v1/leave-requests/${(applied.body as { id: string }).id}/approve`,
+          admin,
+          {},
+        ),
+        { params: Promise.resolve({ id: (applied.body as { id: string }).id }) },
+      ),
+    );
+    expect(approved.status).toBe(200);
+
+    const full = await json(
+      await reportGet(
+        req(
+          "GET",
+          `/api/v1/attendance/students/report?sectionId=${sectionId}&from=${dayA}&to=${dayB}`,
+          admin,
+        ),
+      ),
+    );
+    const fullRow = (
+      full.body as { data: Array<{ studentId: string; present: number; total: number; percent: number }> }
+    ).data.find((r) => r.studentId === studentId);
+    expect(fullRow?.present).toBe(1);
+    expect(fullRow?.total).toBe(1);
+    expect(fullRow?.percent).toBe(100);
+  });
+
   it("approved student leave codes LEAVE not ABSENT", async () => {
     const type = await json(
       await leaveTypesPost(

@@ -30,6 +30,24 @@ export function markedAttendanceEntries(
   });
 }
 
+export function attendancePercentStats(input: {
+  workingDays: number;
+  present: number;
+  exempt: number;
+  markedTotal?: number;
+}) {
+  const present = Math.max(0, input.present);
+  const total =
+    input.workingDays > 0
+      ? Math.max(0, input.workingDays - Math.max(0, input.exempt))
+      : Math.max(0, input.markedTotal ?? 0);
+  return {
+    present,
+    total,
+    percent: total ? Math.round((present / total) * 1000) / 10 : 0,
+  };
+}
+
 export function eachUtcDate(from: Date, to: Date) {
   const dates: Date[] = [];
   const start = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
@@ -238,20 +256,42 @@ export async function monthlyReport(input: {
     },
     include: { student: true },
   });
-  const rows = await prisma.studentAttendance.findMany({
-    where: {
-      studentId: { in: enrollments.map((e) => e.studentId) },
-      date: {
-        ...(input.from ? { gte: parseDateOnly(input.from) } : {}),
-        ...(input.to ? { lte: parseDateOnly(input.to) } : {}),
+  const from = input.from ? parseDateOnly(input.from) : undefined;
+  const to = input.to ? parseDateOnly(input.to) : undefined;
+  const dateFilter = {
+    ...(from ? { gte: from } : {}),
+    ...(to ? { lte: to } : {}),
+  };
+  const [rows, working] = await Promise.all([
+    prisma.studentAttendance.findMany({
+      where: {
+        studentId: { in: enrollments.map((e) => e.studentId) },
+        subjectId: DAILY_SUBJECT,
+        date: dateFilter,
       },
-    },
-  });
-  const grouped = new Map<string, { present: number; total: number }>();
+    }),
+    prisma.workingDay.findMany({
+      where: {
+        campusId: input.campusId,
+        isWorking: true,
+        date: dateFilter,
+      },
+      select: { date: true },
+    }),
+  ]);
+  const workingKeys = new Set(working.map((d) => d.date.toISOString().slice(0, 10)));
+  const workingDays = workingKeys.size;
+  const grouped = new Map<string, { present: number; exempt: number; markedTotal: number }>();
   for (const row of rows) {
     if (row.status === AttendanceStatus.HOLIDAY) continue;
-    const bucket = grouped.get(row.studentId) ?? { present: 0, total: 0 };
-    bucket.total += 1;
+    const key = row.date.toISOString().slice(0, 10);
+    if (workingDays > 0 && !workingKeys.has(key)) continue;
+    const bucket = grouped.get(row.studentId) ?? {
+      present: 0,
+      exempt: 0,
+      markedTotal: 0,
+    };
+    bucket.markedTotal += 1;
     if (
       row.status === AttendanceStatus.PRESENT ||
       row.status === AttendanceStatus.LATE ||
@@ -259,19 +299,28 @@ export async function monthlyReport(input: {
     ) {
       bucket.present += 1;
     }
+    if (row.status === AttendanceStatus.LEAVE) bucket.exempt += 1;
     grouped.set(row.studentId, bucket);
   }
   return {
     data: enrollments.map((e) => {
-      const stats = grouped.get(e.studentId) ?? { present: 0, total: 0 };
+      const bucket = grouped.get(e.studentId) ?? {
+        present: 0,
+        exempt: 0,
+        markedTotal: 0,
+      };
+      const stats = attendancePercentStats({
+        workingDays,
+        present: bucket.present,
+        exempt: bucket.exempt,
+        markedTotal: bucket.markedTotal,
+      });
       return {
         studentId: e.studentId,
         name: [e.student.firstName, e.student.lastName].filter(Boolean).join(" "),
         present: stats.present,
         total: stats.total,
-        percent: stats.total
-          ? Math.round((stats.present / stats.total) * 1000) / 10
-          : 0,
+        percent: stats.percent,
       };
     }),
   };

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { branchAdminDeskGroups } from "@/lib/catalog/branch-admin-nav";
 import { NAV, type NavItem } from "@/lib/catalog/nav";
 import {
   filterNav,
@@ -173,7 +174,10 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
       return { ...g, items: [...extra, ...g.items] };
     });
     const needle = q.trim().toLowerCase();
-    if (!needle) return gated;
+    if (!needle) {
+      if (!me?.user || isTeacherDesk(me.user)) return gated;
+      return filterNav(branchAdminDeskGroups(gated), me.user, me.modules ?? {});
+    }
     return gated
       .map((g) => ({
         ...g,
@@ -268,11 +272,12 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </span>
           <div>
             <p className="text-[18px] font-bold leading-none tracking-tight">
-              {isTeacherDesk(me?.user) ? t("Teacher") : t("Campus")}
+              {isTeacherDesk(me?.user) ? t("Teacher") : (me?.campus.name ?? t("Campus"))}
             </p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              {me?.campus.name ?? "Campus"}
-              {me?.campus.code ? ` · ${me.campus.code}` : ""}
+              {isTeacherDesk(me?.user)
+                ? `${me?.campus.name ?? "Campus"}${me?.campus.code ? ` · ${me.campus.code}` : ""}`
+                : (me?.campus.session?.name ?? t("Academic year"))}
             </p>
           </div>
         </div>
@@ -324,6 +329,27 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             const open = group.items.some(
               (item) => pathname === item.href || pathname.startsWith(item.href + "/"),
             );
+            const links = group.items.map((item) => (
+              <Link
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                className={cn(
+                  "rounded-xl px-3 py-2 text-[13.5px] font-medium leading-snug",
+                  pathname === item.href
+                    ? "bg-[var(--peach)] font-semibold text-[var(--brass)]"
+                    : "text-[#5f6368] hover:bg-[#f7f7f8] hover:text-[#222]",
+                )}
+              >
+                {t(item.label)}
+              </Link>
+            ));
+            if (group.label === "Desk") {
+              return (
+                <div key={group.label} className="mb-2 flex flex-col gap-0.5">
+                  {links}
+                </div>
+              );
+            }
             return (
               <details
                 key={group.label}
@@ -334,22 +360,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
                   {t(group.label)}
                   <span className="ml-2 text-[var(--text-3,#9aa0a6)]">{group.items.length}</span>
                 </summary>
-                <div className="mb-2 flex flex-col gap-0.5">
-                  {group.items.map((item) => (
-                    <Link
-                      key={`${item.href}-${item.label}`}
-                      href={item.href}
-                      className={cn(
-                        "rounded-xl px-3 py-2 text-[13.5px] font-medium leading-snug",
-                        pathname === item.href
-                          ? "bg-[var(--peach)] font-semibold text-[var(--brass)]"
-                          : "text-[#5f6368] hover:bg-[#f7f7f8] hover:text-[#222]",
-                      )}
-                    >
-                      {t(item.label)}
-                    </Link>
-                  ))}
-                </div>
+                <div className="mb-2 flex flex-col gap-0.5">{links}</div>
               </details>
             );
           })}
@@ -377,6 +388,14 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             </p>
           )}
           <p className="mt-1 text-[13px] font-semibold">{me?.user.roles.join(", ") || "Staff"}</p>
+          {!isTeacherDesk(me?.user) ? (
+            <Link
+              href="/staff/schsettings"
+              className="mt-3 block w-full rounded-full bg-white/15 px-3 py-2 text-center text-sm font-semibold text-white"
+            >
+              {t("Profile")}
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={logout}
@@ -397,6 +416,14 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </button>
           <div className="flex items-center gap-2">
             <LanguageToggle />
+            {!isTeacherDesk(me?.user) ? (
+              <Link
+                href="/staff/schsettings"
+                className="hidden rounded-full border border-[var(--rule)] bg-white px-3 py-2 text-xs font-semibold sm:inline"
+              >
+                {t("Profile")}
+              </Link>
+            ) : null}
             <span className="hidden rounded-full border border-[var(--rule)] bg-white px-3 py-2 text-xs font-semibold sm:inline">
               {t(me?.user.roles[0] ?? "Staff")}
             </span>

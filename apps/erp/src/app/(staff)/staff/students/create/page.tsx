@@ -197,7 +197,10 @@ export default function CreateStudentPage() {
 
   return (
     <div className="max-w-5xl">
-      <h1 className="font-display text-4xl">Admit student</h1>
+      <h1 className="font-display text-4xl">Admit new student</h1>
+      <p className="mt-1 text-sm text-[var(--muted)]">
+        First name, class, and academic year — then parent details. Save opens the student profile.
+      </p>
       <form className="mt-8 space-y-8" onSubmit={onSubmit}>
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--brass)]">

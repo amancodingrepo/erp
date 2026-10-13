@@ -86,12 +86,14 @@ export default function StudentsList({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl">
-            {defaultStatus === "DISABLED" ? "Disabled students" : "Students"}
+            {defaultStatus === "DISABLED"
+              ? "Disabled students"
+              : "Manage parents and children"}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">{total} in this filter</p>
         </div>
         <Link href="/staff/student/create">
-          <Button variant="brass">Admit student</Button>
+          <Button variant="brass">Admit new student</Button>
         </Link>
       </div>
       <form className="mt-6 flex flex-wrap gap-3" onSubmit={onSearch}>

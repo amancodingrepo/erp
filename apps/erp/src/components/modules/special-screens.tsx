@@ -44,6 +44,8 @@ import BranchOps from "@/components/modules/branch-ops";
 const LIVE: Record<string, () => ReactNode> = {
   "/staff/dashboard": () => <DashboardPage />,
   "/staff/admin/dashboard": () => <DashboardPage />,
+  "/staff/my-branch": () => <DashboardPage />,
+  "/staff/admin/managebranch": () => <DashboardPage />,
   "/staff/student/search": () => <StudentsList />,
   "/staff/student/create": () => <CreateStudentPage />,
   "/staff/student/disablestudentslist": () => (

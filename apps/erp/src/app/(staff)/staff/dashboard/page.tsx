@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import BranchDesk from "@/components/modules/branch-desk";
 import { isTeacherDesk } from "@/lib/catalog/nav-permissions";
 import { useI18n } from "@/lib/i18n/provider";
-import { SCREENS } from "@/lib/catalog/screens";
 import type { AuthPrincipal } from "@/lib/permissions";
 
 type Stats = {
@@ -19,18 +19,15 @@ type Stats = {
   };
 };
 
-function rupees(value: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+type Me = {
+  user: AuthPrincipal;
+  campus: { name: string; session: { name: string } | null };
+};
 
 export default function DashboardPage() {
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [roles, setRoles] = useState<string[]>([]);
+  const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
     fetch("/api/v1/dashboard/stats")
@@ -39,122 +36,73 @@ export default function DashboardPage() {
       .catch(() => setStats(null));
     fetch("/api/v1/auth/me")
       .then((r) => r.json())
-      .then((json) => setRoles((json.user as AuthPrincipal | undefined)?.roles ?? []))
-      .catch(() => setRoles([]));
+      .then((json) => {
+        if (json?.user) setMe(json as Me);
+      })
+      .catch(() => setMe(null));
   }, []);
 
-  const teacher = isTeacherDesk({
-    id: "",
-    campusId: "",
-    actorType: "STAFF",
-    roles,
-    permissions: [],
-  });
+  const teacher = isTeacherDesk(me?.user);
 
-  const cards = teacher
-    ? [
-        { label: "Active students", value: stats ? String(stats.students) : "—" },
-        {
-          label: "Today's attendance",
-          value: stats
-            ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0}${
-                stats.attendanceToday.notTaken
-                  ? `, ${stats.attendanceToday.notTaken} not taken`
-                  : ""
-              })`
-            : "—",
-        },
-      ]
-    : [
-        { label: "Active students", value: stats ? String(stats.students) : "—" },
-        { label: "Fees collected", value: stats ? rupees(stats.feeCollected) : "—" },
-        { label: "Fees still due", value: stats ? rupees(stats.feeDue) : "—" },
-        {
-          label: "Today's attendance",
-          value: stats
-            ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0}${
-                stats.attendanceToday.notTaken
-                  ? `, ${stats.attendanceToday.notTaken} not taken`
-                  : ""
-              })`
-            : "—",
-        },
-      ];
-
-  const modules = useMemo(() => {
-    const map = new Map<string, { href: string; count: number }>();
-    for (const s of SCREENS) {
-      const cur = map.get(s.module);
-      if (!cur) map.set(s.module, { href: s.href, count: 1 });
-      else cur.count += 1;
-    }
-    return [...map.entries()];
-  }, []);
+  if (!teacher) {
+    return (
+      <BranchDesk
+        campusName={me?.campus.name}
+        sessionName={me?.campus.session?.name ?? undefined}
+        stats={stats}
+      />
+    );
+  }
 
   return (
     <div>
       <section className="em-banner p-7">
-        <p className="text-[12.5px] font-medium opacity-90">
-          {teacher ? t("Teacher desk") : t("Campus operations")}
-        </p>
+        <p className="text-[12.5px] font-medium opacity-90">{t("Teacher desk")}</p>
         <h1 className="mt-2 max-w-xl text-[26px] font-semibold leading-snug tracking-tight">
-          {teacher
-            ? t("Your classes, attendance, and marks")
-            : t("Welcome back to the campus desk")}
+          {t("Your classes, attendance, and marks")}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-white/90">
-          {teacher
-            ? t("Office menus stay with admin. Use the shortcuts below.")
-            : `${SCREENS.length} ${t("Modules")}. Ctrl+K.`}
+          {t("Office menus stay with admin. Use the shortcuts below.")}
         </p>
-        {teacher ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {[
-              ["/staff/stuattendence", "Attendance"],
-              ["/staff/exam", "Marks"],
-              ["/staff/timetable/mytimetable", "Timetable"],
-              ["/staff/homework", "Homework"],
-              ["/staff/messages", "Requests"],
-              ["/staff/student/search", "Find a student"],
-            ].map(([href, label]) => (
-              <Link
-                key={href}
-                href={href}
-                className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-[#1f2937]"
-              >
-                {t(label)}
-              </Link>
-            ))}
-          </div>
-        ) : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {[
+            ["/staff/stuattendence", "Attendance"],
+            ["/staff/exam", "Marks"],
+            ["/staff/timetable/mytimetable", "Timetable"],
+            ["/staff/homework", "Homework"],
+            ["/staff/messages", "Requests"],
+            ["/staff/student/search", "Find a student"],
+          ].map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-[#1f2937]"
+            >
+              {t(label)}
+            </Link>
+          ))}
+        </div>
       </section>
-      <div className="mt-4 grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => (
-          <article key={card.label} className="em-card flex min-h-[132px] flex-col p-4">
-            <p className="text-[12.5px] text-[var(--muted)]">{t(card.label)}</p>
-            <p className="mt-auto text-[28px] font-extrabold tracking-tight">{card.value}</p>
-          </article>
-        ))}
+      <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
+        <article className="em-card flex min-h-[132px] flex-col p-4">
+          <p className="text-[12.5px] text-[var(--muted)]">{t("Active students")}</p>
+          <p className="mt-auto text-[28px] font-extrabold tracking-tight">
+            {stats ? String(stats.students) : "—"}
+          </p>
+        </article>
+        <article className="em-card flex min-h-[132px] flex-col p-4">
+          <p className="text-[12.5px] text-[var(--muted)]">{t("Today's attendance")}</p>
+          <p className="mt-auto text-[28px] font-extrabold tracking-tight">
+            {stats
+              ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0}${
+                  stats.attendanceToday.notTaken
+                    ? `, ${stats.attendanceToday.notTaken} not taken`
+                    : ""
+                })`
+              : "—"}
+          </p>
+        </article>
       </div>
-      {teacher ? null : (
-        <>
-          <h2 className="mt-8 text-lg font-bold">{t("Modules")}</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {modules.map(([name, meta]) => (
-              <Link
-                key={name}
-                href={meta.href}
-                className="em-card flex items-center justify-between px-4 py-3.5 text-sm hover:bg-[#fafafa]"
-              >
-                <span className="capitalize font-medium">{name.replaceAll("-", " ")}</span>
-                <span className="rounded-full bg-[#e9f7ef] px-2 py-0.5 text-xs font-semibold text-[var(--green)]">
-                  {meta.count}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </>
-      )}
     </div>
   );
 }

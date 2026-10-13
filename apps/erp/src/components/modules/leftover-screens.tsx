@@ -29,6 +29,7 @@ import EngagementOps from "@/components/modules/engagement-ops";
 import BranchOps from "@/components/modules/branch-ops";
 import DirectoryOps from "@/components/modules/directory-ops";
 import AdmissionFormsOps from "@/components/modules/admission-forms-ops";
+import DashboardPage from "@/app/(staff)/staff/dashboard/page";
 
 export const LEFTOVER_LIVE: Record<string, () => ReactNode> = {
   "/staff/admission/dashboard": () => <AdmissionOps mode="inbox" />,
@@ -68,6 +69,9 @@ export const LEFTOVER_LIVE: Record<string, () => ReactNode> = {
   "/staff/staff-leave-assign": () => <AttendanceOps mode="leaves" />,
   "/staff/staff/rating": () => <CampusOps mode="staff" />,
   "/staff/driver": () => <CampusOps mode="drivers" />,
+  "/staff/staff/add": () => <CampusOps mode="staff" />,
+  "/staff/my-branch": () => <DashboardPage />,
+  "/staff/admin/managebranch": () => <DashboardPage />,
   "/staff/staff/disablestafflist": () => <CampusOps mode="staff" />,
   "/staff/staff/staff-bulk-update": () => <CampusOps mode="staff" />,
   "/staff/teachers-research": () => <CampusOps mode="staff" />,

@@ -103,6 +103,12 @@ export async function PATCH(
       where: { id },
       data: fields,
     });
+    if (fields.isActive !== undefined && existing.userId) {
+      await prisma.user.update({
+        where: { id: existing.userId },
+        data: { isActive: fields.isActive },
+      });
+    }
     const extra =
       category !== undefined ||
       licenseNo !== undefined ||

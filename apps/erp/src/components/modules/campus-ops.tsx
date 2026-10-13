@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { mediaUrlFromForm } from "@/lib/client-upload";
@@ -574,26 +575,43 @@ function NamedMaster({
   );
 }
 
+type StaffRow = {
+  id: string;
+  employeeId: string;
+  firstName: string;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  isActive?: boolean;
+  department?: { name: string } | null;
+  designation?: { name: string } | null;
+  extra?: {
+    category?: string;
+    licenseNo?: string;
+    licenseExpiry?: string;
+  } | null;
+  modules?: string[];
+  classIds?: string[];
+  subjectIds?: string[];
+  documents?: Array<{ id: string; name: string; url: string }>;
+  login?: {
+    id: string;
+    username: string;
+    isActive: boolean;
+    roles: Array<{ id: string; name: string }>;
+  } | null;
+};
+
 function StaffPanel() {
-  const [rows, setRows] = useState<
-    Array<{
-      id: string;
-      employeeId: string;
-      firstName: string;
-      lastName?: string | null;
-      department?: { name: string } | null;
-      designation?: { name: string } | null;
-      extra?: {
-        category?: string;
-        licenseNo?: string;
-        licenseExpiry?: string;
-      } | null;
-      modules?: string[];
-      classIds?: string[];
-      subjectIds?: string[];
-      documents?: Array<{ id: string; name: string; url: string }>;
-    }>
-  >([]);
+  const pathname = usePathname();
+  const disabledList = pathname.includes("disablestafflist");
+  const [status, setStatus] = useState(disabledList ? "inactive" : "active");
+  const [q, setQ] = useState("");
+  const [view, setView] = useState<"list" | "add">(
+    pathname.endsWith("/add") ? "add" : "list",
+  );
+  const [editing, setEditing] = useState<StaffRow | null>(null);
+  const [rows, setRows] = useState<StaffRow[]>([]);
   const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
   const [designations, setDesignations] = useState<Array<{ id: string; name: string }>>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
@@ -601,9 +619,22 @@ function StaffPanel() {
   const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([]);
   const [subjects, setSubjects] = useState<Array<{ id: string; name: string }>>([]);
   const [message, setMessage] = useState<string | null>(null);
-  async function load() {
+  const [issued, setIssued] = useState<string | null>(null);
+
+  const staffRoles = useMemo(
+    () =>
+      roles.filter((role) =>
+        ["Teacher", "PlatformAdmin", "SuperAdmin", "Principal", "Registrar", "Accountant", "HOD"].includes(
+          role.name,
+        ),
+      ),
+    [roles],
+  );
+
+  async function load(nextStatus = status, query = q) {
+    const params = new URLSearchParams({ status: nextStatus, q: query });
     const [s, d, des, cats, roleJson, classJson, subjectJson] = await Promise.all([
-      fetch("/api/v1/staff").then((r) => r.json()),
+      fetch(`/api/v1/staff?${params}`).then((r) => r.json()),
       fetch("/api/v1/departments").then((r) => r.json()),
       fetch("/api/v1/designations").then((r) => r.json()),
       fetch("/api/v1/staff-categories").then((r) => r.json()).catch(() => ({ data: [] })),
@@ -621,165 +652,293 @@ function StaffPanel() {
   }
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const res = await fetch("/api/v1/staff", {
-      method: "POST",
+    const payload = {
+      employeeId: form.get("employeeId"),
+      firstName: form.get("firstName"),
+      lastName: form.get("lastName") || undefined,
+      email: form.get("email") || undefined,
+      phone: form.get("phone") || undefined,
+      departmentId: form.get("departmentId") || undefined,
+      designationId: form.get("designationId") || undefined,
+      username: form.get("username") || undefined,
+      password: form.get("password") || undefined,
+      roleId: form.get("roleId") || undefined,
+      category: form.get("category") || undefined,
+      licenseNo: form.get("licenseNo") || undefined,
+      licenseExpiry: form.get("licenseExpiry") || undefined,
+      modules: form.getAll("modules").map(String),
+      classIds: form.getAll("classIds").map(String),
+      subjectIds: form.getAll("subjectIds").map(String),
+    };
+    const res = await fetch(editing ? `/api/v1/staff/${editing.id}` : "/api/v1/staff", {
+      method: editing ? "PATCH" : "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        employeeId: form.get("employeeId"),
-        firstName: form.get("firstName"),
-        lastName: form.get("lastName") || undefined,
-        email: form.get("email") || undefined,
-        phone: form.get("phone") || undefined,
-        departmentId: form.get("departmentId") || undefined,
-        designationId: form.get("designationId") || undefined,
-        username: form.get("username") || undefined,
-        category: form.get("category") || undefined,
-        licenseNo: form.get("licenseNo") || undefined,
-        licenseExpiry: form.get("licenseExpiry") || undefined,
-        modules: form.getAll("modules").map(String),
-        classIds: form.getAll("classIds").map(String),
-        subjectIds: form.getAll("subjectIds").map(String),
-      }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json();
-    setMessage(res.ok ? "Staff saved" : json.message ?? json.error);
-    if (res.ok) {
-      event.currentTarget.reset();
-      load();
+    if (!res.ok) {
+      setMessage(json.message ?? json.error ?? "Could not save staff");
+      setIssued(null);
+      return;
     }
+    const loginHint = json.login?.username
+      ? ` Login: ${json.login.username}`
+      : json.temporaryPassword
+        ? ""
+        : "";
+    const passwordHint = json.temporaryPassword
+      ? ` Temporary password: ${json.temporaryPassword}`
+      : "";
+    setMessage(editing ? "Staff saved" : `Staff saved.${loginHint}${passwordHint}`);
+    setIssued(json.temporaryPassword ?? json.inviteToken ?? null);
+    event.currentTarget.reset();
+    setEditing(null);
+    setView("list");
+    load();
   }
+
+  async function resetPassword(row: StaffRow) {
+    if (!row.login?.id) {
+      setMessage("Create a login on Add Staff first");
+      return;
+    }
+    const res = await fetch(`/api/v1/users/${row.login.id}/reset-password`, {
+      method: "POST",
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setMessage(json.error ?? "Could not reset password");
+      return;
+    }
+    setIssued(json.temporaryPassword ?? null);
+    setMessage(
+      json.temporaryPassword
+        ? `Password reset. Share once: ${json.temporaryPassword}`
+        : "Password reset",
+    );
+  }
+
+  async function setActive(row: StaffRow, isActive: boolean) {
+    const res = await fetch(`/api/v1/staff/${row.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ isActive }),
+    });
+    setMessage(res.ok ? (isActive ? "Staff enabled" : "User id deactivated") : "Could not update");
+    if (res.ok) load();
+  }
+
+  if (view === "add" || editing) {
+    const row = editing;
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-display text-4xl">{row ? "Edit staff" : "Add staff"}</h1>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Same flow as School Diary: name, phone, password, and role in one save.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setEditing(null);
+              setView("list");
+            }}
+          >
+            Back to list
+          </Button>
+        </div>
+        {message ? <p className="text-sm text-[var(--muted)]">{message}</p> : null}
+        {issued ? (
+          <p className="break-all text-sm text-[var(--stamp)]">Share once: {issued}</p>
+        ) : null}
+        <form className="grid max-w-3xl gap-3 sm:grid-cols-3" onSubmit={onSubmit}>
+          <Input name="employeeId" placeholder="Staff ID / employee code *" defaultValue={row?.employeeId} required />
+          <Input name="firstName" placeholder="First name *" defaultValue={row?.firstName} required />
+          <Input name="lastName" placeholder="Last name" defaultValue={row?.lastName ?? ""} />
+          <Input name="phone" placeholder="Phone *" defaultValue={row?.phone ?? ""} required={!row} />
+          <Input name="email" type="email" placeholder="Email" defaultValue={row?.email ?? ""} />
+          <Input name="username" placeholder="Login (phone or staff ID if blank)" defaultValue={row?.login?.username ?? ""} />
+          {row ? null : (
+            <Input name="password" type="password" placeholder="Password * (min 8)" required />
+          )}
+          <select name="roleId" className={SELECT} defaultValue={row?.login?.roles[0]?.id ?? ""} required={!row}>
+            <option value="">Role *</option>
+            {(staffRoles.length ? staffRoles : roles).map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
+          </select>
+          <select name="departmentId" className={SELECT} defaultValue="">
+            <option value="">Department</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          <select name="designationId" className={SELECT} defaultValue="">
+            <option value="">Designation</option>
+            {designations.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          <select name="category" className={SELECT} defaultValue={row?.extra?.category ?? ""}>
+            <option value="">Staff category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <Input name="licenseNo" placeholder="License no (drivers)" defaultValue={row?.extra?.licenseNo ?? ""} />
+          <Input name="licenseExpiry" type="date" defaultValue={row?.extra?.licenseExpiry ?? ""} />
+          <fieldset className="sm:col-span-3 flex flex-wrap gap-3 text-sm">
+            <legend className="mb-1 text-[var(--muted)]">Role modules</legend>
+            {STAFF_MODULE_KEYS.map((key) => (
+              <label key={key} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="modules"
+                  value={key}
+                  defaultChecked={row?.modules?.includes(key)}
+                />
+                {key}
+              </label>
+            ))}
+          </fieldset>
+          <select name="classIds" className={`${SELECT} sm:col-span-3 min-h-24`} multiple defaultValue={row?.classIds ?? []}>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <select name="subjectIds" className={`${SELECT} sm:col-span-3 min-h-24`} multiple defaultValue={row?.subjectIds ?? []}>
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <Button type="submit">{row ? "Save staff" : "Add staff"}</Button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-4xl">Staff</h1>
-      <p className="text-sm text-[var(--muted)]">{message}</p>
-      <form className="grid max-w-3xl gap-3 sm:grid-cols-3" onSubmit={onSubmit}>
-        <Input name="employeeId" placeholder="Staff ID" required />
-        <Input name="firstName" placeholder="First name" required />
-        <Input name="lastName" placeholder="Last name" />
-        <Input name="email" type="email" placeholder="Email" />
-        <Input name="phone" placeholder="Phone" />
-        <Input name="username" placeholder="Login (optional)" />
-        <select name="departmentId" className={SELECT}>
-          <option value="">Department</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        <select name="designationId" className={SELECT}>
-          <option value="">Designation</option>
-          {designations.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        <select name="category" className={SELECT}>
-          <option value="">Category</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.name}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <Input name="licenseNo" placeholder="License no (drivers)" />
-        <Input name="licenseExpiry" type="date" />
-        <fieldset className="sm:col-span-3 flex flex-wrap gap-3 text-sm">
-          <legend className="mb-1 text-[var(--muted)]">Role modules</legend>
-          {STAFF_MODULE_KEYS.map((key) => (
-            <label key={key} className="flex items-center gap-2">
-              <input type="checkbox" name="modules" value={key} />
-              {key}
-            </label>
-          ))}
-        </fieldset>
-        <select name="classIds" className={`${SELECT} sm:col-span-3 min-h-24`} multiple>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select name="subjectIds" className={`${SELECT} sm:col-span-3 min-h-24`} multiple>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <Button type="submit">Create staff</Button>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-4xl">Manage staff</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Add a teacher or platform admin in one form, then reset password or deactivate from the row.
+          </p>
+        </div>
+        <Button type="button" variant="brass" onClick={() => setView("add")}>
+          Add new
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {(["active", "inactive"] as const).map((name) => (
+          <Button
+            key={name}
+            type="button"
+            variant={status === name ? "brass" : "ghost"}
+            onClick={() => {
+              setStatus(name);
+              load(name, q);
+            }}
+          >
+            {name === "active" ? "Active" : "Inactive"}
+          </Button>
+        ))}
+      </div>
+      <form
+        className="flex flex-wrap gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          load(status, q);
+        }}
+      >
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Start typing to filter list…"
+        />
+        <Button type="submit">Filter</Button>
       </form>
-      <table className="w-full text-left text-sm">
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id}>
-              <td className="py-1">{r.employeeId}</td>
-              <td>
-                {r.firstName} {r.lastName}
-              </td>
-              <td>{r.department?.name ?? "—"}</td>
-              <td>{r.designation?.name ?? "—"}</td>
-              <td>{r.extra?.category || "—"}</td>
-              <td>{r.modules?.length ? r.modules.join(", ") : "—"}</td>
-              <td>
-                {r.classIds?.length
-                  ? r.classIds
-                      .map((id) => classes.find((c) => c.id === id)?.name ?? id)
-                      .join(", ")
-                  : "—"}
-              </td>
-              <td>
-                {r.subjectIds?.length
-                  ? r.subjectIds
-                      .map((id) => subjects.find((s) => s.id === id)?.name ?? id)
-                      .join(", ")
-                  : "—"}
-              </td>
-              <td>{r.extra?.licenseNo || "—"}</td>
-              <td>
-                <a
-                  className="underline"
-                  href={`/api/v1/staff/${r.id}/id-card?format=pdf`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  ID card
-                </a>
-              </td>
-              {roles.length ? (
-                <td>
-                  <select
-                    className={SELECT}
-                    defaultValue=""
-                    onChange={async (e) => {
-                      const roleId = e.target.value;
-                      if (!roleId) return;
-                      const res = await fetch(`/api/v1/staff/${r.id}`, {
-                        method: "PATCH",
-                        headers: { "content-type": "application/json" },
-                        body: JSON.stringify({ roleId }),
-                      });
-                      setMessage(res.ok ? "Role saved" : "Could not assign role");
-                    }}
-                  >
-                    <option value="">Role</option>
-                    {roles.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-              ) : null}
+      {message ? <p className="text-sm text-[var(--muted)]">{message}</p> : null}
+      {issued ? (
+        <p className="break-all text-sm text-[var(--stamp)]">Share once: {issued}</p>
+      ) : null}
+      <div className="overflow-x-auto border border-[var(--rule)]">
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead className="bg-[var(--paper-2)] text-[11px] uppercase tracking-[0.12em] text-[var(--muted)]">
+            <tr>
+              <th className="px-3 py-2">Staff ID</th>
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2">Login</th>
+              <th className="px-3 py-2">Role</th>
+              <th className="px-3 py-2">Phone</th>
+              <th className="px-3 py-2">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-t border-[var(--rule)]">
+                <td className="px-3 py-2">{r.employeeId}</td>
+                <td className="px-3 py-2">
+                  {r.firstName} {r.lastName}
+                </td>
+                <td className="px-3 py-2">{r.login?.username ?? "—"}</td>
+                <td className="px-3 py-2">
+                  {r.login?.roles.map((role) => role.name).join(", ") || "—"}
+                </td>
+                <td className="px-3 py-2">{r.phone ?? "—"}</td>
+                <td className="px-3 py-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(r)}>
+                      Edit
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={() => resetPassword(r)}>
+                      Reset password
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={r.isActive === false ? "brass" : "danger"}
+                      onClick={() => setActive(r, r.isActive === false)}
+                    >
+                      {r.isActive === false ? "Enable" : "Deactivate user id"}
+                    </Button>
+                    <a
+                      className="inline-flex h-8 items-center rounded-md px-2 text-xs underline"
+                      href={`/api/v1/staff/${r.id}/id-card?format=pdf`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      ID card
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <form
         className="grid max-w-3xl gap-3 sm:grid-cols-3"
         onSubmit={async (event) => {

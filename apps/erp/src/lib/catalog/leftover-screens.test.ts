@@ -8,6 +8,9 @@ describe("leftover catalog wiring", () => {
     expect(LEFTOVER_LIVE["/staff/student/bulkdelete"]).toBeTypeOf("function");
     expect(LEFTOVER_LIVE["/staff/customfield"]).toBeTypeOf("function");
     expect(LEFTOVER_LIVE["/staff/staffpayroll/loans"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/staff/add"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/my-branch"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/admin/managebranch"]).toBeTypeOf("function");
     expect(LEFTOVER_LIVE["/staff/library/weedout"]).toBeTypeOf("function");
     expect(LEFTOVER_LIVE["/staff/houses/bulk-assign"]).toBeTypeOf("function");
     expect(LEFTOVER_LIVE["/staff/grade-eligibility"]).toBeTypeOf("function");
