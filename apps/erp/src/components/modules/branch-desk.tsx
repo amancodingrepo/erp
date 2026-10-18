@@ -40,7 +40,7 @@ export default function BranchDesk({
     { label: "Fees still due", value: stats ? rupees(stats.feeDue) : "—" },
     {
       label: "Today's attendance",
-      value: stats
+      value: stats?.attendanceToday
         ? `${stats.attendanceToday.percent}% (${stats.attendanceToday.present}/${stats.attendanceToday.marked || 0}${
             stats.attendanceToday.notTaken
               ? `, ${stats.attendanceToday.notTaken} not taken`

@@ -44,9 +44,9 @@ export function PortalShell({
   }
 
   return (
-    <div className="min-h-dvh px-3 py-4 sm:px-5">
-      <div className="mx-auto max-w-5xl rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)]">
-      <header className="rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
+    <div className="h-dvh max-h-dvh overflow-hidden px-3 py-4 sm:px-5">
+      <div className="mx-auto flex h-full min-h-0 max-w-5xl flex-col overflow-hidden rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)]">
+      <header className="shrink-0 rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(135deg,#2d8f5b,#1e6b44)] text-sm font-extrabold text-white">
@@ -110,7 +110,9 @@ export function PortalShell({
           })}
         </nav>
       </header>
-      <main className="px-2 py-6 sm:px-4">{children}</main>
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-6 sm:px-4">
+        {children}
+      </main>
       </div>
     </div>
   );

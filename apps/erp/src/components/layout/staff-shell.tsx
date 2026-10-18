@@ -263,10 +263,10 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-dvh px-3 py-4 sm:px-5">
-      <div className="mx-auto grid min-h-[calc(100dvh-2rem)] max-w-[1440px] grid-cols-1 gap-4 rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)] lg:grid-cols-[248px_1fr]">
-      <aside className="flex flex-col rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
-        <div className="mb-4 flex items-center gap-2.5 px-1">
+    <div className="h-dvh max-h-dvh overflow-hidden px-3 py-4 sm:px-5">
+      <div className="mx-auto grid h-full min-h-0 max-w-[1440px] grid-cols-1 grid-rows-[minmax(0,38vh)_minmax(0,1fr)] gap-4 overflow-hidden rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)] lg:grid-cols-[248px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
+      <aside className="flex min-h-0 flex-col overflow-hidden rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
+        <div className="mb-4 flex shrink-0 items-center gap-2.5 px-1">
           <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(135deg,#2d8f5b,#1e6b44)] text-sm font-extrabold text-white shadow-[0_6px_14px_rgba(30,107,68,0.28)]">
             C
           </span>
@@ -324,10 +324,10 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
               className="h-10 w-full rounded-full border border-[var(--rule)] bg-[#f7f7f8] px-4 text-sm"
             />
           </label>
-        <nav className="flex-1 overflow-y-auto pb-4">
+        <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
           {groups.map((group) => {
-            const open = group.items.some(
-              (item) => pathname === item.href || pathname.startsWith(item.href + "/"),
+            const matches = group.items.some(
+              (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
             );
             const links = group.items.map((item) => (
               <Link
@@ -350,10 +350,13 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
                 </div>
               );
             }
+            const startOpen =
+              Boolean(q.trim()) ||
+              (group.label !== "More office screens" && matches);
             return (
               <details
-                key={group.label}
-                open={open || Boolean(q)}
+                key={q.trim() ? `${group.label}-search` : group.label}
+                {...(startOpen ? { open: true as const } : {})}
                 className="mb-1"
               >
                 <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-[12px] font-semibold text-[var(--muted)] hover:bg-[#f7f7f8]">
@@ -365,7 +368,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-auto rounded-[18px] bg-[linear-gradient(160deg,#8aa15a_0%,#3d6b3e_55%,#2b5533_100%)] p-4 text-white shadow-[0_10px_24px_rgba(45,85,50,0.22)]">
+        <div className="mt-auto hidden shrink-0 rounded-[18px] bg-[linear-gradient(160deg,#8aa15a_0%,#3d6b3e_55%,#2b5533_100%)] p-4 text-white shadow-[0_10px_24px_rgba(45,85,50,0.22)] lg:block">
           {sessions.length > 0 ? (
             <label className="block">
               <span className="sr-only">{t("Academic year")}</span>
@@ -405,8 +408,8 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col px-1 pb-1 lg:px-2">
-        <header className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
+      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden px-1 pb-1 lg:px-2">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-1 py-2">
           <button
             type="button"
             className="flex h-11 max-w-md flex-1 items-center rounded-full border border-[var(--rule)] bg-white px-4 text-sm text-[var(--muted)] shadow-[0_1px_0_rgba(0,0,0,0.02)]"
@@ -432,7 +435,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto px-1 py-3">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 py-3">
           {me && isTeacherDesk(me.user) && !teacherCanSeeHref(pathname) ? (
             <div className="em-card max-w-lg p-6">
               <h1 className="font-display text-3xl">{t("Not on the teacher desk")}</h1>
