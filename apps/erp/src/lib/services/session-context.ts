@@ -1,3 +1,4 @@
+import { cookieSecure } from "@/lib/auth-cookie";
 import { currentSessionId, sessionInCampus } from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { conflict, notFound, validationError } from "@/lib/errors";
@@ -373,7 +374,7 @@ export function sessionCookieOptions() {
     sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 60 * 24 * 180,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
   };
 }
 
