@@ -1,6 +1,6 @@
-# College ERP app
+# Campus ERP app
 
-Next.js 15 staff desk at `/staff/*`. Spec: `../../erp-spec/`.
+Next.js 15 staff desk at `/staff/*`. How the whole product is wired: **[../../DEVELOPER-NOTES.md](../../DEVELOPER-NOTES.md)**. Specs: `../../docs/school-diary-erp-spec/` and `../../erp-spec/`.
 
 ## Run
 
