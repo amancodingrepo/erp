@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   serverExternalPackages: ["nodemailer"],
+  eslint: { ignoreDuringBuilds: process.env.SKIP_BUILD_CHECKS === "1" },
+  typescript: { ignoreBuildErrors: process.env.SKIP_BUILD_CHECKS === "1" },
   async headers() {
     return [
       {
