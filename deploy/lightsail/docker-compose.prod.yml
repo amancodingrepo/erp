@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: erp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: erp
+    volumes:
+      - erp_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: ../../apps/erp
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://erp:${POSTGRES_PASSWORD}@db:5432/erp
+      AUTH_SECRET: ${AUTH_SECRET}
+      NEXTAUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: https://${DOMAIN}
+      NEXTAUTH_URL: https://${DOMAIN}
+      AUTH_TRUST_HOST: "true"
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    command: caddy reverse-proxy --from ${DOMAIN} --to app:3000
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - app
+
+volumes:
+  erp_pg:
+  caddy_data:

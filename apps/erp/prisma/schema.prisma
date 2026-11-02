@@ -39,6 +39,9 @@ model Campus {
   baseUrl        String?
   uploadPath     String?
   currentSessionId String?
+  slug           String?
+  isActive       Boolean  @default(true)
+  logoFileName   String?
   createdAt      DateTime @default(now())
 
   sessions     AcademicSession[]
@@ -48,6 +51,18 @@ model Campus {
   staff        Staff[]
   settings     Setting[]
   auditLogs    AuditLog[]
+  routes       SchoolRoute[]
+  notices      Notice[]
+  events       Event[]
+  messages     Message[]
+  questionnaires Questionnaire[]
+  storeItems   StoreItem[]
+  storeVendors StoreVendor[]
+  staffCategories StaffCategory[]
+  externalLinks ExternalLink[]
+  subjectCategories SubjectCategory[]
+  subjectTypes  SubjectType[]
+  admissionEnquiries AdmissionEnquiry[]
 }
 
 model AcademicSession {
@@ -65,6 +80,8 @@ model AcademicSession {
   enrollments StudentEnrollment[]
   feeMasters  FeeMaster[]
   examGroups  ExamGroup[]
+  invoices    FeeInvoice[]
+  optionalSubjects StudentOptionalSubject[]
 
   @@unique([campusId, name])
   @@index([campusId, isCurrent])
@@ -96,6 +113,10 @@ model User {
   email        String?
   username     String
   passwordHash String
+  phone        String?
+  firstName    String    @default("")
+  lastName     String    @default("")
+  mustChangePassword Boolean @default(false)
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -227,6 +248,9 @@ model Class {
   extraStaffId   String?
   sections       Section[]
   enrollments    StudentEnrollment[]
+  feeMasters     FeeMaster[]
+  externalLinkClasses ExternalLinkClass[]
+  optionalSubjects StudentOptionalSubject[]
 }
 
 model Section {
@@ -246,7 +270,12 @@ model Subject {
   code     String?
   kind     String  @default("theory") // theory | practical | optional
   isOptional Boolean @default(false)
+  categoryId String?
+  category   SubjectCategory? @relation(fields: [categoryId], references: [id])
+  subjectTypeId String?
+  subjectType SubjectType? @relation(fields: [subjectTypeId], references: [id])
   offerings  ClassSubject[]
+  optionalSelections StudentOptionalSubject[]
 }
 
 model ClassSubject {
@@ -365,6 +394,20 @@ model Student {
   feeCategory    String?
   photoUrl       String?
   signatureUrl   String?
+  bloodGroup     String?
+  house          String?
+  pinCode        String?
+  alternatePhone String?
+  feeDefaulter   Boolean @default(false)
+  rfidNumber     String?
+  rfidMapped     Boolean @default(false)
+  childIdActive  Boolean @default(true)
+  parentIdActive Boolean @default(true)
+  motherName     String?
+  primaryParentName String?
+  originalClass  String?
+  lastSeen       String?
+  details        Json?
 
   status         StudentStatus @default(ACTIVE)
   disableReasonId String?
@@ -381,6 +424,7 @@ model Student {
   invoices       FeeInvoice[]
   attendances    StudentAttendance[]
   marks          ExamMark[]
+  optionalSubjects StudentOptionalSubject[]
 
   @@unique([campusId, admissionNo])
   @@index([campusId, enrollmentNo])
@@ -518,6 +562,8 @@ model FeeType {
   name     String
   code     String?
   isActive Boolean @default(true)
+  description String?
+  isRecurring Boolean @default(false)
   lines    FeeMasterLine[]
 }
 
@@ -537,6 +583,10 @@ model FeeMaster {
   group     FeeGroup @relation(fields: [groupId], references: [id])
   dueDate   DateTime? @db.Date
   isActive  Boolean @default(true)
+  name      String  @default("")
+  description String?
+  classId   String?
+  class     Class?  @relation(fields: [classId], references: [id])
   lines     FeeMasterLine[]
   invoices  FeeInvoice[]
 }
@@ -548,6 +598,8 @@ model FeeMasterLine {
   feeTypeId  String
   feeType    FeeType   @relation(fields: [feeTypeId], references: [id])
   amount     Decimal   @db.Decimal(12, 2)
+  installmentName String @default("Single Installment")
+  displayOrder Int @default(0)
 }
 
 model FeeDiscount {
@@ -583,6 +635,7 @@ model FeeInvoice {
   studentId   String
   student     Student       @relation(fields: [studentId], references: [id])
   sessionId   String
+  session     AcademicSession @relation(fields: [sessionId], references: [id])
   masterId    String?
   master      FeeMaster?    @relation(fields: [masterId], references: [id])
   status      InvoiceStatus @default(DUE)
@@ -590,6 +643,7 @@ model FeeInvoice {
   paid        Decimal       @default(0) @db.Decimal(12, 2)
   discount    Decimal       @default(0) @db.Decimal(12, 2)
   fine        Decimal       @default(0) @db.Decimal(12, 2)
+  reference   String?
   lines       FeeInvoiceLine[]
   payments    Payment[]
   createdAt   DateTime      @default(now())
@@ -604,6 +658,10 @@ model FeeInvoiceLine {
   description String
   amount     Decimal    @db.Decimal(12, 2)
   paid       Decimal    @default(0) @db.Decimal(12, 2)
+  installmentName String @default("Single Installment")
+  dueDate    DateTime?  @db.Date
+  reference  String?
+  metadata   Json?
 }
 
 enum PaymentMethod {
@@ -629,6 +687,8 @@ model Payment {
   reference   String?
   receiptNo   String        @unique
   note        String?
+  cashDepositNumber String?
+  reversalReason String?
   paidAt      DateTime
   collectedBy String?
   cancelledAt DateTime?
@@ -654,6 +714,7 @@ model StudentAttendance {
   subjectId String?
   status    AttendanceStatus
   markedBy  String?
+  note      String @default("")
   @@unique([studentId, date, subjectId])
   @@index([date])
 }
@@ -801,12 +862,22 @@ model Staff {
 model Notice {
   id          String   @id @default(cuid())
   campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
   title       String
   body        String
   audience    String // all | staff | students | class
   classId     String?
+  noticeType  String   @default("News")
+  allowReply  Boolean  @default(false)
+  authorName  String   @default("")
+  authorUserId String?
+  board       String   @default("school")
+  audienceKey String   @default("all")
+  academicYear String  @default("")
   publishAt   DateTime @default(now())
   isPublished Boolean  @default(true)
+  attachments NoticeAttachment[]
+  views       NoticeView[]
 }
 
 model Homework {
@@ -832,4 +903,356 @@ model ScreenRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([campusId, screenKey])
+}
+
+// ─── School World additions ────────────────────────────────
+
+model AdmissionEnquiry {
+  id            String   @id @default(cuid())
+  campusId      String
+  campus        Campus   @relation(fields: [campusId], references: [id])
+  formNumber    String
+  academicYear  String
+  enquiryDate   DateTime? @db.Date
+  enquiryStatus String   @default("Cold Enquiry")
+  studentName   String
+  primaryContact String
+  email         String?
+  classApplied  String?
+  data          Json     @default("{}")
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([campusId, formNumber])
+  @@index([campusId, enquiryDate])
+}
+
+model SchoolRoute {
+  id            String  @id @default(cuid())
+  campusId      String
+  campus        Campus  @relation(fields: [campusId], references: [id])
+  name          String
+  stops         String  @default("")
+  vehicleNumber String  @default("")
+  driverName    String  @default("")
+  isActive      Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([campusId, name])
+}
+
+model NoticeAttachment {
+  id          String @id @default(cuid())
+  noticeId    String
+  notice      Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  fileName    String
+  contentType String @default("application/octet-stream")
+  fileSize    Int    @default(0)
+  fileData    Bytes
+  createdAt   DateTime @default(now())
+}
+
+model NoticeView {
+  id        String   @id @default(cuid())
+  noticeId  String
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  viewerUserId String
+  viewedAt  DateTime @default(now())
+  @@unique([noticeId, viewerUserId])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  campusId  String
+  campus    Campus   @relation(fields: [campusId], references: [id])
+  title     String
+  detail    String   @default("")
+  eventDate DateTime? @db.Date
+  createdBy String?
+  createdAt DateTime @default(now())
+  recipients EventRecipient[]
+}
+
+model EventRecipient {
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String?
+  label   String @default("")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  batchId     String
+  senderId    String?
+  subject     String   @default("")
+  body        String
+  status      String   @default("sent")
+  scheduledAt DateTime?
+  sentAt      DateTime @default(now())
+  recipients  MessageRecipient[]
+  attachments MessageAttachment[]
+  @@index([campusId, batchId])
+}
+
+model MessageRecipient {
+  id        String    @id @default(cuid())
+  messageId String
+  message   Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String?
+  readAt    DateTime?
+}
+
+model MessageAttachment {
+  id          String  @id @default(cuid())
+  messageId   String
+  message     Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileName    String
+  contentType String  @default("application/octet-stream")
+  fileSize    Int     @default(0)
+  fileData    Bytes
+  createdAt   DateTime @default(now())
+}
+
+model Questionnaire {
+  id        String   @id @default(cuid())
+  campusId  String
+  campus    Campus   @relation(fields: [campusId], references: [id])
+  title     String   @default("")
+  active    Boolean  @default(true)
+  createdBy String?
+  createdAt DateTime @default(now())
+  questions QuestionnaireQuestion[]
+  responses QuestionnaireResponse[]
+}
+
+model QuestionnaireQuestion {
+  id              String        @id @default(cuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  prompt          String
+  answerType      String        @default("Text answer")
+  options         Json          @default("[]")
+  sortOrder       Int           @default(0)
+}
+
+model QuestionnaireResponse {
+  id              String        @id @default(cuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  respondentUserId String
+  answer          Json
+  submittedAt     DateTime      @default(now())
+  @@unique([questionnaireId, respondentUserId])
+}
+
+model StoreItem {
+  id           String   @id @default(cuid())
+  campusId     String
+  campus       Campus   @relation(fields: [campusId], references: [id])
+  itemCode     String
+  name         String
+  currentStock Int      @default(0)
+  minimumStock Int      @default(0)
+  metadata     Json     @default("{}")
+  updatedAt    DateTime @updatedAt
+  @@unique([campusId, itemCode])
+}
+
+model StoreVendor {
+  id            String   @id @default(cuid())
+  campusId      String
+  campus        Campus   @relation(fields: [campusId], references: [id])
+  name          String
+  contactPerson String   @default("")
+  phone         String   @default("")
+  email         String   @default("")
+  address       String   @default("")
+  createdAt     DateTime @default(now())
+}
+
+model StaffCategory {
+  id          String   @id @default(cuid())
+  campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  name        String
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  assignments StaffCategoryAssignment[]
+  @@unique([campusId, name])
+}
+
+model StaffCategoryAssignment {
+  id         String @id @default(cuid())
+  categoryId String
+  category   StaffCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  staffId    String
+  @@unique([categoryId, staffId])
+}
+
+model CommunicationCategoryRestriction {
+  id         String @id @default(cuid())
+  campusId   String
+  categoryId String
+  channel    String
+  @@unique([campusId, categoryId, channel])
+}
+
+model ExternalLink {
+  id        String   @id @default(cuid())
+  campusId  String
+  campus    Campus   @relation(fields: [campusId], references: [id])
+  title     String
+  url       String
+  createdAt DateTime @default(now())
+  classes   ExternalLinkClass[]
+}
+
+model ExternalLinkClass {
+  linkId  String
+  classId String
+  link    ExternalLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  class   Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  @@id([linkId, classId])
+}
+
+model SubjectCategory {
+  id        String    @id @default(cuid())
+  campusId  String
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  name      String
+  subjects  Subject[]
+  @@unique([campusId, name])
+}
+
+model SubjectType {
+  id        String    @id @default(cuid())
+  campusId  String
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  name      String
+  subjects  Subject[]
+  @@unique([campusId, name])
+}
+
+model SubjectTypeAssignment {
+  subjectId     String
+  subjectTypeId String
+  @@id([subjectId, subjectTypeId])
+}
+
+model SubjectApplicableClass {
+  subjectId String
+  classId   String
+  @@id([subjectId, classId])
+}
+
+model StudentOptionalSubject {
+  id        String          @id @default(cuid())
+  studentId String
+  student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   AcademicSession @relation(fields: [sessionId], references: [id])
+  classId   String
+  class     Class           @relation(fields: [classId], references: [id])
+  subjectId String
+  subject   Subject         @relation(fields: [subjectId], references: [id])
+  @@unique([studentId, sessionId, classId, subjectId])
+}
+
+model AdminTemplateCatalog {
+  id            String   @id @default(cuid())
+  templateType  String
+  templateCode  String
+  templateName  String
+  version       Int      @default(1)
+  description   String   @default("")
+  isActive      Boolean  @default(true)
+  createdByUserId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  receiptSettings FeeReceiptTemplateSettings?
+  performanceSettings PerformanceTemplateSettings?
+  assignments   SchoolTemplateAssignment[]
+  @@unique([templateType, templateCode, version])
+}
+
+model FeeReceiptTemplateSettings {
+  templateId          String @id
+  template            AdminTemplateCatalog @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  showSchoolLogo      Boolean @default(true)
+  showSchoolName      Boolean @default(true)
+  showSchoolAddress   Boolean @default(true)
+  showSchoolPhone     Boolean @default(true)
+  showSchoolEmail     Boolean @default(false)
+  showStudentName     Boolean @default(true)
+  showStudentCode     Boolean @default(true)
+  showClassSection    Boolean @default(true)
+  showAcademicYear    Boolean @default(true)
+  showParentName      Boolean @default(true)
+  showFeeBreakdown    Boolean @default(true)
+  showPaymentMethod   Boolean @default(true)
+  showReceiptNumber   Boolean @default(true)
+  showPaymentReference Boolean @default(true)
+  showPaidAmount      Boolean @default(true)
+  showBalance         Boolean @default(false)
+  showSignatureLine   Boolean @default(true)
+  pageOrientation     String  @default("portrait")
+  headerText          String  @default("FEE RECEIPT")
+  footerText          String  @default("Thank you for your payment.")
+  updatedAt           DateTime @updatedAt
+  notes               FeeReceiptTemplateNote[]
+}
+
+model FeeReceiptTemplateNote {
+  id         String @id @default(cuid())
+  templateId String
+  settings   FeeReceiptTemplateSettings @relation(fields: [templateId], references: [templateId], onDelete: Cascade)
+  noteText   String
+  sortOrder  Int @default(0)
+}
+
+model PerformanceTemplateSettings {
+  templateId       String @id
+  template         AdminTemplateCatalog @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  academicYear     String @default("")
+  reportTitle      String @default("Student Performance Report")
+  showStudentPhoto Boolean @default(false)
+  showMarks        Boolean @default(true)
+  showGrade        Boolean @default(true)
+  showRemarks      Boolean @default(true)
+  footerText       String @default("")
+  updatedAt        DateTime @updatedAt
+  terms            PerformanceTemplateTerm[]
+  subterms         PerformanceTemplateSubterm[]
+}
+
+model PerformanceTemplateTerm {
+  id         String @id @default(cuid())
+  templateId String
+  settings   PerformanceTemplateSettings @relation(fields: [templateId], references: [templateId], onDelete: Cascade)
+  termName   String
+  sortOrder  Int @default(0)
+  @@unique([templateId, termName])
+}
+
+model PerformanceTemplateSubterm {
+  id          String @id @default(cuid())
+  templateId  String
+  settings    PerformanceTemplateSettings @relation(fields: [templateId], references: [templateId], onDelete: Cascade)
+  subtermName String
+  sortOrder   Int @default(0)
+  @@unique([templateId, subtermName])
+}
+
+model SchoolTemplateAssignment {
+  id              String @id @default(cuid())
+  userId          String
+  templateType    String
+  templateId      String
+  template        AdminTemplateCatalog @relation(fields: [templateId], references: [id])
+  appliedByUserId String
+  appliedAt       DateTime @default(now())
+  @@unique([userId, templateType])
 }

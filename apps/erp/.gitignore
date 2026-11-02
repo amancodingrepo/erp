@@ -19,6 +19,7 @@
 
 # production
 /build
+/public/school-world
 
 # misc
 .DS_Store

@@ -1,0 +1,10 @@
+import React from "react";
+import { Bell, LoaderCircle, Paperclip, ShieldCheck } from "lucide-react";
+import { downloadAttachment } from "./noticeRecipientUtils.js";
+
+export default function RecipientMessagesFeed({ context }) {
+  const { messagesLoading, messages, user, busyId, markMessageRead } = context;
+  return (
+    messagesLoading ? <div className="recipient-portal-empty"><LoaderCircle className="db-auth-spin"/> Loading messages…</div> : messages.length ? <div className="recipient-portal-feed">{messages.map(message=>{const isFeeReminder=String(message.subject||'').toLowerCase().startsWith('fee reminder');return <article key={message.id} className={`recipient-notice ${isFeeReminder?'recipient-fee-reminder':'recipient-generic-message'} ${message.readAt?'':'unread'}`}><div className="recipient-notice-top"><span className="recipient-notice-type">{isFeeReminder?'Fee Reminder':'School Message'}</span><span>{message.sentAt?new Date(message.sentAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}):''} {!message.readAt?'· New':'· Read'}</span></div><h2 className="recipient-message-subject">{message.subject||'School Message'}</h2><p>{message.body}</p><div className="recipient-notice-meta"><span>{user?.school?.name||'School Office'}</span><span>{message.readAt?'Read':'Unread'}</span></div>{(((message.attachments||[]).length>0)||!message.readAt)&&<div className="recipient-notice-actions">{(message.attachments||[]).map((file,i)=><button type="button" key={file.id||i} onClick={()=>downloadAttachment(file)}><Paperclip size={14}/>{file.name}</button>)}{!message.readAt&&<button type="button" onClick={()=>markMessageRead(message)} disabled={busyId===message.id}>{busyId===message.id?<LoaderCircle size={15} className="db-auth-spin"/>:<ShieldCheck size={15}/>} Mark as read</button>}</div>}</article>})}</div>:<div className="recipient-portal-empty"><Bell size={28}/><strong>No messages yet</strong><span>Fee reminders sent for your linked child or other school messages will appear here.</span></div>
+  );
+}

@@ -1,0 +1,18 @@
+node_modules
+npm-debug.log
+.env
+.env.*.local
+dist
+.git
+*.zip
+coverage
+
+# Never include local lab credentials, AWS snapshots, or test artifacts in images
+.env.lab
+.env.lab.*
+lab-data
+test-results
+
+# Local-only process state
+.lab-runtime
+*.dump

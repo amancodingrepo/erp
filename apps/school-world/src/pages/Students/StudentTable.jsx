@@ -1,0 +1,6 @@
+import React from "react";
+import { getNavigationHref, handleNavigationClick } from "../../navigation.js";
+
+export default function StudentTable({ rows = [], showOpen = true, onOpenStudent, t, parentModule = "My Branch" }) {
+  return <div className="module-table-wrap"><table className="module-table"><thead><tr><th>{t("Student ID")}</th><th>{t("Student")}</th><th>{t("Class")}</th><th>{t("Parent")}</th><th>{t("Phone")}</th><th>{t("Status")}</th>{showOpen && <th>{t("Action")}</th>}</tr></thead><tbody>{rows.map(student => <tr key={student.id}><td>{student.id}</td><td><strong>{student.name}</strong></td><td>{student.className}</td><td>{student.parent || "—"}</td><td>{student.phone || "—"}</td><td><span className={`module-status ${student.status === "Inactive" ? "inactive" : "active"}`}>{t(student.status)}</span>{student.defaulter && <span className="module-status defaulter">{t("Fee defaulter")}</span>}</td>{showOpen && <td><a href={getNavigationHref({ view: "edit", studentId: student.id, parent: parentModule })} className="module-small-button" onClick={event => handleNavigationClick(event, () => onOpenStudent?.(student))}>{t("Open student")}</a></td>}</tr>)}</tbody></table>{rows.length === 0 && <div className="module-empty">{t("No matching records found.")}</div>}</div>;
+}

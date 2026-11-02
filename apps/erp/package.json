@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "build:school-world": "node scripts/build-school-world.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

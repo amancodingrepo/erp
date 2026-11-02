@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+.env.*.local
+coverage/
+*.log
+*.dump
+*.sql.gz
+.DS_Store
+Thumbs.db
+
+# Local isolated lab secrets, data snapshots, browser output
+.env.lab
+.env.lab.*
+lab-data/
+test-results/
+*.lab.dump
+
+# Runtime PIDs/logging state for local lab processes
+.lab-runtime/

@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN python -m pip install --no-cache-dir --upgrade pip playwright \
+    && python -m playwright install --with-deps chromium
+
+WORKDIR /workspace
+COPY tests/fee_installment_dialog_browser_lab.py /workspace/tests/fee_installment_dialog_browser_lab.py
+COPY tests/full_stack_lab_smoke.py /workspace/tests/full_stack_lab_smoke.py
+COPY tests/ai_prototype_lab_test.py /workspace/tests/ai_prototype_lab_test.py
+COPY tests/performance_report_lab_test.py /workspace/tests/performance_report_lab_test.py
+
+CMD ["sh", "-lc", "python tests/full_stack_lab_smoke.py && python tests/fee_installment_dialog_browser_lab.py && python tests/ai_prototype_lab_test.py && python tests/performance_report_lab_test.py"]

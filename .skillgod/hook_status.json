@@ -1,11 +1,11 @@
 {
-  "ts": 1789288337.039481,
-  "iso": "2026-09-13T14:02:17",
+  "ts": 1791684595.209728,
+  "iso": "2026-10-11T07:39:55",
   "event": "session_start",
-  "channel": "hook-grok",
+  "channel": "hook",
   "ok": true,
-  "detail": "grok-fast-path digests",
+  "detail": "context_chars=9544",
   "project_id": "visha-90fc8883",
-  "cwd": "C:\\Users\\visha\\Downloads\\erp\\erp",
-  "pid": 25804
+  "cwd": "c:\\Users\\visha\\Downloads\\erp\\erp",
+  "pid": 27220
 }

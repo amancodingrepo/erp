@@ -1,0 +1,22 @@
+digraph SchoolDiaryArchitecture {
+  graph [rankdir=TB, bgcolor="white", pad="0.25", nodesep="0.45", ranksep="0.55", fontname="Arial", label="School Diary — Full-Stack Architecture", labelloc=t, fontsize=22];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, margin="0.16,0.10", color="#CAD5E2", fontcolor="#1F2937"];
+  edge [color="#64748B", arrowsize=0.7, penwidth=1.2, fontname="Arial", fontsize=9];
+  browser [label="Browser / React UI\nManage Students · Edit Student\nNotice Board · My Branch · Other modules", fillcolor="#EAF2FF", color="#91B4F4"];
+  api [label="Express REST API\nValidation · Rate limiting · Error handling", fillcolor="#F1F5F9"];
+  auth [label="Authentication and authorization\nHttpOnly session cookie · Password hashing\nRole checks · Forced password change", fillcolor="#F3E8FF", color="#C4B5FD"];
+  tenant [label="Tenant scope\nSchool ID derived from authenticated account\nSchool-specific queries", fillcolor="#ECFDF5", color="#86D7B3"];
+  pg [shape=cylinder, label="PostgreSQL 16\nDurable relational database", fillcolor="#DBEAFE", color="#60A5FA", fontsize=13];
+  core [label="Core tables\nschools · users · people · students\nstudent_details · student_parents\nacademic_years · school_classes", fillcolor="#F8FAFC"];
+  notices [label="Communications\nnotices · notice_attachments\nnotice_views · events · messages", fillcolor="#F8FAFC"];
+  schoolops [label="School operations\nfee_records · attendance_records\nschool_routes · questionnaires\nstore_inventory · store_vendors", fillcolor="#F8FAFC"];
+  flexible [label="Flexible module state\nmodule_records (JSONB, tenant scoped)\nused where a domain screen is not yet normalized", fillcolor="#FFF7ED", color="#FDBA74"];
+  audit [label="Governance / maintenance\naudit_logs · schema_migrations\nbackups · migration history", fillcolor="#F8FAFC"];
+  browser -> api [label="Same-origin /api requests"];
+  api -> auth;
+  auth -> tenant;
+  tenant -> pg [label="Parameterized SQL"];
+  pg -> core; pg -> notices; pg -> schoolops; pg -> flexible; pg -> audit;
+  {rank=same; core; notices; schoolops;}
+  {rank=same; flexible; audit;}
+}

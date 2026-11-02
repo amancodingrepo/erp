@@ -1,0 +1,162 @@
+name: school-world-isolated-lab
+
+services:
+  lab-db:
+    image: ${LAB_POSTGRES_IMAGE:-postgres:16-alpine}
+    environment:
+      POSTGRES_DB: ${LAB_POSTGRES_DB:-school_world_lab}
+      POSTGRES_USER: ${LAB_POSTGRES_USER:-school_world_lab}
+      POSTGRES_PASSWORD: ${LAB_POSTGRES_PASSWORD:?Copy .env.lab.example to .env.lab first}
+    ports:
+      - "127.0.0.1:${LAB_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - school_world_lab_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+    restart: unless-stopped
+    networks: [school-world-lab]
+
+  lab-bootstrap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["node", "server/lab-migrate.js"]
+    environment:
+      NODE_ENV: development
+      LAB_MODE: "true"
+      LAB_AUTO_MIGRATE: ${LAB_AUTO_MIGRATE:-true}
+      DATABASE_URL: postgresql://${LAB_POSTGRES_USER:-school_world_lab}:${LAB_POSTGRES_PASSWORD}@lab-db:5432/${LAB_POSTGRES_DB:-school_world_lab}
+    depends_on:
+      lab-db:
+        condition: service_healthy
+    restart: "no"
+    networks: [school-world-lab]
+
+  lab-seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["node", "server/lab-seed.js"]
+    environment:
+      NODE_ENV: development
+      LAB_MODE: "true"
+      LAB_SEED_DEMO_DATA: ${LAB_SEED_DEMO_DATA:-true}
+      DEFAULT_SCHOOL_NAME: Sanford School Lab
+      DEFAULT_SCHOOL_CODE: SANFORD_LAB
+      DEFAULT_ADMIN_EMAIL: admin@sanford-lab.local
+      DEFAULT_ADMIN_PASSWORD: LabOnly-ChangeMe-123!
+      DEFAULT_SUPERADMIN_EMAIL: superadmin@schoolworld-lab.local
+      DEFAULT_SUPERADMIN_PASSWORD: LabOnly-SuperAdmin-123!
+      DATABASE_URL: postgresql://${LAB_POSTGRES_USER:-school_world_lab}:${LAB_POSTGRES_PASSWORD}@lab-db:5432/${LAB_POSTGRES_DB:-school_world_lab}
+      PGPOOL_MAX: ${LAB_PGPOOL_MAX:-5}
+      MAX_JSON_SIZE: ${LAB_MAX_JSON_SIZE:-12mb}
+    depends_on:
+      lab-db:
+        condition: service_healthy
+      lab-bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
+    networks: [school-world-lab]
+
+  lab-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://${LAB_POSTGRES_USER:-school_world_lab}:${LAB_POSTGRES_PASSWORD}@lab-db:5432/${LAB_POSTGRES_DB:-school_world_lab}
+      JWT_SECRET: ${LAB_JWT_SECRET:?Set LAB_JWT_SECRET in .env.lab}
+      COOKIE_SECURE: "false"
+      LAB_MODE: "true"
+      AUTO_MIGRATE: "false"
+      SEED_DEMO_DATA: "false"
+      DEFAULT_SCHOOL_NAME: Sanford School Lab
+      DEFAULT_SCHOOL_CODE: SANFORD_LAB
+      DEFAULT_ADMIN_EMAIL: admin@sanford-lab.local
+      DEFAULT_ADMIN_PASSWORD: LabOnly-ChangeMe-123!
+      DEFAULT_SUPERADMIN_EMAIL: superadmin@schoolworld-lab.local
+      DEFAULT_SUPERADMIN_PASSWORD: LabOnly-SuperAdmin-123!
+      PGPOOL_MAX: ${LAB_PGPOOL_MAX:-5}
+      MAX_JSON_SIZE: ${LAB_MAX_JSON_SIZE:-12mb}
+    ports:
+      - "127.0.0.1:${LAB_API_PORT:-3002}:3001"
+    depends_on:
+      lab-db:
+        condition: service_healthy
+      lab-bootstrap:
+        condition: service_completed_successfully
+      lab-seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+      start_period: 90s
+    restart: unless-stopped
+    networks: [school-world-lab]
+
+  lab-web:
+    image: node:22-alpine
+    working_dir: /workspace
+    command:
+      - sh
+      - -lc
+      - npm install --package-lock=false --no-save --no-audit --no-fund && npx vite --config vite.lab.config.js --host 0.0.0.0 --port 5173 --strictPort
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_LAB_MODE: "true"
+    volumes:
+      - ./:/workspace
+      - school_world_lab_node_modules:/workspace/node_modules
+    ports:
+      - "127.0.0.1:${LAB_WEB_PORT:-5174}:5173"
+    depends_on:
+      lab-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173/tests/fee-installment-dialog.html').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 40
+      start_period: 60s
+    restart: unless-stopped
+    networks: [school-world-lab]
+
+  lab-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.lab-tests
+    working_dir: /workspace
+    environment:
+      LAB_WEB_URL: http://lab-web:5173
+      LAB_API_URL: http://lab-api:3001
+      LAB_AI_URL: http://lab-web:5173/lab/ai-innovation/index.html
+      LAB_PERFORMANCE_REPORT_URL: http://lab-web:5173/lab/performance-report/index.html
+      LAB_GIT_BRANCH: ${LAB_GIT_BRANCH:-local-checkout}
+      LAB_GIT_SHA: ${LAB_GIT_SHA:-local-unknown}
+    volumes:
+      - ./test-results:/workspace/test-results
+    depends_on:
+      lab-db:
+        condition: service_healthy
+      lab-api:
+        condition: service_healthy
+      lab-web:
+        condition: service_healthy
+    profiles: ["test"]
+    networks: [school-world-lab]
+
+networks:
+  school-world-lab:
+    name: school-world-isolated-lab-network
+
+volumes:
+  school_world_lab_postgres_data:
+    name: school_world_lab_postgres_data
+  school_world_lab_node_modules:
+    name: school_world_lab_node_modules

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>School World — AI Innovation Sandbox</title>
+<style>
+:root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#1f314b;background:#f3f6fb;line-height:1.45}
+*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;background:#152d4b;color:#fff}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800}.mark{width:35px;height:35px;display:grid;place-items:center;border-radius:10px;background:#f0f6ff;color:#183f6d;font-weight:900}
+.topbar small{display:block;color:#b5cce6;font-weight:500;font-size:11px}.lab-state{padding:7px 10px;border:1px solid #c8daf0;border-radius:999px;background:#244362;color:#fff;font-size:11px;font-weight:750}
+.layout{display:grid;grid-template-columns:235px minmax(0,1fr);min-height:calc(100vh - 67px)}
+.sidebar{padding:22px 14px;background:#fff;border-right:1px solid #dfe7f2}
+.side-title{margin:0 10px 12px;color:#71839c;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.nav{display:grid;gap:6px}.nav button{display:flex;align-items:center;gap:9px;border:1px solid transparent;border-radius:9px;padding:11px 12px;background:transparent;color:#51647c;text-align:left;font-size:12px;font-weight:700}
+.nav button[aria-selected=true]{border-color:#cde0f6;background:#eef6ff;color:#185aa0}
+.nav .n{display:grid;place-items:center;width:23px;height:23px;border-radius:7px;background:#e8eef6;color:#315476;font-size:11px}
+.safe-note{margin:24px 5px 0;padding:12px;border:1px solid #d8e7dc;border-radius:9px;background:#f3fbf5;color:#3c674b;font-size:11px}
+.safe-note strong{display:block;margin-bottom:5px}
+main{min-width:0;padding:28px;max-width:1450px;width:100%;margin:0 auto}
+.eyebrow{color:#4375ae;font-size:10px;letter-spacing:.14em;font-weight:850;text-transform:uppercase}
+h1{margin:7px 0 8px;font-size:27px;letter-spacing:-.5px;color:#172f4e}
+.lead{max-width:850px;margin:0 0 22px;color:#61738b;font-size:13px;line-height:1.7}
+.notice{display:flex;gap:12px;align-items:start;margin-bottom:20px;padding:13px 15px;border:1px solid #eed8a3;border-radius:10px;background:#fff9e9;color:#795c22;font-size:12px}
+.notice b{display:block;margin-bottom:3px;color:#674913}
+.panel{display:none}.panel.active{display:block}
+.panel-head{display:flex;align-items:start;justify-content:space-between;gap:15px;margin-bottom:16px}
+.panel-head h2{margin:0 0 4px;font-size:19px;color:#1b385b}.panel-head p{margin:0;color:#6a7c93;font-size:12px}
+.chip{white-space:nowrap;border-radius:999px;padding:5px 8px;background:#e9eff8;color:#4b6280;font-size:10px;font-weight:800}
+.card{border:1px solid #dfe7f1;border-radius:13px;background:#fff;box-shadow:0 4px 14px #1d345408}
+.card-pad{padding:18px}.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+label{display:grid;gap:6px;min-width:0;color:#526781;font-size:11px;font-weight:750}
+input,select,textarea{width:100%;min-width:0;padding:10px 11px;border:1px solid #d2ddea;border-radius:8px;background:#fff;color:#243b58;font-size:12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#528bc9;box-shadow:0 0 0 3px #eaf3fe}
+textarea{resize:vertical;min-height:110px;line-height:1.6}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.primary,.secondary{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;padding:9px 13px;border:1px solid #2167ab;border-radius:8px;background:#2167ab;color:#fff;font-size:12px;font-weight:800}
+.secondary{border-color:#d1deec;background:#fff;color:#315c8b}
+.output{margin-top:18px;border:1px solid #d9e5f2;border-radius:11px;background:#f8fbff;overflow:hidden}
+.output-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid #e2ebf5;background:#f0f6fd;color:#2c4c70;font-size:12px;font-weight:800}
+.output-body{padding:15px;color:#344c69;font-size:12px;white-space:pre-wrap;line-height:1.7;min-height:54px}
+.empty{color:#8292a7;font-style:italic}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.metric{padding:13px;border:1px solid #e0e8f2;border-radius:10px;background:#fff}.metric small{display:block;color:#73849a;font-size:11px}.metric strong{display:block;margin-top:3px;color:#24486f;font-size:23px}
+.signal-list{display:grid;gap:10px}.signal{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:13px;border:1px solid #e0e7f0;border-radius:10px;background:#fff}
+.signal h3{margin:0 0 3px;font-size:13px}.signal p{margin:0;color:#63768e;font-size:11px;line-height:1.6}.signal em{align-self:start;border-radius:999px;padding:5px 8px;background:#fff5db;color:#83631b;font-size:10px;font-style:normal;font-weight:800}
+.alt{margin-top:14px;padding:12px 13px;border-left:3px solid #8ba9cc;border-radius:0 7px 7px 0;background:#f0f5fb;color:#536980;font-size:11px;line-height:1.7}
+.ideas{margin-top:24px}.ideas h2{margin:0 0 10px;color:#294868;font-size:15px}.idea-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.idea{padding:13px;border:1px solid #e0e8f2;border-radius:10px;background:#fff}.idea strong{display:block;margin-bottom:5px;font-size:12px;color:#254665}.idea span{display:block;color:#667a92;font-size:11px;line-height:1.6}
+.footer{margin-top:22px;color:#8391a4;font-size:10px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{padding:12px;border-right:0;border-bottom:1px solid #dfe7f2}.side-title{margin-bottom:8px}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}.safe-note{margin-top:12px}main{padding:20px}.idea-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.topbar{padding:13px}.lab-state{font-size:9px}.brand{font-size:12px}.nav{grid-template-columns:1fr 1fr}.nav button{padding:9px 7px;font-size:11px}main{padding:15px}h1{font-size:22px}.form-grid,.metrics{grid-template-columns:1fr}.panel-head{flex-direction:column}.signal{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="mark">SW</span><div>School World <small>AI Innovation Sandbox · isolated from ERP</small></div></div>
+  <span class="lab-state">LAB ONLY · SAMPLE DATA</span>
+</header>
+<div class="layout">
+  <aside class="sidebar">
+    <p class="side-title">Experimental tools</p>
+    <nav class="nav" role="tablist" aria-label="AI prototypes">
+      <button role="tab" aria-selected="true" data-panel="lesson"><span class="n">01</span> Lesson studio</button>
+      <button role="tab" aria-selected="false" data-panel="parent"><span class="n">02</span> Parent copilot</button>
+      <button role="tab" aria-selected="false" data-panel="attendance"><span class="n">03</span> Attendance review</button>
+      <button role="tab" aria-selected="false" data-panel="practice"><span class="n">04</span> Practice builder</button>
+    </nav>
+    <div class="safe-note"><strong>Privacy boundary</strong>These prototypes use fictional data and run in this page only. No school API, student database, or external AI provider is contacted.</div>
+  </aside>
+  <main>
+    <span class="eyebrow">Product discovery · prototype playground</span>
+    <h1>AI features, tested safely first.</h1>
+    <p class="lead">A separate place to evaluate education-ERP ideas before anyone proposes changes to the actual School World product. Each demo below is a transparent, rule-based prototype—not a claim that an LLM is connected.</p>
+    <div class="notice"><div>⚠</div><div><b>Prototype, not production AI</b>Outputs are generated locally from sample templates and explainable rules. Before product implementation, compare a rules-only version with an approved AI model, require staff review, evaluate accuracy and bias, and set school-level access controls.</div></div>
+
+    <section id="panel-lesson" class="panel active" role="tabpanel">
+      <div class="panel-head"><div><h2>Lesson & Worksheet Studio</h2><p>Create a teacher-reviewable lesson outline from structured inputs.</p></div><span class="chip">Teacher approval required</span></div>
+      <div class="card card-pad">
+        <div class="form-grid">
+          <label>Grade<select id="lesson-grade"><option>Class 3</option><option selected>Class 5</option><option>Class 8</option><option>Class 10</option></select></label>
+          <label>Subject<select id="lesson-subject"><option>Mathematics</option><option selected>Science</option><option>English</option><option>Social Studies</option></select></label>
+          <label>Topic<input id="lesson-topic" value="Water cycle" maxlength="100"></label>
+          <label>Output type<select id="lesson-type"><option>40-minute lesson plan</option><option selected>Practice worksheet</option><option>Revision notes</option><option>Homework activity</option></select></label>
+          <label>Difficulty<select id="lesson-level"><option>Foundation</option><option selected>On-level</option><option>Challenge</option></select></label>
+          <label>Learning focus<input id="lesson-focus" value="Explain and apply the key ideas" maxlength="120"></label>
+        </div>
+        <div class="actions"><button class="primary" id="lesson-generate">Generate sample draft</button><button class="secondary" id="lesson-clear">Reset draft</button></div>
+        <div class="output"><div class="output-head"><span>Draft for teacher review</span><span class="chip">Local sample output</span></div><div id="lesson-output" class="output-body empty">Choose the inputs and generate a sample draft. Nothing will be saved to a school record.</div></div>
+        <div class="alt"><b>Alternative to evaluate:</b> keep a curriculum-mapped template library for predictable topics, then compare it with an approved AI model grounded only in teacher-provided learning objectives. Measure curriculum alignment, factuality and editing time before choosing.</div>
+      </div>
+    </section>
+
+    <section id="panel-parent" class="panel" role="tabpanel">
+      <div class="panel-head"><div><h2>Parent Communication Copilot</h2><p>Draft consistent, courteous messages without sending them.</p></div><span class="chip">Preview only · not sent</span></div>
+      <div class="card card-pad">
+        <div class="form-grid">
+          <label>Message type<select id="parent-type"><option value="attendance">Attendance follow-up</option><option value="meeting">Parent-teacher meeting</option><option value="homework">Homework reminder</option><option value="fee">Fee reminder</option></select></label>
+          <label>Language<select id="parent-language"><option value="en">English</option><option value="hi">Hindi</option></select></label>
+          <label>Tone<select id="parent-tone"><option value="warm">Warm and supportive</option><option value="formal">Formal</option><option value="short">Short and direct</option></select></label>
+          <label>Student name (fictional)<input id="parent-student" value="Aarav" maxlength="40"></label>
+          <label>School/class detail<input id="parent-detail" value="Class 5" maxlength="80"></label>
+          <label>Optional staff note<input id="parent-note" placeholder="e.g. Please call the school office" maxlength="120"></label>
+        </div>
+        <div class="actions"><button class="primary" id="parent-generate">Draft message</button><button class="secondary" id="parent-copy">Copy draft</button></div>
+        <div class="output"><div class="output-head"><span>Message preview</span><span class="chip">Human review required</span></div><div id="parent-output" class="output-body empty">Select a scenario to draft a sample message.</div></div>
+        <div class="alt"><b>Alternative to evaluate:</b> use approved school message templates plus translation memory first. An LLM can later suggest tone and translation, but must not invent fee balances, attendance facts, dates or promises. Staff should approve before any delivery integration.</div>
+      </div>
+    </section>
+
+    <section id="panel-attendance" class="panel" role="tabpanel">
+      <div class="panel-head"><div><h2>Attendance Pattern Review</h2><p>Explainable sample signals to help staff decide whom to check in with.</p></div><span class="chip">No automated decisions</span></div>
+      <div class="metrics">
+        <div class="metric"><small>Fictional learners</small><strong>4</strong></div>
+        <div class="metric"><small>Signals needing review</small><strong id="attendance-count">—</strong></div>
+        <div class="metric"><small>Actions taken automatically</small><strong>0</strong></div>
+      </div>
+      <div class="card card-pad">
+        <div class="actions" style="margin-top:0"><button class="primary" id="attendance-run">Analyse sample patterns</button><button class="secondary" id="attendance-reset">Clear results</button></div>
+        <div id="attendance-results" class="signal-list" style="margin-top:14px"><p class="empty">Run the analysis to display fictional examples and the exact rule behind each flag.</p></div>
+        <div class="alt"><b>Alternative to evaluate:</b> start with transparent thresholds and school-defined policies. Compare any predictive model against simple rules, review false positives by group, document uncertainty, and never use the signal alone for discipline, grading, enrolment or access decisions.</div>
+      </div>
+    </section>
+
+    <section id="panel-practice" class="panel" role="tabpanel">
+      <div class="panel-head"><div><h2>Practice Question Builder</h2><p>Create a small sample question set for a teacher to inspect and edit.</p></div><span class="chip">No assessment published</span></div>
+      <div class="card card-pad">
+        <div class="form-grid">
+          <label>Grade<select id="practice-grade"><option>Class 4</option><option selected>Class 6</option><option>Class 9</option></select></label>
+          <label>Subject<select id="practice-subject"><option selected>Mathematics</option><option>Science</option><option>English</option></select></label>
+          <label>Topic<input id="practice-topic" value="Fractions" maxlength="100"></label>
+          <label>Difficulty<select id="practice-level"><option>Foundation</option><option selected>On-level</option><option>Challenge</option></select></label>
+          <label>Question style<select id="practice-style"><option>Multiple choice</option><option selected>Short answer</option><option>Explain your reasoning</option><option>Mixed set</option></select></label>
+          <label>Number of questions<select id="practice-count"><option>3</option><option selected>5</option><option>8</option></select></label>
+        </div>
+        <div class="actions"><button class="primary" id="practice-generate">Generate sample set</button><button class="secondary" id="practice-copy">Copy questions</button></div>
+        <div class="output"><div class="output-head"><span>Question set</span><span class="chip">Editable draft</span></div><div id="practice-output" class="output-body empty">Choose the topic and generate sample questions.</div></div>
+        <div class="alt"><b>Alternative to evaluate:</b> retrieve questions from a teacher-approved question bank tagged by syllabus objective, then use AI only to draft variations. Check answer keys, age suitability, accessibility and duplicate content before use.</div>
+      </div>
+    </section>
+
+    <section class="ideas">
+      <h2>Other ideas to compare before implementation</h2>
+      <div class="idea-grid">
+        <div class="idea"><strong>School policy Q&A</strong><span>Search only approved handbook and circulars; show source passages and flag unanswered questions instead of guessing.</span></div>
+        <div class="idea"><strong>Timetable conflict assistant</strong><span>Use deterministic constraints for room/teacher clashes; let AI explain a proposed resolution rather than silently changing schedules.</span></div>
+        <div class="idea"><strong>Admin workload summariser</strong><span>Summarise due tasks and notices for authorised staff only, with links back to source records and no cross-school data.</span></div>
+      </div>
+    </section>
+    <p class="footer">School World Lab · fictional sample data only · outputs stay in this browser tab · no ERP API, database or external AI provider connected.</p>
+  </main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const byId = id => document.getElementById(id);
+  const setOutput = (id, value) => {
+    const element = byId(id);
+    element.textContent = value;
+    element.classList.remove("empty");
+  };
+  document.querySelectorAll(".nav [role=tab]").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".nav [role=tab]").forEach(item => item.setAttribute("aria-selected", String(item === tab)));
+      document.querySelectorAll(".panel").forEach(panel => panel.classList.toggle("active", panel.id === "panel-" + tab.dataset.panel));
+    });
+  });
+
+  byId("lesson-generate").addEventListener("click", () => {
+    const grade = byId("lesson-grade").value;
+    const subject = byId("lesson-subject").value;
+    const topic = byId("lesson-topic").value.trim() || "the selected topic";
+    const type = byId("lesson-type").value;
+    const level = byId("lesson-level").value;
+    const focus = byId("lesson-focus").value.trim() || "understand the main idea";
+    setOutput("lesson-output",
+      type + " — " + grade + " " + subject + "\nTopic: " + topic + "\nDifficulty: " + level +
+      "\n\nLearning goal\nLearners will " + focus.toLowerCase() + " about " + topic + ".\n\nStarter (5 min)\nAsk learners what they already know about " + topic + " and collect two examples.\n\nGuided activity (15 min)\nModel one worked example, think aloud, then solve a second example together.\n\nIndependent practice (15 min)\n1. Explain the key idea of " + topic + " in your own words.\n2. Apply the idea to a new classroom or everyday example.\n3. Identify one common mistake and explain how to avoid it.\n\nExit check (5 min)\nAsk each learner to share one thing they learned and one question they still have.\n\nTeacher review checklist\n[ ] Confirm factual accuracy and curriculum alignment\n[ ] Adjust examples for learner needs\n[ ] Review accessibility and language\n[ ] Approve before sharing");
+  });
+  byId("lesson-clear").addEventListener("click", () => setOutput("lesson-output", "Draft cleared. Choose the inputs and generate a sample draft."));
+
+  const parentTemplates = {
+    attendance: {
+      en: "Dear Parent/Guardian,\nWe are checking in regarding " + "a recent attendance pattern" + ". Please contact the school if your child needs any support. We would be glad to discuss practical next steps.",
+      hi: "प्रिय अभिभावक,\nहम हाल की उपस्थिति के संबंध में आपसे संपर्क कर रहे हैं। यदि आपके बच्चे को किसी सहायता की आवश्यकता है, तो कृपया विद्यालय से संपर्क करें। हम आगे के व्यावहारिक कदमों पर बात करने के लिए उपलब्ध हैं।"
+    },
+    meeting: {
+      en: "Dear Parent/Guardian,\nWe would like to arrange a parent-teacher conversation about your child's learning progress. Please share a suitable time with the school office.",
+      hi: "प्रिय अभिभावक,\nहम आपके बच्चे की पढ़ाई की प्रगति पर चर्चा के लिए अभिभावक-शिक्षक बैठक तय करना चाहते हैं। कृपया विद्यालय कार्यालय को अपनी सुविधाजनक तारीख और समय बताएँ।"
+    },
+    homework: {
+      en: "Dear Parent/Guardian,\nThis is a friendly reminder to review the assigned homework with your child. Please contact the teacher if any instruction needs clarification.",
+      hi: "प्रिय अभिभावक,\nकृपया अपने बच्चे के दिए गए गृहकार्य की जाँच में सहायता करें। किसी निर्देश को लेकर प्रश्न हो, तो शिक्षक से संपर्क करें।"
+    },
+    fee: {
+      en: "Dear Parent/Guardian,\nThis is a courteous reminder to review the fee information shared by the school. Please contact the school office if you need a statement or assistance. Verify all amounts and dates before sending.",
+      hi: "प्रिय अभिभावक,\nविद्यालय द्वारा साझा की गई शुल्क जानकारी देखने के लिए यह विनम्र स्मरण है। विवरण या सहायता के लिए कृपया विद्यालय कार्यालय से संपर्क करें। भेजने से पहले सभी राशि और तारीखों की पुष्टि करें।"
+    }
+  };
+  byId("parent-generate").addEventListener("click", () => {
+    const kind = byId("parent-type").value;
+    const language = byId("parent-language").value;
+    const tone = byId("parent-tone").value;
+    const student = byId("parent-student").value.trim() || "[student]";
+    const detail = byId("parent-detail").value.trim() || "[class]";
+    const note = byId("parent-note").value.trim();
+    const template = parentTemplates[kind][language];
+    const greeting = language === "hi" ? "नमस्ते,\n" : "Hello,\n";
+    const signoff = language === "hi" ? "\n\nसादर,\nविद्यालय टीम" : "\n\nRegards,\nSchool Team";
+    const concise = tone === "short";
+    let body = template.replace("Dear Parent/Guardian,\n", "").replace("प्रिय अभिभावक,\n", "");
+    if (concise) body = body.split("\n").filter(Boolean).slice(0, 2).join(" ");
+    const result = greeting + "Student: " + student + " · " + detail + "\n\n" + body + (note ? "\n\nStaff note: " + note : "") + signoff +
+      "\n\n[Review recipient, facts, language and tone before sending. This is a template sample, not an AI translation.]";
+    setOutput("parent-output", result);
+  });
+  byId("parent-copy").addEventListener("click", async () => {
+    const value = byId("parent-output").textContent;
+    try {
+      await navigator.clipboard.writeText(value);
+      byId("parent-copy").textContent = "Copied";
+      setTimeout(() => { byId("parent-copy").textContent = "Copy draft"; }, 1200);
+    } catch {
+      setOutput("parent-output", value + "\n\n(Clipboard access not available in this browser; select and copy the text manually.)");
+    }
+  });
+
+  const sampleSignals = [
+    {name:"Learner A (fictional)",attendance:72,missed:4,days:10,notes:"4 absences in the last 10 school days; overall sample attendance 72%.",level:"Review suggested",action:"Check the attendance register for data-entry errors, then ask the authorised class teacher whether a supportive check-in is appropriate."},
+    {name:"Learner B (fictional)",attendance:91,missed:1,days:10,notes:"1 absence in the last 10 school days; no sample threshold crossed.",level:"No threshold crossed",action:"No automated action. Follow normal school process."},
+    {name:"Learner C (fictional)",attendance:78,missed:3,days:10,notes:"3 absences in the last 10 school days; repeat pattern meets the example review rule.",level:"Review suggested",action:"Confirm records and review context with authorised staff. Do not infer the reason from attendance data alone."},
+    {name:"Learner D (fictional)",attendance:86,missed:2,days:10,notes:"2 absences in the last 10 school days; this prototype's review rule is not crossed.",level:"No threshold crossed",action:"No automated action. Staff may review using normal policy."}
+  ];
+  byId("attendance-run").addEventListener("click", () => {
+    const flagged = sampleSignals.filter(item => item.missed >= 3);
+    byId("attendance-count").textContent = String(flagged.length);
+    byId("attendance-results").replaceChildren();
+    sampleSignals.forEach(item => {
+      const element = document.createElement("article");
+      element.className = "signal";
+      const left = document.createElement("div");
+      const heading = document.createElement("h3");
+      heading.textContent = item.name + " · " + item.attendance + "% sample attendance";
+      const text = document.createElement("p");
+      text.textContent = item.notes + " Suggested next step: " + item.action;
+      left.append(heading,text);
+      const badge = document.createElement("em");
+      badge.textContent = item.level;
+      element.append(left,badge);
+      byId("attendance-results").append(element);
+    });
+  });
+  byId("attendance-reset").addEventListener("click", () => {
+    byId("attendance-count").textContent = "—";
+    byId("attendance-results").innerHTML = '<p class="empty">Run the analysis to display fictional examples and the exact rule behind each flag.</p>';
+  });
+
+  byId("practice-generate").addEventListener("click", () => {
+    const grade = byId("practice-grade").value;
+    const subject = byId("practice-subject").value;
+    const topic = byId("practice-topic").value.trim() || "the selected topic";
+    const level = byId("practice-level").value;
+    const style = byId("practice-style").value;
+    const count = Number(byId("practice-count").value);
+    const starters = [
+      "Explain the main idea of " + topic + " using a suitable example.",
+      "Show one method for solving a problem about " + topic + ".",
+      "A learner gives an incorrect answer about " + topic + ". Describe how you would check their reasoning.",
+      "Create a real-life situation where " + topic + " could be useful.",
+      "Compare two approaches to a question about " + topic + ". Which is clearer and why?",
+      "List two common mistakes learners may make with " + topic + " and how to correct them.",
+      "Write one question about " + topic + " that tests understanding rather than memorisation.",
+      "Summarise one key rule or concept associated with " + topic + "."
+    ];
+    const heading = grade + " · " + subject + " · " + topic + " · " + level + " · " + style;
+    const questions = starters.slice(0,count).map((question,index) => (index+1) + ". " + question);
+    setOutput("practice-output", heading + "\n\n" + questions.join("\n\n") +
+      "\n\nTeacher checks\n[ ] Confirm the questions match the taught syllabus\n[ ] Verify every answer / marking guide\n[ ] Adjust difficulty and accessibility\n[ ] Review before assigning\n\nPrototype note: prompt templates generated this sample; no LLM or school records were used.");
+  });
+  byId("practice-copy").addEventListener("click", async () => {
+    const value = byId("practice-output").textContent;
+    try {
+      await navigator.clipboard.writeText(value);
+      byId("practice-copy").textContent = "Copied";
+      setTimeout(() => { byId("practice-copy").textContent = "Copy questions"; }, 1200);
+    } catch {
+      setOutput("practice-output", value + "\n\n(Clipboard unavailable; select and copy manually.)");
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+digraph SchoolDiaryER {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.7", fontname="Arial", label="School Diary — Main Database Relationships", labelloc=t, fontsize=22, compound=true];
+  node [shape=record, style="filled", fillcolor="#F8FAFC", color="#CBD5E1", fontname="Arial", fontsize=9, margin="0.08,0.05"];
+  edge [color="#64748B", arrowsize=0.65, penwidth=1.0, fontname="Arial", fontsize=8];
+  schools [label="{schools|PK id\lname · code · config\l}", fillcolor="#EAF2FF", color="#93B4F4"];
+  years [label="{academic_years|PK id\lFK school_id\llabel · is_current\l}"];
+  classes [label="{school_classes|PK id\lFK school_id\lclass_name · section\l}"];
+  people [label="{people|PK id\lFK school_id\lperson_type · external_id\lfull_name · contact_number\lclass · route · status\l}"];
+  accounts [label="{user_accounts|PK id\lFK school_id · person_id\lemail · password_hash\lrole · is_active\l}", fillcolor="#F3E8FF", color="#C4B5FD"];
+  students [label="{students|PK id\lFK school_id · person_id\lstudent_code · name\lclass · year · status\lphoto · student flags\l}", fillcolor="#EAF2FF", color="#93B4F4"];
+  details [label="{student_details|PK id\lFK school_id · student_id\ldetails JSONB\l}"];
+  parents [label="{student_parents|FK school_id\lFK student_id\lFK parent_person_id\lrelationship · is_primary\l}"];
+  routes [label="{school_routes|PK id\lFK school_id\lname · stops\lvehicle · driver\l}"];
+  notices [label="{notices|PK id\lFK school_id · author_user_id\lacademic_year · board\laudience_key · type · message\l}", fillcolor="#FFF7ED", color="#FDBA74"];
+  attachments [label="{notice_attachments|PK id\lFK school_id · notice_id\lfile_name · content_type · file_data\l}"];
+  views [label="{notice_views|PK id\lFK school_id · notice_id\lFK viewer_person_id\lviewed_at · unique notice/person\l}"];
+  fees [label="{fee_records|PK id\lFK school_id · student_id\lacademic_year · amounts · due_date\l}"];
+  attendance [label="{attendance_records|PK id\lFK school_id · student_id\ldate · status\l}"];
+  module [label="{module_records|PK id\lFK school_id · updated_by\lmodule_key · record_key\lpayload JSONB\l}", fillcolor="#FFF7ED", color="#FDBA74"];
+  audit [label="{audit_logs|PK id\lFK school_id · actor_user_id\laction · entity · details\l}"];
+  schools -> years [label="1 : many"]; schools -> classes [label="1 : many"]; schools -> people [label="1 : many"]; schools -> accounts [label="1 : many"]; schools -> students [label="1 : many"]; schools -> routes [label="1 : many"]; schools -> notices [label="1 : many"]; schools -> module [label="1 : many"]; schools -> audit [label="1 : many"];
+  people -> accounts [label="0/1 : many", dir=both, arrowtail=none]; people -> students [label="identity", dir=both, arrowtail=none]; students -> details [label="1 : 0/1"]; students -> parents [label="1 : many"]; people -> parents [label="parent/guardian", dir=both, arrowtail=none]; students -> fees [label="1 : many"]; students -> attendance [label="1 : many"]; notices -> attachments [label="1 : many"]; notices -> views [label="1 : many"]; people -> views [label="viewer", dir=both, arrowtail=none]; accounts -> notices [label="author", dir=both, arrowtail=none]; accounts -> audit [label="actor", dir=both, arrowtail=none];
+}

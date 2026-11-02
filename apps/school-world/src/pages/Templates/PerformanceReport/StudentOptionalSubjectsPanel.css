@@ -1,0 +1,9 @@
+.pr-optional-selection-table { min-width: 980px; }
+.pr-optional-choice-list { display:flex; flex-wrap:wrap; gap:8px; min-width:240px; }
+.pr-optional-choice { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border:1px solid var(--pr-border); border-radius:9px; background:#fff; font-size:12px; font-weight:650; cursor:pointer; }
+.pr-optional-choice input { width:15px; height:15px; margin:0; accent-color:var(--pr-primary,#2563eb); }
+.pr-optional-choice:has(input:checked) { background:#eff6ff; border-color:#93c5fd; }
+.pr-optional-selection-table td { vertical-align:top; }
+.pr-optional-selection-table td:first-child { min-width:170px; }
+.pr-optional-selection-table td:last-child { min-width:135px; }
+@media (max-width:640px) { .pr-optional-choice-list { min-width:0; } .pr-optional-choice { width:100%; } }

@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-school_diary}
+      POSTGRES_USER: ${POSTGRES_USER:-schooldiary}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - school_diary_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-schooldiary}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-school_diary}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      DEFAULT_SCHOOL_NAME: ${DEFAULT_SCHOOL_NAME:-Sanford School}
+      DEFAULT_SCHOOL_CODE: ${DEFAULT_SCHOOL_CODE:-SANFORD}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@sanford.local}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-ChangeMe123!}
+      DEFAULT_SUPERADMIN_EMAIL: ${DEFAULT_SUPERADMIN_EMAIL:-superadmin@schooldiary.local}
+      DEFAULT_SUPERADMIN_PASSWORD: ${DEFAULT_SUPERADMIN_PASSWORD:-SuperAdmin123!}
+      PGPOOL_MAX: ${PGPOOL_MAX:-10}
+      MAX_JSON_SIZE: ${MAX_JSON_SIZE:-12mb}
+    ports:
+      - "3001:3001"
+volumes:
+  school_diary_postgres:

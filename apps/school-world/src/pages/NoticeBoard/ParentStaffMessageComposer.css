@@ -1,0 +1,29 @@
+/* Parent messaging to only database-assigned, permitted staff categories */
+.parent-staff-message{display:grid;gap:13px;margin:0 0 18px;padding:17px;border:1px solid #dce7f2;border-radius:13px;background:#fff;box-shadow:0 5px 18px #24476b08}
+.psm-heading{display:flex;align-items:center;gap:11px}
+.psm-icon{display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:10px;background:#eaf2ff;color:#1d65b7}
+.psm-heading>div:nth-child(2){flex:1;min-width:0}
+.psm-heading h2{margin:0;color:#213c5c;font:750 14px/1.35 Inter,Arial,sans-serif}
+.psm-heading p{margin:4px 0 0;color:#73869d;font:400 11px/1.5 Inter,Arial,sans-serif}
+.psm-refresh{display:grid;place-items:center;width:32px;height:32px;border:1px solid #dbe5ef;border-radius:8px;background:#fff;color:#4b637e;cursor:pointer}
+.psm-refresh:disabled{opacity:.5;cursor:not-allowed}
+.psm-form{display:grid;gap:12px}
+.psm-field{display:grid;gap:7px;color:#435b75;font:700 11px Inter,Arial,sans-serif}
+.psm-field>span{display:flex;align-items:center;gap:6px}
+.psm-field select,.psm-field textarea{width:100%;padding:10px 11px;border:1px solid #d8e3ef;border-radius:8px;background:#fff;color:#223c5a;font:400 12px/1.5 Inter,Arial,sans-serif;outline:none}
+.psm-field select{height:39px}
+.psm-field textarea{resize:vertical;min-height:82px}
+.psm-field select:focus,.psm-field textarea:focus{border-color:#5793df;box-shadow:0 0 0 3px #2675e512}
+.psm-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.psm-footer>span{color:#8795a7;font:400 10px Inter,Arial,sans-serif}
+.psm-footer button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;padding:9px 13px;border:1px solid #1767c4;border-radius:8px;background:#1767c4;color:#fff;font:700 11px Inter,Arial,sans-serif;cursor:pointer}
+.psm-footer button:hover{background:#1056a7}
+.psm-footer button:disabled{opacity:.55;cursor:not-allowed}
+.psm-alert{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border:1px solid #f0d6d6;border-radius:8px;background:#fff7f7;color:#a43939;font:500 11px/1.5 Inter,Arial,sans-serif}
+.psm-alert.success{border-color:#ccebd8;background:#f4fcf7;color:#177847}
+.psm-empty{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:16px 10px;color:#6d8198;font:500 11px/1.5 Inter,Arial,sans-serif}
+.psm-empty strong{color:#2d4865}
+.psm-empty span{flex-basis:100%;padding-left:31px}
+.psm-spin{animation:psm-spin 1s linear infinite}
+@keyframes psm-spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.parent-staff-message{padding:13px}.psm-footer button{width:100%}}

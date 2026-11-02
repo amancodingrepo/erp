@@ -1,0 +1,111 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/erp/**"
+      - "apps/school-world/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/docker-image.yml"
+      - "deploy/lightsail/promote.sh"
+      - ".dockerignore"
+  pull_request:
+    paths:
+      - "apps/erp/**"
+      - "apps/school-world/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/docker-image.yml"
+      - "deploy/lightsail/promote.sh"
+      - ".dockerignore"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-unit:
+    name: backend-unit-and-types
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/erp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/erp/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npx vitest run --exclude src/test/**
+
+  backend-integration:
+    name: backend-integration-postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/erp
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: erp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/erp
+      AUTH_SECRET: ci-auth-secret-not-for-production-32ch
+      FIELD_ENCRYPTION_KEY: ci-field-key-not-for-production-32ch
+      SEED_ADMIN_PASSWORD: Admin@12345
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/erp/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - run: npx prisma db seed
+      - run: npx vitest run src/test
+
+  frontend:
+    name: frontend-school-world
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/school-world
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/school-world/package-lock.json
+      - run: npm ci
+      - run: node --test tests/performance_report_subject_classification.test.mjs tests/student_optional_subject_selection.test.mjs
+      - name: Production build
+        env:
+          SCHOOL_WORLD_BASE: /school-world/
+          SCHOOL_WORLD_OUT: dist
+        run: npm run build
+      - name: Built page is School World
+        run: grep -q "School World" dist/index.html
