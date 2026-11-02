@@ -17,6 +17,7 @@ async function loadStudent(campusId: string, studentCode: string) {
     include: {
       enrollments: { where: { isCurrent: true }, include: { class: true, section: true, session: true }, take: 1 },
       guardians: { include: { guardian: true } },
+      house: true,
     },
   });
   if (!student) throw notFound("Student");
@@ -40,7 +41,7 @@ async function loadStudent(campusId: string, studentCode: string) {
       fatherName: father?.name ?? "",
       motherName: student.motherName ?? "",
       status: student.status === "ACTIVE" ? "Active" : "Inactive",
-      house: student.house ?? "",
+      house: student.house?.name ?? "",
       bloodGroup: student.bloodGroup ?? "",
       metadata: { erpStudentId: student.id },
     },
@@ -76,7 +77,6 @@ export async function PATCH(
       lastName?: string;
       mobile?: string;
       email?: string;
-      house?: string;
       bloodGroup?: string;
       motherName?: string;
       rollNo?: string;
@@ -91,7 +91,6 @@ export async function PATCH(
     }
     if (typeof body.phone === "string") data.mobile = body.phone;
     if (typeof body.email === "string") data.email = body.email;
-    if (typeof body.house === "string") data.house = body.house;
     if (typeof body.bloodGroup === "string") data.bloodGroup = body.bloodGroup;
     if (typeof body.motherName === "string") data.motherName = body.motherName;
     if (typeof body.rollNumber === "string") data.rollNo = body.rollNumber;
@@ -104,7 +103,20 @@ export async function PATCH(
       if (!gender) throw new HttpError(400, "validation_error", "Gender must be Male, Female, or Other.");
       data.gender = gender;
     }
-    await prisma.student.update({ where: { id: loaded.student.id }, data });
+    const houseName = typeof body.house === "string" ? body.house.trim() : undefined;
+    const houseId = houseName === undefined
+      ? undefined
+      : houseName
+        ? (await prisma.house.upsert({
+            where: { campusId_name: { campusId: user.campusId, name: houseName } },
+            update: {},
+            create: { campusId: user.campusId, name: houseName },
+          })).id
+        : null;
+    await prisma.student.update({
+      where: { id: loaded.student.id },
+      data: { ...data, ...(houseId !== undefined ? { houseId } : {}) },
+    });
     if (typeof body.rollNumber === "string" && loaded.student.enrollments[0]) {
       await prisma.studentEnrollment.update({
         where: { id: loaded.student.enrollments[0].id },

@@ -1045,6 +1045,7 @@ const studentInclude = {
   enrollments: { where: { isCurrent: true }, include: { class: true, section: true, session: true }, take: 1 },
   guardians: { include: { guardian: true } },
   addresses: true,
+  house: true,
 } satisfies Prisma.StudentInclude;
 
 export function studentView(student: Prisma.StudentGetPayload<{ include: typeof studentInclude }>) {
@@ -1077,7 +1078,7 @@ export function studentView(student: Prisma.StudentGetPayload<{ include: typeof 
     motherName: student.motherName ?? "",
     primaryParentName: student.primaryParentName ?? "",
     status: student.status === StudentStatus.ACTIVE ? "Active" : student.status === StudentStatus.ALUMNI ? "Alumni" : "Inactive",
-    house: student.house ?? "",
+    house: student.house?.name ?? "",
     bloodGroup: student.bloodGroup ?? "",
     feeDefaulter: student.feeDefaulter,
     defaulter: student.feeDefaulter,
@@ -1113,7 +1114,19 @@ async function applyStudentFields(campusId: string, studentId: string, body: Jso
   if (typeof body.phone === "string") data.mobile = clean(body.phone) || null;
   if (typeof body.email === "string") data.email = lower(body.email) || null;
   if (typeof body.alternatePhone === "string") data.alternatePhone = clean(body.alternatePhone) || null;
-  if (typeof body.house === "string") data.house = clean(body.house) || null;
+  if (typeof body.house === "string") {
+    const houseName = clean(body.house);
+    if (!houseName) {
+      if (student.houseId) data.house = { disconnect: true };
+    } else {
+      const house = await prisma.house.upsert({
+        where: { campusId_name: { campusId, name: houseName } },
+        update: {},
+        create: { campusId, name: houseName },
+      });
+      data.house = { connect: { id: house.id } };
+    }
+  }
   if (typeof body.bloodGroup === "string") data.bloodGroup = clean(body.bloodGroup) || null;
   if (typeof body.motherName === "string") data.motherName = clean(body.motherName) || null;
   if (typeof body.primaryParentName === "string" || typeof body.parent === "string") {
@@ -1182,6 +1195,14 @@ export async function createStudent(campusId: string, body: JsonRecord) {
     return { student: studentView(await loadStudentRecord(campusId, code)), created: false };
   }
   const parts = name.split(" ");
+  const houseName = clean(body.house);
+  const houseId = houseName
+    ? (await prisma.house.upsert({
+        where: { campusId_name: { campusId, name: houseName } },
+        update: {},
+        create: { campusId, name: houseName },
+      })).id
+    : null;
   const student = await prisma.student.create({
     data: {
       campusId,
@@ -1196,7 +1217,7 @@ export async function createStudent(campusId: string, body: JsonRecord) {
       primaryParentName: clean(body.parent || body.primaryParentName) || null,
       rollNo: clean(body.rollNumber) || null,
       enrollmentNo: clean(body.enrollmentNumber) || null,
-      house: clean(body.house) || null,
+      houseId,
       bloodGroup: clean(body.bloodGroup) || null,
       status: studentStatus(body.status || "Active"),
       dob: parseDate(body.dob),

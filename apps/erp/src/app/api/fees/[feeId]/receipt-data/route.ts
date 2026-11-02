@@ -27,7 +27,21 @@ export async function GET(
     const history = siblings.flatMap((row) => {
       const entries = asRecord(row.metadata).paymentHistory;
       if (!Array.isArray(entries)) return [];
-      return entries.map((entry) => ({ ...asRecord(entry), feeId: row.id, feeName: row.description, row }));
+      return entries.map((entry) => {
+        const record = asRecord(entry);
+        return {
+          feeId: row.id,
+          feeName: row.description,
+          amountPaid: record.amountPaid,
+          receiptNumber: record.receiptNumber,
+          paymentDate: record.paymentDate,
+          paymentMethod: record.paymentMethod,
+          cashDepositNumber: record.cashDepositNumber,
+          notes: record.notes,
+          lateFeeCharges: record.lateFeeCharges,
+          row,
+        };
+      });
     }).filter((entry) => money(entry.amountPaid) > 0);
     const receiptNumber = requestedReceipt || String(history.find((entry) => entry.receiptNumber)?.receiptNumber || "");
     const selected = history.filter((entry) => !receiptNumber || entry.receiptNumber === receiptNumber);

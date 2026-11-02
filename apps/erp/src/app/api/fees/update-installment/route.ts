@@ -16,7 +16,10 @@ export async function PATCH(request: Request) {
       throw new HttpError(400, "validation_error", "Select a valid fee installment to edit.");
     }
     const updates = await prisma.$transaction(async (tx) => {
-      const lines = [];
+      const lines: {
+        line: Prisma.FeeInvoiceLineGetPayload<{ include: typeof feeLineInclude }>;
+        record: (typeof records)[number];
+      }[] = [];
       for (const record of records) {
         const id = String(record.feeId || "").trim();
         const line = await tx.feeInvoiceLine.findFirst({
