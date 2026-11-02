@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { patchPeriod, removePeriod } from "@/lib/services/campus-desk-masters";
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -74,20 +75,14 @@ export async function PATCH(request: Request) {
       "create",
     );
     const body = patchSchema.parse(await readJson(request));
-    const existing = await prisma.period.findFirst({
-      where: { id: body.id, campusId: user.campusId },
-    });
-    if (!existing) throw notFound("period");
-    const row = await prisma.period.update({
-      where: { id: existing.id },
-      data: {
+    return ok(
+      await patchPeriod(user.campusId, body.id, {
         name: body.name,
         startTime: body.startTime,
         endTime: body.endTime,
         sortOrder: body.sortOrder,
-      },
-    });
-    return ok(row);
+      }),
+    );
   } catch (error) {
     return fail(error);
   }
@@ -103,12 +98,7 @@ export async function DELETE(request: Request) {
     );
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw notFound("period");
-    const existing = await prisma.period.findFirst({
-      where: { id, campusId: user.campusId },
-    });
-    if (!existing) throw notFound("period");
-    await prisma.period.delete({ where: { id: existing.id } });
-    return ok({ ok: true });
+    return ok({ data: await removePeriod(user.campusId, id) });
   } catch (error) {
     return fail(error);
   }

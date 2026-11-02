@@ -38,6 +38,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# railway local link
+.railway
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# student document uploads
+/uploads

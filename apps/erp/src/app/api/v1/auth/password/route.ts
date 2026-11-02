@@ -1,8 +1,8 @@
-import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { unauthenticated, validationError } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { principalFromRequest } from "@/lib/principal";
 
 const bodySchema = z.object({
@@ -16,11 +16,11 @@ export async function PATCH(request: Request) {
     const body = bodySchema.parse(await readJson(request));
     const user = await prisma.user.findUnique({ where: { id: principal.id } });
     if (!user) throw unauthenticated();
-    const matches = await bcrypt.compare(body.current, user.passwordHash);
+    const matches = await verifyPassword(body.current, user.passwordHash);
     if (!matches) {
       throw validationError({ current: "incorrect password" });
     }
-    const passwordHash = await bcrypt.hash(body.next, 12);
+    const passwordHash = await hashPassword(body.next);
     await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash },

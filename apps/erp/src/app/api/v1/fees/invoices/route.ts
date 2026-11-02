@@ -2,8 +2,14 @@ import { InvoiceStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
-import { created, fail, readJson } from "@/lib/http";
+import { created, fail, ok, readJson } from "@/lib/http";
+import { ZERO } from "@/lib/money";
 import { requireApiPermission } from "@/lib/principal";
+import { listInvoices } from "@/lib/services/fees";
+import {
+  allocateSessionNumber,
+  writeInvoiceNoTx,
+} from "@/lib/services/campus-session-prefixes";
 
 const bodySchema = z.object({
   studentId: z.string(),
@@ -11,32 +17,75 @@ const bodySchema = z.object({
   masterId: z.string(),
 });
 
+export async function GET(request: Request) {
+  try {
+    const user = await requireApiPermission(request, "fees", "collect", "view");
+    const params = new URL(request.url).searchParams;
+    return ok(
+      await listInvoices({
+        campusId: user.campusId,
+        studentId: params.get("studentId") ?? undefined,
+        enrollmentId: params.get("enrollmentId") ?? undefined,
+      }),
+    );
+  } catch (error) {
+    return fail(error);
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const user = await requireApiPermission(request, "fees", "collect", "collect");
+    const user = await requireApiPermission(
+      request,
+      "fees",
+      "collect",
+      "collect",
+    );
     const body = bodySchema.parse(await readJson(request));
     const master = await prisma.feeMaster.findFirst({
       where: { id: body.masterId, campusId: user.campusId },
       include: { lines: { include: { feeType: true } } },
     });
     if (!master) throw notFound("fee master");
-    const total = master.lines.reduce((sum, line) => sum + Number(line.amount), 0);
-    const invoice = await prisma.feeInvoice.create({
-      data: {
-        studentId: body.studentId,
-        sessionId: body.sessionId,
-        masterId: master.id,
-        status: InvoiceStatus.DUE,
-        total,
-        lines: {
-          create: master.lines.map((line) => ({
-            feeTypeId: line.feeTypeId,
-            description: line.feeType.name,
-            amount: line.amount,
-          })),
+    const student = await prisma.student.findFirst({
+      where: { id: body.studentId, campusId: user.campusId },
+    });
+    if (!student) throw notFound("student");
+    const total = master.lines.reduce((sum, line) => sum.plus(line.amount), ZERO);
+    const session = await prisma.academicSession.findFirst({
+      where: { id: body.sessionId, campusId: user.campusId },
+      select: { id: true, name: true, code: true },
+    });
+    const invoice = await prisma.$transaction(async (tx) => {
+      const row = await tx.feeInvoice.create({
+        data: {
+          studentId: body.studentId,
+          sessionId: body.sessionId,
+          masterId: master.id,
+          status: InvoiceStatus.DUE,
+          total,
+          lines: {
+            create: master.lines.map((line) => ({
+              feeTypeId: line.feeTypeId,
+              description: line.feeType.name,
+              amount: line.amount,
+              dueDate: master.dueDate,
+            })),
+          },
         },
-      },
-      include: { lines: true },
+        include: { lines: true },
+      });
+      if (session) {
+        const invoiceNo = await allocateSessionNumber(
+          tx,
+          user.campusId,
+          session,
+          "invoice",
+        );
+        await writeInvoiceNoTx(tx, user.campusId, row.id, invoiceNo);
+        return { ...row, invoiceNo };
+      }
+      return { ...row, invoiceNo: "" };
     });
     return created(invoice);
   } catch (error) {

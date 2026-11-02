@@ -13,6 +13,28 @@ export const OPTIONAL_MODULES = [
   "booking",
   "railway",
   "live-classes",
+  "admission",
+  "payroll",
+  "mentoring",
+  "recruitment",
+  "atkt",
+  "seating",
+  "onlineexam",
+  "updater",
+  "library",
+  "inventory",
+  "transport",
+  "certificates",
+  "front-office",
+  "cms",
+  "finance",
+  "placements",
+  "activities",
+  "feedback",
+  "lesson-plan",
+  "assignments",
+  "downloads",
+  "multi-campus",
 ] as const;
 
 export type OptionalModuleId = (typeof OPTIONAL_MODULES)[number];
@@ -21,19 +43,204 @@ export type OptionalModuleId = (typeof OPTIONAL_MODULES)[number];
 export const NAV_PERMISSIONS: Record<string, string> = {
   "/staff/dashboard": "dashboard.home.view",
   "/staff/admin/dashboard": "dashboard.home.view",
+  "/staff/my-branch": "dashboard.home.view",
+  "/staff/admin/managebranch": "dashboard.home.view",
   "/staff/student/search": "students.profile.view",
   "/staff/student/create": "students.profile.create",
   "/staff/student/disablestudentslist": "students.profile.view",
+  "/staff/student/generaterollnumber": "students.profile.edit",
+  "/staff/student/student-bulk-upload": "students.profile.create",
+  "/staff/category": "students.profile.view",
+  "/staff/disable-reason": "students.profile.view",
   "/staff/studentfee": "fees.collect.view",
+  "/staff/studentfee/feesearch": "fees.collect.view",
+  "/staff/studentfee/feereceipt": "fees.collect.view",
+  "/staff/feetype": "fees.master.view",
+  "/staff/feegroup": "fees.master.view",
+  "/staff/fees-installment": "fees.master.view",
+  "/staff/feemaster": "fees.master.view",
+  "/staff/feemastercoursewise": "fees.master.edit",
+  "/staff/feediscount": "fees.master.view",
+  "/staff/fine-rules": "fees.master.view",
   "/staff/stuattendence": "attendance.student.view",
   "/staff/stuattendence/attendencereport": "attendance.student.view",
+  "/staff/approve-leave": "attendance.leave.approve",
+  "/staff/staffattendance": "hr.staff.view",
+  "/staff/leavetypes": "attendance.leave.approve",
+  "/staff/leaverequest": "attendance.leave.approve",
+  "/staff/staff/leaverequest": "attendance.leave.approve",
   "/staff/examgroup": "exams.group.view",
   "/staff/examgroup/mark-entry-single-subject": "exams.marks.view",
   "/staff/examgroup/mark-entry-subjectwise": "exams.marks.view",
+  "/staff/examresult": "exams.marks.view",
+  "/staff/examresult/exam-result-block-unblock": "exams.results.approve",
+  "/staff/examresult/marksheet": "exams.marks.view",
+  "/staff/grade": "exams.group.view",
   "/staff/roles": "settings.roles.view",
   "/staff/users": "settings.users.view",
+  "/staff/staff": "hr.staff.view",
+  "/staff/staff/add": "hr.staff.create",
+  "/staff/staff-categories": "hr.staff.view",
+  "/staff/driver": "hr.staff.view",
+  "/staff/designation": "hr.staff.view",
+  "/staff/notification": "communicate.notice.view",
+  "/staff/messages": "communicate.notice.view",
+  "/staff/events": "communicate.notice.view",
+  "/staff/schoolhouse": "students.profile.view",
+  "/staff/contacts": "students.profile.view",
+  "/staff/search-users": "students.profile.view",
+  "/staff/daycare": "students.profile.view",
+  "/staff/attendance-dashboard": "attendance.student.view",
+  "/staff/admission-forms": "settings.campus.view",
+  "/staff/admission-tests": "students.profile.view",
+  "/staff/change-house": "students.profile.edit",
+  "/staff/questionnaires": "communicate.notice.view",
+  "/staff/performance-templates": "exams.marks.view",
+  "/staff/student-performance": "exams.marks.view",
+  "/staff/website": "settings.campus.view",
+  "/staff/fees-upload": "fees.collect.collect",
+  "/staff/fees-bulk-pay": "fees.collect.collect",
+  "/staff/fees/bulkfeepayment": "fees.collect.collect",
+  "/staff/deposit-slips": "fees.collect.view",
+  "/staff/bulk-photos": "students.profile.edit",
+  "/staff/corporates": "students.profile.view",
+  "/staff/schsettings": "settings.campus.view",
+  "/staff/customfield": "settings.campus.view",
+  "/staff/print-headerfooter": "settings.campus.view",
+  "/staff/classes": "academics.class.view",
+  "/staff/teacher/assign-class-teacher": "academics.class.view",
+  "/staff/sections": "academics.class.view",
+  "/staff/subject": "academics.class.view",
+  "/staff/sessions": "academics.class.view",
+  "/staff/department": "academics.class.view",
+  "/staff/course-master": "academics.class.view",
+  "/staff/timetable/classreport": "academics.class.view",
+  "/staff/stdtransfer": "academics.class.view",
+  "/staff/holiday/set-working-days": "academics.class.view",
+  "/staff/report/studentinformation": "students.profile.view",
+  "/staff/financereports/finance": "fees.collect.view",
+  "/staff/attendencereports/attendance": "attendance.student.view",
+  "/staff/examresult/examinations": "exams.marks.view",
+  "/staff/userlog": "settings.users.view",
+  "/staff/userlog/payment-log": "fees.collect.view",
+  "/staff/audit": "settings.campus.view",
+  "/staff/report/human-resource": "hr.staff.view",
   "/staff/module": "settings.modules.view",
+  "/staff/onlinestudent": "students.profile.view",
+  "/staff/onlineadmission/admissionsetting": "settings.campus.view",
+  "/staff/admission/cutofflist": "students.profile.edit",
+  "/staff/admission/importapplication": "students.profile.create",
+  "/staff/admission/generatemeritlist": "students.profile.edit",
+  "/staff/admission/manageadmission": "students.profile.edit",
+  "/staff/hostel": "students.profile.view",
+  "/staff/hostelroom": "students.profile.view",
+  "/staff/hostel/assign-room": "students.profile.edit",
+  "/staff/hostel/change-room": "students.profile.edit",
+  "/staff/hostel/vacancy-status": "students.profile.view",
+  "/staff/route": "students.profile.view",
+  "/staff/pickuppoint": "students.profile.view",
+  "/staff/vehicle": "students.profile.view",
+  "/staff/vehroute": "students.profile.view",
+  "/staff/pickuppoint/student-fees": "students.profile.edit",
+  "/staff/transport/feemaster": "students.profile.view",
+  "/staff/gps": "students.profile.view",
+  "/staff/pickup-auth": "students.profile.view",
+  "/staff/transport/fuel": "students.profile.view",
+  "/staff/transport/slabs": "students.profile.view",
+  "/staff/cctv": "students.profile.view",
+  "/staff/birthdays": "students.profile.view",
+  "/staff/eligibility": "students.profile.edit",
+  "/staff/one-way": "communicate.notice.view",
+  "/staff/links": "settings.campus.view",
+  "/staff/principals": "hr.staff.view",
+  "/staff/attendance-modes": "attendance.student.view",
+  "/staff/subject-categories": "academics.subject.view",
+  "/staff/subject-types": "academics.subject.view",
+  "/staff/leave-marks-percent": "exams.marks.view",
+  "/staff/diary": "students.profile.view",
+  "/staff/eyfs": "students.profile.view",
+  "/staff/emergency-sms": "communicate.notice.edit",
+  "/staff/mailsms/email-template": "communicate.notice.edit",
+  "/staff/mailsms/sms-template": "communicate.notice.edit",
+  "/staff/mailsms/compose": "communicate.notice.edit",
+  "/staff/mailsms/compose-sms": "communicate.notice.edit",
+  "/staff/mailsms": "communicate.notice.view",
+  "/staff/mailsms/schedule": "communicate.notice.view",
+  "/staff/feereminder/setting": "fees.collect.view",
+  "/staff/studentidcard": "students.profile.view",
+  "/staff/generateidcard/search": "students.profile.view",
+  "/staff/certificate": "students.profile.view",
+  "/staff/generatecertificate": "students.profile.view",
+  "/staff/staffidcard": "hr.staff.view",
+  "/staff/generatestaffidcard": "hr.staff.view",
+  "/staff/certificate-report": "students.profile.view",
+  "/staff/enquiry": "students.profile.view",
+  "/staff/visitors": "students.profile.view",
+  "/staff/visitorspurpose": "students.profile.edit",
+  "/staff/book/getall": "students.profile.view",
+  "/staff/library/centers": "students.profile.view",
+  "/staff/member": "students.profile.edit",
+  "/staff/member/student": "students.profile.edit",
+  "/staff/member/teacher": "students.profile.edit",
+  "/staff/atkt-form/atkt-form-student": "exams.group.create",
+  "/staff/atkt-form/edit-atkt-form-student": "exams.group.create",
+  "/staff/atkt-form/admissionsetting": "exams.group.create",
+  "/staff/atkt-form/atkt-form-report": "exams.group.view",
+  "/staff/examgroup/revaluation-form": "exams.group.create",
+  "/staff/revaluation-form/revaluationformsetting": "exams.group.create",
+  "/staff/paymentsettings": "settings.campus.view",
+  "/staff/naac/dashboard": "students.profile.view",
+  "/staff/naac": "students.profile.edit",
+  "/staff/naac/task-allocation": "students.profile.edit",
+  "/staff/naac/naac-report-master": "students.profile.view",
+  "/staff/naac/naac-report": "students.profile.view",
+  "/staff/copo/program-outcomes": "academics.class.create",
+  "/staff/copo/course-outcomes": "academics.class.create",
+  "/staff/copo/co-po-mapping": "academics.class.create",
+  "/staff/copo/indirect-po-mapping": "academics.class.create",
+  "/staff/copo/lesson": "academics.class.create",
+  "/staff/copo/plan": "academics.class.create",
+  "/staff/copo/tlp-approve-list": "academics.class.create",
+  "/staff/outcome-basis-education": "academics.class.view",
+  "/staff/feedback/feedback-formname-master": "communicate.notice.create",
+  "/staff/feedback": "communicate.notice.create",
+  "/staff/feedback/assign-feedback-form": "communicate.notice.create",
+  "/staff/feedback/showview-feedback-form": "communicate.notice.view",
+  "/staff/feedback/submitted-forms": "communicate.notice.view",
+  "/staff/feedback/fill-feedback-form": "communicate.notice.view",
+  "/staff/feedbackreport": "communicate.notice.view",
+  "/staff/naac/student-feedback-list": "communicate.notice.view",
+  "/staff/naac/student-rating-form": "communicate.notice.view",
+  "/staff/staffpayroll/add-element": "fees.master.edit",
+  "/staff/staffpayroll/select-pay-element": "fees.master.edit",
+  "/staff/staffpayroll/manage-staff-payroll": "fees.master.view",
+  "/staff/staffpayroll/staff-payroll": "fees.master.edit",
+  "/staff/staffpayroll/add-income-tax-element": "fees.master.edit",
+  "/staff/staffpayroll/generate-income-tax": "fees.master.edit",
+  "/staff/staffpayroll/setup-tax-slab": "fees.master.edit",
+  "/staff/staffpayrollreports/staff-payroll": "fees.master.view",
+  "/staff/seating-arrangement": "exams.group.create",
+  "/staff/seating-arrangement/assign-block": "exams.group.create",
+  "/staff/seating-arrangement/report": "exams.group.view",
+  "/staff/gmeet/timetable": "academics.class.create",
+  "/staff/gmeet/meeting": "academics.class.create",
+  "/staff/gmeet/class-report": "academics.class.view",
+  "/staff/gmeet/meeting-report": "academics.class.view",
+  "/staff/gmeet": "academics.class.view",
+  "/staff/conference/timetable": "academics.class.create",
+  "/staff/conference/meeting": "academics.class.create",
+  "/staff/conference/class-report": "academics.class.view",
+  "/staff/conference/meeting-report": "academics.class.view",
+  "/staff/conference": "academics.class.view",
+  "/staff/multibranch/branch/overview": "tenants.campus.view",
+  "/staff/multibranch/finance": "tenants.campus.view",
+  "/staff/tenants": "tenants.campus.view",
   "/staff/admin/backup": "settings.backup.edit",
+  "/staff/homework": "academics.class.view",
+  "/staff/lessonplan/lesson": "academics.class.view",
+  "/staff/lessonplan/topic": "academics.class.view",
+  "/staff/lessonplan/instruction-plan": "academics.class.view",
+  "/staff/syllabus": "academics.class.view",
 };
 
 const VIEW_BY_MODULE: Record<string, string> = {
@@ -55,30 +262,121 @@ export function navPermissionFor(item: Pick<NavItem, "href" | "module">): string
   return `${item.module}.profile.view`;
 }
 
+export const V1_WIRED_HREFS = new Set(Object.keys(NAV_PERMISSIONS));
+
+export function isV1WiredHref(href: string) {
+  if (href.includes("updater")) return false;
+  return true;
+}
+
 export function optionalModuleForItem(item: {
   href: string;
   module: string;
 }): string | null {
+  if (item.href.includes("updater")) return "updater";
   if (item.href.includes("railway")) return "railway";
-  if (item.href.startsWith("/staff/gmeet") || item.href.includes("/gmeet")) {
+  if (item.href.includes("atkt") || item.href.includes("revaluation")) return "atkt";
+  if (item.href.includes("seating-arrangement")) return "seating";
+  if (item.href.includes("onlineexam")) return "onlineexam";
+  if (
+    item.href.startsWith("/staff/gmeet") ||
+    item.href.includes("/gmeet") ||
+    item.href.startsWith("/staff/conference")
+  ) {
     return "gmeet";
   }
   if (item.href.startsWith("/staff/copo") || item.module === "outcomes") {
     return "copo";
   }
   if (item.module === "room-booking") return "booking";
+  if (item.href.includes("hr-recruitment")) return "recruitment";
   if ((OPTIONAL_MODULES as readonly string[]).includes(item.module)) {
     return item.module;
   }
   return null;
 }
 
+export function isForeverOff(moduleId: string) {
+  return moduleId === "updater";
+}
+
 export function isModuleEnabled(
   flags: Record<string, boolean>,
   moduleId: string,
 ): boolean {
-  if (!(moduleId in flags)) return true;
-  return flags[moduleId] !== false;
+  if (isForeverOff(moduleId)) return false;
+  if (!(OPTIONAL_MODULES as readonly string[]).includes(moduleId)) return true;
+  return flags[moduleId] === true;
+}
+
+const TEACHER_HREF_PREFIXES = [
+  "/staff/dashboard",
+  "/staff/admin/dashboard",
+  "/staff/my-branch",
+  "/staff/admin/managebranch",
+  "/staff/stuattendence",
+  "/staff/attendencereports",
+  "/staff/timetable/mytimetable",
+  "/staff/timetable/classreport",
+  "/staff/homework",
+  "/staff/lessonplan",
+  "/staff/syllabus",
+  "/staff/gmeet",
+  "/staff/conference",
+  "/staff/examgroup/mark-entry-single-subject",
+  "/staff/examgroup/mark-entry-subjectwise",
+  "/staff/examgroup/displaymarksexamsubjwise",
+  "/staff/student/search",
+  "/staff/search-users",
+  "/staff/student/studentdetails",
+  "/staff/attendance-dashboard",
+  "/staff/daycare",
+  "/staff/notification",
+  "/staff/messages",
+];
+
+const TEACHER_HREF_EXACT = new Set([
+  "/staff/examresult",
+  "/staff/examresult/examinations",
+  "/staff/exam-schedule",
+  "/staff/student",
+]);
+
+export function isTeacherDesk(user: AuthPrincipal | null | undefined) {
+  if (!user?.roles.includes("Teacher")) return false;
+  if (
+    user.roles.includes("SuperAdmin") ||
+    user.roles.includes("PlatformAdmin")
+  ) {
+    return false;
+  }
+  const extra = ["Registrar", "Accountant", "HOD", "Principal"];
+  return !user.roles.some((role) => extra.includes(role));
+}
+
+export function teacherCanSeeHref(href: string) {
+  if (TEACHER_HREF_EXACT.has(href)) return true;
+  if (href === "/staff/exam" || href.startsWith("/staff/exam/")) return true;
+  return TEACHER_HREF_PREFIXES.some(
+    (prefix) => href === prefix || href.startsWith(`${prefix}/`),
+  );
+}
+
+function itemVisible(
+  item: { href: string; module: string },
+  user: AuthPrincipal | null | undefined,
+  flags: Record<string, boolean>,
+): boolean {
+  const optional = optionalModuleForItem(item);
+  if (optional === "multi-campus") {
+    return Boolean(user?.roles.includes("PlatformAdmin"));
+  }
+  if (optional && !isModuleEnabled(flags, optional)) return false;
+  if (!isV1WiredHref(item.href)) {
+    if (!optional || !isModuleEnabled(flags, optional)) return false;
+  }
+  if (isTeacherDesk(user) && !teacherCanSeeHref(item.href)) return false;
+  return hasPermission(user, navPermissionFor(item));
 }
 
 export function filterNav(
@@ -89,11 +387,7 @@ export function filterNav(
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => {
-        const optional = optionalModuleForItem(item);
-        if (optional && !isModuleEnabled(flags, optional)) return false;
-        return hasPermission(user, navPermissionFor(item));
-      }),
+      items: group.items.filter((item) => itemVisible(item, user, flags)),
     }))
     .filter((group) => group.items.length > 0);
 }
@@ -103,7 +397,5 @@ export function screenIsVisible(
   user: AuthPrincipal | null | undefined,
   flags: Record<string, boolean>,
 ): boolean {
-  const optional = optionalModuleForItem(screen);
-  if (optional && !isModuleEnabled(flags, optional)) return false;
-  return hasPermission(user, navPermissionFor(screen));
+  return itemVisible(screen, user, flags);
 }

@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { created, fail, ok, readJson } from "@/lib/http";
@@ -37,7 +36,7 @@ export async function POST(request: Request) {
         campusId: user.campusId,
         screenKey: body.screenKey,
         title: body.title,
-        payload: body.payload as Prisma.InputJsonValue,
+        payload: body.payload,
       },
     });
     return created(row);

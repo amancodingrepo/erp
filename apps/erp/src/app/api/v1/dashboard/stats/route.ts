@@ -1,7 +1,9 @@
-import { AttendanceStatus, InvoiceStatus } from "@prisma/client";
+import { InvoiceStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { fail, ok } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { attendanceDashboard } from "@/lib/services/directory";
+import { enrollmentScope, viewingSessionId } from "@/lib/services/session-context";
 
 export async function GET(request: Request) {
   try {
@@ -11,11 +13,14 @@ export async function GET(request: Request) {
       "home",
       "view",
     );
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const [students, collected, present, marked] = await Promise.all([
+    const sessionId = await viewingSessionId(request, user);
+    const [students, collected, attendanceToday] = await Promise.all([
       prisma.student.count({
-        where: { campusId: user.campusId, status: "ACTIVE" },
+        where: {
+          campusId: user.campusId,
+          status: "ACTIVE",
+          enrollments: { some: enrollmentScope(sessionId) },
+        },
       }),
       prisma.payment.aggregate({
         _sum: { amount: true },
@@ -24,19 +29,7 @@ export async function GET(request: Request) {
           invoice: { student: { campusId: user.campusId } },
         },
       }),
-      prisma.studentAttendance.count({
-        where: {
-          date: today,
-          status: AttendanceStatus.PRESENT,
-          student: { campusId: user.campusId },
-        },
-      }),
-      prisma.studentAttendance.count({
-        where: {
-          date: today,
-          student: { campusId: user.campusId },
-        },
-      }),
+      attendanceDashboard(user.campusId, undefined, sessionId),
     ]);
     const due = await prisma.feeInvoice.aggregate({
       _sum: { total: true, paid: true },
@@ -49,11 +42,7 @@ export async function GET(request: Request) {
       students,
       feeCollected: Number(collected._sum.amount ?? 0),
       feeDue: Number(due._sum.total ?? 0) - Number(due._sum.paid ?? 0),
-      attendanceToday: {
-        present,
-        marked,
-        percent: marked ? Math.round((present / marked) * 100) : 0,
-      },
+      attendanceToday,
     });
   } catch (error) {
     return fail(error);

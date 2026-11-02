@@ -1,0 +1,48 @@
+import { describe, expect, it } from "vitest";
+import { LEFTOVER_LIVE } from "@/components/modules/leftover-screens";
+
+describe("leftover catalog wiring", () => {
+  it("wires leftover staff hrefs including updater", () => {
+    expect(Object.keys(LEFTOVER_LIVE).length).toBeGreaterThan(90);
+    expect(LEFTOVER_LIVE["/staff/updater"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/student/bulkdelete"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/customfield"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/staffpayroll/loans"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/staff/add"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/my-branch"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/admin/managebranch"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/library/weedout"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/houses/bulk-assign"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/grade-eligibility"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/late-fee-rules"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/discount-types"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/fees/upload"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/search/people"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/attendance/day"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/messages/policies"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/broadcast-lists"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/form-templates"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/open-forms"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/convert-to-student"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/vehicles"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/transport/live"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/fuel-logs"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/transport-slabs"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/performance"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/leave-mark-percents"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/report-templates"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/transport/reports"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/routes"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/fees/desk"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/store/kits"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/store/deliveries"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/library/titles"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/library/accessions"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/questionnaires/assign"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/payslips"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/library/due"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/library/fines"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/library/lost"]).toBeTypeOf("function");
+    expect(LEFTOVER_LIVE["/staff/questionnaires/submissions"]).toBeTypeOf("function");
+  });
+});

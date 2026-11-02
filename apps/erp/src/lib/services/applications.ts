@@ -1,0 +1,303 @@
+import { ApplicationStatus, Prisma } from "@prisma/client";
+import { z } from "zod";
+import {
+  classInCampus,
+  parseDateOnly,
+  sectionInCampus,
+} from "@/lib/campus";
+import { prisma } from "@/lib/db";
+import { conflict, notFound, validationError } from "@/lib/errors";
+import { createStudent } from "@/lib/services/students";
+import { provisionEnrollmentPortals } from "@/lib/services/portal-accounts";
+import {
+  extraAnswersPayload,
+  fieldsForBelongTo,
+  formIsOpen,
+  listAdmissionForms,
+  notesWithAnswers,
+} from "@/lib/services/admission-forms";
+import {
+  applicationNoFor,
+  listSessionPrefixes,
+  prefixForSession,
+} from "@/lib/services/campus-session-prefixes";
+import {
+  applicationCreateSchema,
+  enrollSchema,
+} from "@/lib/services/application-schema";
+
+export {
+  PREVIOUS_QUALIFICATIONS,
+  applicationCreateSchema,
+  publicApplicationSchema,
+  enrollSchema,
+  paySchema,
+} from "@/lib/services/application-schema";
+
+export const FEE_SETTING_KEY = "admission.applicationFee";
+const DEFAULT_FEE = "500";
+
+export async function publicCampus(code?: string | null) {
+  if (code?.trim()) {
+    const campus = await prisma.campus.findFirst({
+      where: { code: code.trim().toUpperCase() },
+    });
+    if (!campus) throw notFound("campus");
+    return campus;
+  }
+  const campus =
+    (await prisma.campus.findFirst({ where: { code: "MAIN" } })) ??
+    (await prisma.campus.findFirst());
+  if (!campus) throw notFound("campus");
+  return campus;
+}
+
+export async function applicationFeeAmount(campusId: string) {
+  const row = await prisma.setting.findUnique({
+    where: { campusId_key: { campusId, key: FEE_SETTING_KEY } },
+  });
+  const raw = row?.value;
+  if (typeof raw === "number" || typeof raw === "string") {
+    return new Prisma.Decimal(raw);
+  }
+  return new Prisma.Decimal(DEFAULT_FEE);
+}
+
+export async function setApplicationFee(campusId: string, amount: number | string) {
+  const fee = new Prisma.Decimal(amount);
+  if (fee.lte(0)) throw validationError({ amount: "must be greater than 0" });
+  await prisma.setting.upsert({
+    where: { campusId_key: { campusId, key: FEE_SETTING_KEY } },
+    update: { value: Number(fee) },
+    create: { campusId, key: FEE_SETTING_KEY, value: Number(fee) },
+  });
+  return fee;
+}
+
+async function nextApplicationNo(campusId: string) {
+  const year = new Date().getFullYear();
+  const session = await prisma.academicSession.findFirst({
+    where: { campusId, isCurrent: true },
+    select: { id: true },
+  });
+  const prefixes = await listSessionPrefixes(campusId);
+  const row = session ? prefixForSession(prefixes, session.id) : undefined;
+  const sample = applicationNoFor(row, year);
+  const stem = sample.slice(0, sample.lastIndexOf("-") + 1);
+  const last = await prisma.application.findFirst({
+    where: { campusId, applicationNo: { startsWith: stem } },
+    orderBy: { applicationNo: "desc" },
+    select: { applicationNo: true },
+  });
+  return applicationNoFor(row, year, last?.applicationNo);
+}
+
+export async function listPublicPrograms(campusId: string) {
+  return prisma.program.findMany({
+    where: { department: { campusId } },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, level: true, code: true },
+  });
+}
+
+export async function submitApplication(
+  campusId: string,
+  body: z.infer<typeof applicationCreateSchema>,
+) {
+  if (body.programId) {
+    const program = await prisma.program.findFirst({
+      where: { id: body.programId, department: { campusId } },
+    });
+    if (!program) throw notFound("program");
+  }
+  const feeAmount = await applicationFeeAmount(campusId);
+  let notes: string | undefined;
+  const forms = await listAdmissionForms(campusId);
+  const selected = body.formId
+    ? forms.find((form) => form.id === body.formId)
+    : forms.filter((form) => form.kind === "admission").find((form) => formIsOpen(form));
+  if (body.formId && (!selected || !formIsOpen(selected))) {
+    throw validationError({ formId: "closed" });
+  }
+  if (selected && formIsOpen(selected)) {
+    const fields = await fieldsForBelongTo(campusId, selected.belongTo);
+    const answers = extraAnswersPayload(
+      fields,
+      (body.answers ?? {}) as Record<string, unknown>,
+    );
+    notes = notesWithAnswers(null, selected.id, answers);
+  }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const applicationNo = await nextApplicationNo(campusId);
+    try {
+      return await prisma.application.create({
+        data: {
+          campusId,
+          applicationNo,
+          firstName: body.firstName.trim(),
+          lastName: body.lastName,
+          email: body.email,
+          mobile: body.mobile,
+          dob: body.dob ? parseDateOnly(body.dob) : undefined,
+          gender: body.gender,
+          fatherName: body.fatherName,
+          parentEmail: body.parentEmail,
+          previousQualification: body.previousQualification,
+          programId: body.programId,
+          categoryCode: body.categoryCode?.toUpperCase(),
+          score:
+            body.score === undefined || body.score === ""
+              ? undefined
+              : new Prisma.Decimal(body.score),
+          feeAmount,
+          feePaid: new Prisma.Decimal(0),
+          paymentStatus: "UNPAID",
+          status: ApplicationStatus.APPLIED,
+          notes,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw conflict("could not allocate application number");
+}
+
+export async function listApplications(campusId: string, q?: string) {
+  const needle = q?.trim();
+  const rows = await prisma.application.findMany({
+    where: {
+      campusId,
+      ...(needle
+        ? {
+            OR: [
+              { applicationNo: { contains: needle, mode: "insensitive" } },
+              { firstName: { contains: needle, mode: "insensitive" } },
+              { lastName: { contains: needle, mode: "insensitive" } },
+              { mobile: { contains: needle, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
+    include: { program: { select: { name: true } }, student: { select: { admissionNo: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    applicationNo: row.applicationNo,
+    name: [row.firstName, row.lastName].filter(Boolean).join(" "),
+    fatherName: row.fatherName,
+    mobile: row.mobile,
+    email: row.email,
+    program: row.program?.name ?? null,
+    paymentStatus: row.paymentStatus,
+    status: row.status,
+    feeAmount: row.feeAmount.toString(),
+    feePaid: row.feePaid.toString(),
+    enrolled: Boolean(row.studentId),
+    admissionNo: row.student?.admissionNo ?? null,
+    score: row.score?.toString() ?? null,
+    categoryCode: row.categoryCode,
+    meritRank: row.meritRank,
+    cutoffRound: row.cutoffRound,
+    selectionStatus: row.selectionStatus,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
+export async function markApplicationPaid(
+  campusId: string,
+  id: string,
+  method: string,
+) {
+  const row = await prisma.application.findFirst({ where: { id, campusId } });
+  if (!row) throw notFound("application");
+  if (row.status === ApplicationStatus.ENROLLED) {
+    throw validationError({ status: "already enrolled" });
+  }
+  return prisma.application.update({
+    where: { id },
+    data: {
+      paymentStatus: "PAID",
+      paymentMethod: method,
+      feePaid: row.feeAmount,
+      status: ApplicationStatus.FEE_PAID,
+    },
+  });
+}
+
+export async function enrollApplication(
+  campusId: string,
+  id: string,
+  body: z.infer<typeof enrollSchema>,
+) {
+  const row = await prisma.application.findFirst({ where: { id, campusId } });
+  if (!row) throw notFound("application");
+  if (row.studentId) throw conflict("already enrolled");
+  if (row.paymentStatus !== "PAID") {
+    throw validationError({ paymentStatus: "application fee unpaid" });
+  }
+  if (row.selectionStatus === "REJECTED") {
+    throw validationError({ selectionStatus: "applicant was not selected" });
+  }
+  await classInCampus(campusId, body.classId);
+  await sectionInCampus(campusId, body.sectionId);
+  const admissionNo = (body.admissionNo ?? row.applicationNo).trim();
+  const student = await createStudent({
+    campusId,
+    body: {
+      admissionNo,
+      firstName: row.firstName,
+      lastName: row.lastName ?? undefined,
+      email: row.email ?? undefined,
+      mobile: row.mobile ?? undefined,
+      dob: row.dob ? row.dob.toISOString().slice(0, 10) : undefined,
+      gender: row.gender ?? undefined,
+      fatherName: row.fatherName ?? undefined,
+      guardians: row.fatherName
+        ? {
+            father: {
+              name: row.fatherName,
+              email: row.parentEmail ?? undefined,
+              phone: row.mobile ?? undefined,
+            },
+          }
+        : undefined,
+      previousEdu: row.previousQualification
+        ? {
+            qualification: row.previousQualification,
+            lastClassName: row.previousQualification,
+            percentage: row.score != null ? Number(row.score) : undefined,
+          }
+        : undefined,
+      classId: body.classId,
+      sectionId: body.sectionId,
+      sessionId: body.sessionId,
+    },
+  });
+  const updated = await prisma.application.update({
+    where: { id },
+    data: {
+      studentId: student.id,
+      status: ApplicationStatus.ENROLLED,
+    },
+  });
+  const portals = await provisionEnrollmentPortals({
+    campusId,
+    studentId: student.id,
+    admissionNo: student.admissionNo,
+    studentEmail: row.email,
+    fatherName: row.fatherName,
+    fatherPhone: row.mobile,
+    parentEmail: row.parentEmail,
+    studentName: [row.firstName, row.lastName].filter(Boolean).join(" "),
+  });
+  return { application: updated, student, portals };
+}

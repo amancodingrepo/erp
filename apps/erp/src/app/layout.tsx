@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { I18nProvider } from "@/lib/i18n/provider";
 import "./globals.css";
 
-const display = Fraunces({
-  variable: "--font-display",
-  subsets: ["latin"],
-});
-
-const body = Source_Sans_3({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "College ERP",
+  title: "Campus ERP",
   description: "Staff, student, and campus operations desk",
 };
 
@@ -24,8 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
-        {children}
+      <body className="antialiased">
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

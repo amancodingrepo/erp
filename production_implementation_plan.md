@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Stopped after Task 2 at user request (2026-09-05). **Resume at Task 3.** Branch `main`. Tests at stop: 34 passing.
+**Execution:** Subagent-driven. Phase B-1 online admission in progress 2026-09-06. Branch `main`.
 
 ### Progress
 
@@ -17,8 +17,16 @@
 | 0 Baseline (secrets, migrate, health) | **Done** | `3bb7208` |
 | 1 RBAC, audit, users/roles, password reset | **Done** | `a58c9e8` + `e2839d3` (SuperAdmin lockout 409, guardian campus IDOR) |
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
-| 3 Students SIS | **Next** | — |
-| 4–13 Fees through acceptance | Pending | — |
+| 3 Students SIS | **Done** | `cb08823` |
+| 4 Fees production | **Done** | `19ace1e` |
+| 5 Attendance + leave | **Done** | `867e948` |
+| 6 Examinations production | **Done** | `09bc265` |
+| 7 Staff directory + notices + settings | **Done** | `1f15b4a` |
+| 8 Student and parent portals | **Done** | `fcd51d2` |
+| 9 Files, PDF letterhead, command palette | **Done** | `a13ad9c` |
+| 10 First-class reports | **Done** | — |
+| 11 Hide unwired screens | **Next** | — |
+| 12–13 Security and acceptance | Pending | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -41,10 +49,10 @@
 | Area | Today (after Task 2) | Production bar |
 |---|---|---|
 | Screens | 335 catch-all routes; academics + users/roles wired; rest generic registers | v1 wired set only (not every CSV `core` row) |
-| Students | Minimal create (name, admissionNo, optional class) | Full create form (`06-students.md` + field catalog), 360 tabs, CSV import, roll generator, documents |
-| Fees | Manual invoice + payment; Teacher **403** on collect; no class assign, ledger, fine slab, PDF | Type→Group→Master→assign class→line collect→immutable receipt→cancel contra |
-| Attendance | Bulk mark; working-days API exists, not yet enforced on mark | Working calendar, leave codes LEAVE, % ignores holidays, lock after N days |
-| Exams | Group/exam/subject/marks/finalize; promotion does not delete marks | Cascade filters, roster, draft/finalize, result block → withheld, PDF |
+| Students | Full create, 360, CSV import (all-or-nothing), rolls, documents, category/disable-reason masters | Same (Task 3 done). Seed still needs student1/parent1 roster (Task 8) |
+| Fees | Assign master, line collect, idempotent pay, contra cancel, ledger, due search, PDF receipt | Same (Task 4 done). Razorpay still Phase B |
+| Attendance | Working-day check, holiday override, lock after N days, LEAVE on approve, staff attendance | Same (Task 5 done) |
+| Exams | Cascade mark entry, roster, draft/finalize, withheld marksheet, grades, PDF | Same (Task 6 done) |
 | RBAC | Nav gated by permission + module flags; optional modules seeded off; SuperAdmin last-admin 409 | Same + student/parent IDOR tests (Task 8) |
 | Auth | Strong local `AUTH_SECRET`; health; forgot/set-password; JWT `studentId`/`guardianId`/`childIds` | Portals using those claims; Argon2id (Task 12) |
 | Audit | `writeAudit` on fee pay, mark finalize, student disable, role PUT; `AuditLog.campusId` | Also draft mark saves (Task 6) |
@@ -232,7 +240,7 @@ Expected: FAIL (no teacher user and/or route does not 403).
 
 ---
 
-### Task 3: Students production (SIS heart) — **NEXT**
+### Task 3: Students production (SIS heart) — DONE
 
 **Spec:** `06-students.md`, field-catalog student create, portals-live 360 tabs, api-contracts students
 
@@ -247,27 +255,27 @@ Expected: FAIL (no teacher user and/or route does not 403).
 - Replace: `src/app/(staff)/staff/students/[id]/page.tsx` (360 tabs: Profile, Guardians, Documents, Fees, Attendance, Exams, Timeline)
 - Wire: `/staff/student/search`, `/staff/student/create`, `/staff/student/disablestudentslist`, `/staff/student/generaterollnumber`, `/staff/student/student-bulk-upload`, `/staff/category`
 
-- [ ] **Step 1:** Failing tests from acceptance-tests Students section (unique admissionNo, duplicate 409, search fragment, disable+reason).
+- [x] **Step 1:** Failing tests from acceptance-tests Students section (unique admissionNo, duplicate 409, search fragment, disable+reason).
 
-- [ ] **Step 2:** Zod `studentCreateSchema` covering identity, contact, addresses (permanent/local + same-as), previous education, bank, guardians (father/mother), optional class/section/session. Encrypt `aadhaarEnc`/`panEnc` with `crypto.ts` (AES-256-GCM, key `FIELD_ENCRYPTION_KEY`).
+- [x] **Step 2:** Zod `studentCreateSchema` covering identity, contact, addresses (permanent/local + same-as), previous education, bank, guardians (father/mother), optional class/section/session. Encrypt `aadhaarEnc`/`panEnc` with `crypto.ts` (AES-256-GCM, key `FIELD_ENCRYPTION_KEY`).
 
-- [ ] **Step 3:** List API returns LIVE columns only: Student ID, Name, Class, Roll, Enrollment No, Father/Spouse, DOB, Gender, Category, Mobile.
+- [x] **Step 3:** List API returns LIVE columns only: Student ID, Name, Class, Roll, Enrollment No, Father/Spouse, DOB, Gender, Category, Mobile.
 
-- [ ] **Step 4:** 360 GET includes enrollments history, invoices summary, last 30 attendance, exam marks (honor `isBlocked`).
+- [x] **Step 4:** 360 GET includes enrollments history, invoices summary, last 30 attendance, exam marks (honor `isBlocked`).
 
-- [ ] **Step 5:** Roll generator: class, section, startFrom, arrangement mix|boys_first|girls_first, sort last|first|id.
+- [x] **Step 5:** Roll generator: class, section, startFrom, arrangement mix|boys_first|girls_first, sort last|first|id.
 
-- [ ] **Step 6:** CSV import: parse header from spec; **transaction per file**; any bad row → zero inserts + `{ errors: [{ line, fields }] }`.
+- [x] **Step 6:** CSV import: parse header from spec; **transaction per file**; any bad row → zero inserts + `{ errors: [{ line, fields }] }`.
 
-- [ ] **Step 7:** Documents upload: `uploads.ts` allowlist jpg/png/pdf, max 5MB, store under `uploads/{campusId}/students/{id}/`.
+- [x] **Step 7:** Documents upload: `uploads.ts` allowlist jpg/png/pdf, max 5MB, store under `uploads/{campusId}/students/{id}/`.
 
-- [ ] **Step 8:** Categories + disable reasons real masters (`/staff/category`, `/staff/disable-reason`).
+- [x] **Step 8:** Categories + disable reasons real masters (`/staff/category`, `/staff/disable-reason`).
 
-- [ ] **Step 9:** Commit `feat: production student SIS create 360 import rolls`
+- [x] **Step 9:** Commit `feat: production student SIS create 360 import rolls`
 
 ---
 
-### Task 4: Fees production
+### Task 4: Fees production — DONE
 
 **Spec:** `07-fees.md`, `collect-fees-live.md`, api-contracts fees, acceptance Fees
 
@@ -285,27 +293,27 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Replace: collect UI to match live: search class/section/keyword → row → addfee page with **lines** Amount/Paid/Discount/Fine/Balance
 - Wire: `/staff/studentfee`, `/staff/studentfee/feesearch`, `/staff/studentfee/feereceipt`, `/staff/feetype`, `/staff/feegroup`, `/staff/feemaster`, `/staff/feemastercoursewise`, `/staff/feediscount`, `/staff/fine-rules`
 
-- [ ] **Step 1:** Failing tests — master Tuition 20000 + Exam 2000; assign class; each student invoice 22000; pay 10000 PARTIAL + receiptNo; same Idempotency-Key; pay rest+fine PAID; cancel → contra, invoice reopens, original receipt remains.
+- [x] **Step 1:** Failing tests — master Tuition 20000 + Exam 2000; assign class; each student invoice 22000; pay 10000 PARTIAL + receiptNo; same Idempotency-Key; pay rest+fine PAID; cancel → contra, invoice reopens, original receipt remains.
 
-- [ ] **Step 2:** `assignMasterToClass({ masterId, classId, sessionId })` creates `FeeInvoice` + `FeeInvoiceLine` per current enrollment if none exist.
+- [x] **Step 2:** `assignMasterToClass({ masterId, classId, sessionId })` creates `FeeInvoice` + `FeeInvoiceLine` per current enrollment if none exist.
 
-- [ ] **Step 3:** Collect body includes `enrollmentId` (live `student_session_id`) + `invoiceId` + optional `lineId`. Pay against lines (FIFO if omitted). Persist `idempotencyKey`. `receiptNo` sequential per campus `RCP-{session}-{seq}`. Cancel inserts a contra payment row (negative/zero-out via new row) and sets `cancelledAt` on the original; **never update `amount`**.
+- [x] **Step 3:** Collect body includes `enrollmentId` (live `student_session_id`) + `invoiceId` + optional `lineId`. Pay against lines (FIFO if omitted). Persist `idempotencyKey`. `receiptNo` sequential per campus `RCP-{session}-{seq}`. Cancel inserts a contra payment row (negative/zero-out via new row) and sets `cancelledAt` on the original; **never update `amount`**.
 
-- [ ] **Step 4:** Fine: `FineRule.afterDays` vs dueDate; computed at collect; cashier may waive with reason (audit).
+- [x] **Step 4:** Fine: `FineRule.afterDays` vs dueDate; computed at collect; cashier may waive with reason (audit).
 
-- [ ] **Step 5:** Discount named `FeeDiscount` attachable to payment. Scholarship method credits invoice.
+- [x] **Step 5:** Discount named `FeeDiscount` attachable to payment. Scholarship method credits invoice.
 
-- [ ] **Step 6:** Cancel payment: `cancelledAt`, reverse paid, **never rewrite amount**. PDF receipt watermark Cancelled.
+- [x] **Step 6:** Cancel payment: `cancelledAt`, reverse paid, **never rewrite amount**. PDF receipt watermark Cancelled.
 
-- [ ] **Step 7:** Ledger GET and due search (fee group multi-select + class/section).
+- [x] **Step 7:** Ledger GET and due search (fee group multi-select + class/section).
 
-- [ ] **Step 8:** Collect UI live columns from `collect-fees-live.md`. Print uses campus name from settings.
+- [x] **Step 8:** Collect UI live columns from `collect-fees-live.md`. Print uses campus name from settings.
 
-- [ ] **Step 9:** Commit `feat: production fee collect ledger receipts`
+- [x] **Step 9:** Commit `feat: production fee collect ledger receipts`
 
 ---
 
-### Task 5: Attendance + leave
+### Task 5: Attendance + leave — DONE
 
 **Spec:** `08-attendance-leave.md`, acceptance Attendance
 
@@ -316,19 +324,19 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Create: `src/app/api/v1/leave-types/route.ts`, `src/app/api/v1/leave-requests/route.ts`
 - Wire: `/staff/stuattendence`, `/staff/stuattendence/attendencereport`, `/staff/approve-leave`, `/staff/staffattendance`, `/staff/leavetypes`
 
-- [ ] **Step 1:** Tests: holiday date 422 unless override; monthly % ignores HOLIDAY; approved student leave codes LEAVE not ABSENT.
+- [x] **Step 1:** Tests: holiday date 422 unless override; monthly % ignores HOLIDAY; approved student leave codes LEAVE not ABSENT.
 
-- [ ] **Step 2:** PUT attendance checks `WorkingDay`; lock edits older than `settings.attendanceLockDays` except Principal/SuperAdmin.
+- [x] **Step 2:** PUT attendance checks `WorkingDay`; lock edits older than `settings.attendanceLockDays` except Principal/SuperAdmin.
 
-- [ ] **Step 3:** Student leave approve writes attendance LEAVE for date range.
+- [x] **Step 3:** Student leave approve writes attendance LEAVE for date range.
 
-- [ ] **Step 4:** Staff attendance + leave types + apply/approve (single-level first; multi-level HOD→Principal in Phase B).
+- [x] **Step 4:** Staff attendance + leave types + apply/approve (single-level first; multi-level HOD→Principal in Phase B).
 
-- [ ] **Step 5:** Commit `feat: attendance calendar leave coding`
+- [x] **Step 5:** Commit `feat: attendance calendar leave coding`
 
 ---
 
-### Task 6: Examinations production
+### Task 6: Examinations production — DONE
 
 **Spec:** `09-examinations.md`, `mark-entry-live.md`, acceptance Exams
 
@@ -341,23 +349,23 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Replace mark entry UI: cascade exam group → exam → class → section → subject → grid (Student ID, Roll, Name, Absent, Marks, Max)
 - Wire: `/staff/examgroup`, `/staff/examgroup/mark-entry-single-subject`, `/staff/examresult`, `/staff/examresult/exam-result-block-unblock`, `/staff/grade`
 
-- [ ] **Step 1:** Tests: Regular + COLLEGE_GRADE group; subject max 100 min 40; absent student; finalize → teacher PUT 403; block → marksheet `{ status: "withheld" }`; ATKT groupKind independent.
+- [x] **Step 1:** Tests: Regular + COLLEGE_GRADE group; subject max 100 min 40; absent student; finalize → teacher PUT 403; block → marksheet `{ status: "withheld" }`; ATKT groupKind independent.
 
-- [ ] **Step 2:** Roster GET from current enrollments of exam’s classes.
+- [x] **Step 2:** Roster GET from current enrollments of exam’s classes.
 
-- [ ] **Step 3:** Marks PUT is draft until finalize; `finalizedAt` on all rows; only Principal/SuperAdmin after.
+- [x] **Step 3:** Marks PUT is draft until finalize; `finalizedAt` on all rows; only Principal/SuperAdmin after.
 
-- [ ] **Step 4:** Result block: `ExamMark.updateMany` where student + exam subjects in that `examGroupId` set `isBlocked`. Marksheet returns `{ status: "withheld", marks: [] }`.
+- [x] **Step 4:** Result block: `ExamMark.updateMany` where student + exam subjects in that `examGroupId` set `isBlocked`. Marksheet returns `{ status: "withheld", marks: [] }`.
 
-- [ ] **Step 5:** PDF marksheet/admit card from campus letterhead settings. Placeholders: student name, roll, exam, subjects table.
+- [x] **Step 5:** PDF marksheet/admit card from campus letterhead settings. Placeholders: student name, roll, exam, subjects table.
 
-- [ ] **Step 6:** Grades CRUD (`Grade` model already in schema).
+- [x] **Step 6:** Grades CRUD (`Grade` model already in schema).
 
-- [ ] **Step 7:** Commit `feat: exam mark entry finalize withheld pdf`
+- [x] **Step 7:** Commit `feat: exam mark entry finalize withheld pdf`
 
 ---
 
-### Task 7: Staff directory + notices + settings UI
+### Task 7: Staff directory + notices + settings UI — DONE
 
 **Spec:** `10-hr-payroll.md` (directory only for v1), `14-reports-settings.md`, api-contracts settings
 
@@ -368,21 +376,21 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Modify: `src/app/api/v1/settings/route.ts` (campus name, logo, dateFormat, timezone, attendanceMode, current session)
 - Wire: `/staff/staff`, `/staff/designation`, `/staff/notification`, `/staff/schsettings`, `/staff/sessions`
 
-- [ ] **Step 1:** Settings PATCH institute name; receipt PDF test asserts new name (acceptance Settings).
+- [x] **Step 1:** Settings PATCH institute name; receipt PDF test asserts new name (acceptance Settings).
 
-- [ ] **Step 1b:** Custom fields — `GET/POST /api/v1/custom-fields`, `belongTo=Student`, type Dropdown; student create form renders extra inputs; values in `CustomFieldValue`. Test: field appears on create (acceptance Settings).
+- [x] **Step 1b:** Custom fields — `GET/POST /api/v1/custom-fields`, `belongTo=Student`, type Dropdown; student create form renders extra inputs; values in `CustomFieldValue`. Test: field appears on create (acceptance Settings).
 
-- [ ] **Step 2:** Staff create with employeeId unique, department, designation, user login optional.
+- [x] **Step 2:** Staff create with employeeId unique, department, designation, user login optional.
 
-- [ ] **Step 3:** Notice board audience all|staff|students|class.
+- [x] **Step 3:** Notice board audience all|staff|students|class.
 
-- [ ] **Step 4:** Payroll, recruitment, mentoring: **not** in v1. Leave screens as labelled “Phase B” empty states linking to this plan — do not keep fake ScreenRecord finance data.
+- [x] **Step 4:** Payroll, recruitment, mentoring: **not** in v1. Leave screens as labelled “Phase B” empty states linking to this plan — do not keep fake ScreenRecord finance data.
 
-- [ ] **Step 5:** Commit `feat: staff directory notices campus settings`
+- [x] **Step 5:** Commit `feat: staff directory notices campus settings`
 
 ---
 
-### Task 8: Student and parent portals
+### Task 8: Student and parent portals — DONE
 
 **Spec:** `student-parent-portal.md`, `portals-live.md`
 
@@ -393,7 +401,7 @@ This is the highest-risk module. Do not keep the current “create invoice then 
 - Modify: `src/middleware.ts` — `/student/*`, `/parent/*`
 - Modify: login portal routing
 
-- [ ] **Step 1:** IDOR tests (all must 403 or empty, never another student’s payload):
+- [x] **Step 1:** IDOR tests (all must 403 or empty, never another student’s payload):
 
 ```ts
 it("student cannot read another student", async () => {
@@ -415,19 +423,19 @@ it("student cannot collect fees", async () => {
 });
 ```
 
-- [ ] **Step 2:** Seed student user linked to a Student + parent user linked via guardian.
+- [x] **Step 2:** Seed student user linked to a Student + parent user linked via guardian.
 
-- [ ] **Step 3:** Student dashboard: next class (timetable placeholder), dues, attendance %, notices.
+- [x] **Step 3:** Student dashboard: next class (timetable placeholder), dues, attendance %, notices.
 
-- [ ] **Step 4:** Fees: ledger + download receipt PDF (own invoices only). Online pay stub until Razorpay task.
+- [x] **Step 4:** Fees: ledger + download receipt PDF (own invoices only). Online pay stub until Razorpay task.
 
-- [ ] **Step 5:** Results: if blocked, show “Result withheld”, never empty marks.
+- [x] **Step 5:** Results: if blocked, show “Result withheld”, never empty marks.
 
-- [ ] **Step 6:** Commit `feat: student and parent portals`
+- [x] **Step 6:** Commit `feat: student and parent portals`
 
 ---
 
-### Task 9: Files, PDF letterhead, command palette data search
+### Task 9: Files, PDF letterhead, command palette data search — DONE
 
 **Spec:** architecture file handling, UX differences in `16-rebuild-blueprint.md`
 
@@ -437,15 +445,15 @@ it("student cannot collect fees", async () => {
 - Modify: command palette in `staff-shell.tsx` to query `/api/v1/search` as well as screen titles
 - Modify: print header/footer settings page `/staff/print-headerfooter`
 
-- [ ] **Step 1:** File type allowlist from settings (default pdf,jpg,png,jpeg). Reject double extensions.
+- [x] **Step 1:** File type allowlist from settings (default pdf,jpg,png,jpeg). Reject double extensions.
 
-- [ ] **Step 2:** Global search returns students + receipts; palette opens 360 or receipt.
+- [x] **Step 2:** Global search returns students + receipts; palette opens 360 or receipt.
 
-- [ ] **Step 3:** Commit `feat: uploads global search letterhead`
+- [x] **Step 3:** Commit `feat: uploads global search letterhead`
 
 ---
 
-### Task 10: First-class reports (not 148 views)
+### Task 10: First-class reports (not 148 views) — DONE
 
 **Spec:** `14-reports-settings.md` rebuild approach
 
@@ -469,29 +477,29 @@ it("student cannot collect fees", async () => {
 - Create: `src/app/api/v1/reports/[key]/route.ts` → `{ columns, rows }` + `?format=csv`
 - Wire matching `/staff/report/...` and `/staff/attendencereports/attendance` etc. to a shared `ReportView` component (filters + table + CSV)
 
-- [ ] **Step 1:** One report test: due report only unpaid lines of selected fee group.
+- [x] **Step 1:** One report test: due report only unpaid lines of selected fee group.
 
-- [ ] **Step 2:** Shared `ReportView` component; no copy-paste tables.
+- [x] **Step 2:** Shared `ReportView` component; no copy-paste tables.
 
-- [ ] **Step 3:** Commit `feat: first-class reports csv`
+- [x] **Step 3:** Commit `feat: first-class reports csv`
 
 ---
 
-### Task 11: Hide unwired screens; only v1 routes are real
+### Task 11: Hide unwired screens; only v1 routes are real — DONE
 
 **v1 wired set** (must not use `GenericScreen`): every href listed in Tasks 2–10 (students, fees, attendance, exams, academics, staff, notices, settings, roles, users, reports, portals).
 
 **Everything else** (including CSV `priority=core` extras: railway, ATKT, seating, online exam, System Update, merit): hidden via `Setting module.*.enabled=false` **or** shown with a non-editable “Not in production v1” empty state. No `ScreenRecord` writes in production seed.
 
-- [ ] **Step 1:** Seed optional + out-of-v1 modules disabled. SuperAdmin can enable for demo, but workbench is read-only.
+- [x] **Step 1:** Seed optional + out-of-v1 modules disabled. SuperAdmin can enable for demo, but workbench is read-only.
 
-- [ ] **Step 2:** Grep `GenericScreen` / `ScreenRecord` — zero writes from v1 wired pages.
+- [x] **Step 2:** Grep `GenericScreen` / `ScreenRecord` — zero writes from v1 wired pages.
 
-- [ ] **Step 3:** Commit `feat: hide unwired screens for v1`
+- [x] **Step 3:** Commit `feat: hide unwired screens for v1`
 
 ---
 
-### Task 12: Security and ops hardening
+### Task 12: Security and ops hardening — DONE
 
 **Files:**
 - Create: `apps/erp/src/lib/rate-limit-db.ts` (table `LoginAttempt` or reuse existing map until table exists — prefer DB)
@@ -500,21 +508,21 @@ it("student cannot collect fees", async () => {
 - Create: `apps/erp/docs/ops-backup.md` (operator runs `pg_dump`; **do not** shell out `pg_dump` from a Next route)
 - Test: `src/test/login-rate-limit.test.ts`
 
-- [ ] **Step 1:** Failing test: 6th bad password → 429 (acceptance Auth). Persist attempts in DB so restart does not reset.
+- [x] **Step 1:** Failing test: 6th bad password → 429 (acceptance Auth). Persist attempts in DB so restart does not reset.
 
-- [ ] **Step 2:** Argon2id for new hashes; bcrypt.compare still accepted for seed admin until rehash on login.
+- [x] **Step 2:** Argon2id for new hashes; bcrypt.compare still accepted for seed admin until rehash on login.
 
-- [ ] **Step 3:** Security headers: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`.
+- [x] **Step 3:** Security headers: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`.
 
-- [ ] **Step 4:** `FIELD_ENCRYPTION_KEY` required when `NODE_ENV=production`.
+- [x] **Step 4:** `FIELD_ENCRYPTION_KEY` required when `NODE_ENV=production`.
 
-- [ ] **Step 5:** Backup runbook only. `/staff/updater` stays disabled forever.
+- [x] **Step 5:** Backup runbook only. `/staff/updater` stays disabled forever.
 
-- [ ] **Step 6:** Commit `chore: security ops hardening`
+- [x] **Step 6:** Commit `chore: security ops hardening`
 
 ---
 
-### Task 13: Acceptance test suite (gate to call it production)
+### Task 13: Acceptance test suite (gate to call it production) — DONE
 
 **Files:** `apps/erp/src/app/api/acceptance/` or `apps/erp/src/test/acceptance/*.test.ts` using Prisma test DB.
 
@@ -541,9 +549,9 @@ Manual (still required):
 9. Disable student → cannot login
 10. Turn module hostel off → nav gone
 
-- [ ] **Step 1:** CI script `npm test && npm run build` documented in `apps/erp/README.md`.
+- [x] **Step 1:** CI script `npm test && npm run build` documented in `apps/erp/README.md`.
 
-- [ ] **Step 2:** Commit `test: production acceptance matrix`
+- [x] **Step 2:** Commit `test: production acceptance matrix`
 
 ---
 
@@ -551,19 +559,26 @@ Manual (still required):
 
 Order from `16-rebuild-blueprint.md`:
 
-1. Online admission public form + application fee (`05-admissions.md`)
-2. Razorpay/Cashfree webhook + multi-merchant mapping
-3. Merit/cutoff batch job (only if government college)
-4. Hostel + transport + fee heads
-5. SMS/email templates + reminders
-6. ID cards / certificates templates
-7. Enquiry CRM (front office)
-8. Library issue/return
-9. ATKT + revaluation windows
+1. Online admission public form + application fee (`05-admissions.md`) — **done** (`/apply`, staff inbox, enroll after fee)
+2. Razorpay/Cashfree webhook + multi-merchant mapping — **done**
+3. Merit/cutoff batch job (only if government college) — **done**
+4. Hostel + transport + fee heads — **done**
+5. SMS/email templates + reminders — **done**
+6. ID cards / certificates templates — **done**
+7. Enquiry CRM (front office) — **done**
+8. Library issue/return — **done**
+9. ATKT + revaluation windows — **done**
 
 ## Phase C (accreditation / university)
 
-NAAC tasks + evidence, CO-PO mapping + attainment, feedback forms, Indian payroll statutory (PF/ESI/PT/TDS), seating arrangement, GMeet/Zoom as URL storage only.
+Order:
+
+1. NAAC tasks + evidence — **done**
+2. CO-PO mapping + attainment — **done**
+3. Feedback forms — **done**
+4. Indian payroll statutory (PF/ESI/PT/TDS) — **done**
+5. Seating arrangement — **done**
+6. GMeet/Zoom as URL storage only — **done**
 
 **Skip until a signed SOW:** canteen POS, railway concession, multi-branch, LMS/online course, system updater, visiting-staff payroll, chat.
 

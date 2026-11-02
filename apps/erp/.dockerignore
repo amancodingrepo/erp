@@ -1,7 +1,10 @@
 node_modules
 .next
+.git
 .env
 .env.*
 !.env.example
-.git
+uploads
 coverage
+*.md
+tsconfig.tsbuildinfo

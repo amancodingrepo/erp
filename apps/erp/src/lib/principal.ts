@@ -1,9 +1,14 @@
 import { ActorType } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 import { forbidden, unauthenticated } from "./errors";
 import type { AuthPrincipal } from "./permissions";
 import { verifyAuthToken } from "./auth-token";
+import {
+  hashPassword,
+  passwordNeedsRehash,
+  verifyPassword,
+} from "./password";
+import { assertCsrf } from "./csrf";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
   staff: ActorType.STAFF,
@@ -11,10 +16,14 @@ const PORTAL_ACTOR: Record<string, ActorType> = {
   parent: ActorType.GUARDIAN,
 };
 
-export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
+export async function loadPrincipal(
+  userId: string,
+  activeCampusId?: string,
+): Promise<AuthPrincipal> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
+      campus: true,
       student: true,
       guardian: { include: { links: true } },
       roles: {
@@ -40,9 +49,22 @@ export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
       ),
     ),
   ];
+  let campusId = user.campusId;
+  if (
+    roles.includes("PlatformAdmin") &&
+    activeCampusId &&
+    activeCampusId !== user.campusId
+  ) {
+    const target = await prisma.campus.findUnique({
+      where: { id: activeCampusId },
+    });
+    if (target && target.orgId === user.campus.orgId) {
+      campusId = target.id;
+    }
+  }
   return {
     id: user.id,
-    campusId: user.campusId,
+    campusId,
     actorType: user.actorType,
     roles,
     permissions,
@@ -52,35 +74,79 @@ export async function loadPrincipal(userId: string): Promise<AuthPrincipal> {
   };
 }
 
+export async function findPortalUser(input: {
+  username: string;
+  portal: string;
+  campusCode?: string | null;
+}) {
+  const actorType = PORTAL_ACTOR[input.portal];
+  if (!actorType) return null;
+  const { DEFAULT_CAMPUS_CODE, normalizeCampusCode } = await import(
+    "./services/tenants"
+  );
+  let campusCode = DEFAULT_CAMPUS_CODE;
+  try {
+    if (input.campusCode?.trim()) {
+      campusCode = normalizeCampusCode(input.campusCode);
+    }
+  } catch {
+    return null;
+  }
+  const campus = await prisma.campus.findFirst({
+    where: { code: campusCode },
+  });
+  if (!campus) return null;
+  let user = await prisma.user.findFirst({
+    where: { username: input.username, actorType, campusId: campus.id },
+  });
+  if (!user) {
+    user = await prisma.user.findFirst({
+      where: {
+        username: input.username,
+        actorType,
+        isActive: true,
+        roles: { some: { role: { name: "PlatformAdmin" } } },
+        campus: { orgId: campus.orgId },
+      },
+    });
+  }
+  if (!user || !user.isActive) return null;
+  return {
+    id: user.id,
+    username: user.username,
+    campusId: campus.id,
+    passwordHash: user.passwordHash,
+  };
+}
+
 export async function authenticateCredentials(input: {
   username: string;
   password: string;
   portal: string;
+  campusCode?: string | null;
 }): Promise<AuthPrincipal> {
-  const actorType = PORTAL_ACTOR[input.portal];
-  if (!actorType) {
-    throw unauthenticated();
-  }
-  const user = await prisma.user.findFirst({
-    where: { username: input.username, actorType },
-  });
-  if (!user || !user.isActive) {
-    throw unauthenticated();
-  }
-  const matches = await bcrypt.compare(input.password, user.passwordHash);
+  const found = await findPortalUser(input);
+  if (!found) throw unauthenticated();
+  const matches = await verifyPassword(input.password, found.passwordHash);
   if (!matches) {
     throw unauthenticated();
   }
   await prisma.user.update({
-    where: { id: user.id },
-    data: { lastLoginAt: new Date() },
+    where: { id: found.id },
+    data: {
+      lastLoginAt: new Date(),
+      ...(passwordNeedsRehash(found.passwordHash)
+        ? { passwordHash: await hashPassword(input.password) }
+        : {}),
+    },
   });
-  return loadPrincipal(user.id);
+  return loadPrincipal(found.id, found.campusId);
 }
 
 export async function principalFromRequest(
   request: Request,
 ): Promise<AuthPrincipal> {
+  assertCsrf(request);
   const header = request.headers.get("authorization");
   const bearer = header?.startsWith("Bearer ") ? header.slice(7) : null;
   const cookie = request.headers
@@ -93,7 +159,7 @@ export async function principalFromRequest(
   if (!token) throw unauthenticated();
   const parsed = await verifyAuthToken(decodeURIComponent(token));
   if (!parsed) throw unauthenticated();
-  return loadPrincipal(parsed.id);
+  return loadPrincipal(parsed.id, parsed.campusId);
 }
 
 export async function requireApiPermission(
@@ -112,4 +178,31 @@ export function assertStaff(user: AuthPrincipal) {
   if (user.actorType !== ActorType.STAFF) {
     throw forbidden("staff only");
   }
+}
+
+/** Never trust a client-supplied studentId for students/parents. */
+export function assertCanAccessStudent(user: AuthPrincipal, studentId: string) {
+  if (user.actorType === ActorType.STAFF) return;
+  if (user.actorType === ActorType.STUDENT) {
+    if (!user.studentId || user.studentId !== studentId) {
+      throw forbidden("forbidden");
+    }
+    return;
+  }
+  if (user.actorType === ActorType.GUARDIAN) {
+    if (!user.childIds?.includes(studentId)) {
+      throw forbidden("forbidden");
+    }
+    return;
+  }
+  throw forbidden("forbidden");
+}
+
+export function visibleStudentIds(user: AuthPrincipal): string[] | null {
+  if (user.actorType === ActorType.STAFF) return null;
+  if (user.actorType === ActorType.STUDENT) {
+    return user.studentId ? [user.studentId] : [];
+  }
+  if (user.actorType === ActorType.GUARDIAN) return user.childIds ?? [];
+  return [];
 }

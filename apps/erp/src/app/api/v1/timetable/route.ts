@@ -131,47 +131,50 @@ export async function PUT(request: Request) {
       await subjectInCampus(user.campusId, subjectId);
     }
 
-    const others = await prisma.timetableSlot.findMany({
-      where: { sessionId, sectionId: { not: body.sectionId } },
-    });
-    const combined: ClashSlot[] = [
-      ...others.map((s) => ({
-        sectionId: s.sectionId,
-        weekday: s.weekday,
-        periodId: s.periodId,
-        staffId: s.staffId,
-        room: s.room,
-      })),
-      ...body.slots.map((s) => ({
-        sectionId: body.sectionId,
-        weekday: s.weekday,
-        periodId: s.periodId,
-        staffId: s.staffId ?? null,
-        room: s.room ?? null,
-      })),
-    ];
-    const clash = findClash(combined);
-    if (clash) throw conflict(clash);
-
-    await prisma.$transaction(async (tx) => {
-      await tx.timetableSlot.deleteMany({
-        where: { sessionId, sectionId: body.sectionId },
-      });
-      if (body.slots.length) {
-        await tx.timetableSlot.createMany({
-          data: body.slots.map((slot) => ({
-            sessionId,
-            classId: section.classId,
-            sectionId: body.sectionId,
-            weekday: slot.weekday,
-            periodId: slot.periodId,
-            subjectId: slot.subjectId ?? null,
-            staffId: slot.staffId ?? null,
-            room: slot.room ?? null,
-          })),
+    await prisma.$transaction(
+      async (tx) => {
+        const others = await tx.timetableSlot.findMany({
+          where: { sessionId, sectionId: { not: body.sectionId } },
         });
-      }
-    });
+        const combined: ClashSlot[] = [
+          ...others.map((s) => ({
+            sectionId: s.sectionId,
+            weekday: s.weekday,
+            periodId: s.periodId,
+            staffId: s.staffId,
+            room: s.room,
+          })),
+          ...body.slots.map((s) => ({
+            sectionId: body.sectionId,
+            weekday: s.weekday,
+            periodId: s.periodId,
+            staffId: s.staffId ?? null,
+            room: s.room ?? null,
+          })),
+        ];
+        const clash = findClash(combined);
+        if (clash) throw conflict(clash);
+
+        await tx.timetableSlot.deleteMany({
+          where: { sessionId, sectionId: body.sectionId },
+        });
+        if (body.slots.length) {
+          await tx.timetableSlot.createMany({
+            data: body.slots.map((slot) => ({
+              sessionId,
+              classId: section.classId,
+              sectionId: body.sectionId,
+              weekday: slot.weekday,
+              periodId: slot.periodId,
+              subjectId: slot.subjectId ?? null,
+              staffId: slot.staffId ?? null,
+              room: slot.room ?? null,
+            })),
+          });
+        }
+      },
+      { isolationLevel: "Serializable" },
+    );
 
     const data = await prisma.timetableSlot.findMany({
       where: { sessionId, sectionId: body.sectionId },

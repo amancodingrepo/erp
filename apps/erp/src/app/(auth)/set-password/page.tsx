@@ -47,7 +47,7 @@ function SetPasswordForm() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-4">
-      <div className="w-full max-w-md border border-[var(--rule)] bg-[var(--paper-2)] p-8 shadow-[8px_8px_0_#1b2a22]">
+      <div className="em-card w-full max-w-md p-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brass)]">
           Campus desk
         </p>

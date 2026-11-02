@@ -1,0 +1,1132 @@
+import { Gender, Prisma, StudentStatus } from "@prisma/client";
+import { z } from "zod";
+import {
+  classInCampus,
+  currentSessionId,
+  parseDateOnly,
+  sectionInCampus,
+} from "@/lib/campus";
+import { encryptField, decryptField, maskId } from "@/lib/crypto";
+import { prisma } from "@/lib/db";
+import {
+  conflict,
+  notFound,
+  prismaErrorCode,
+  validationError,
+} from "@/lib/errors";
+import type { AuthPrincipal } from "@/lib/permissions";
+import { feeLedgerFromInvoices } from "@/lib/services/diary";
+import {
+  attachGuardianExtras,
+  listGuardianExtras,
+} from "@/lib/services/campus-student-guardians";
+import { enrollmentScope } from "@/lib/services/session-context";
+
+const emptyToUndef = (value: unknown) =>
+  value === "" || value === null ? undefined : value;
+
+const optStr = z.preprocess(emptyToUndef, z.string().min(1).optional());
+const optEmail = z.preprocess(emptyToUndef, z.string().email().optional());
+
+const addressSchema = z.object({
+  line1: optStr,
+  line2: optStr,
+  line3: optStr,
+  city: optStr,
+  atPost: optStr,
+  village: optStr,
+  taluka: optStr,
+  district: optStr,
+  region: optStr,
+  state: optStr,
+  pincode: optStr,
+  nation: optStr,
+});
+
+const guardianInput = z.object({
+  name: z.string().min(1),
+  phone: optStr,
+  email: optEmail,
+  occupation: optStr,
+  income: z.union([z.string(), z.number()]).optional(),
+  pan: optStr,
+});
+
+export const studentCreateSchema = z.object({
+  admissionNo: z.string().min(1),
+  rollNo: optStr,
+  enrollmentNo: optStr,
+  abcId: optStr,
+  admissionQuota: optStr,
+  classId: optStr,
+  sectionId: optStr,
+  sessionId: optStr,
+  salutation: optStr,
+  firstName: z.string().min(1),
+  middleName: optStr,
+  lastName: optStr,
+  nameAs12th: optStr,
+  nameAsAadhaar: optStr,
+  gender: z.nativeEnum(Gender).optional(),
+  dob: optStr,
+  birthPlace: optStr,
+  categoryId: optStr,
+  religion: optStr,
+  caste: optStr,
+  subCaste: optStr,
+  minority: optStr,
+  nationality: optStr,
+  domicileState: optStr,
+  feeCategory: optStr,
+  admissionDate: optStr,
+  mobile: optStr,
+  email: optEmail,
+  phone: optStr,
+  instituteEmail: optEmail,
+  aadhaar: optStr,
+  pan: optStr,
+  janAadhaar: optStr,
+  scholarNo: optStr,
+  sssmId: optStr,
+  pen: optStr,
+  apaarId: optStr,
+  grn: optStr,
+  saralId: optStr,
+  bloodGroup: optStr,
+  isRte: z.boolean().optional(),
+  isOnlyChild: z.boolean().optional(),
+  admittedClass: optStr,
+  annualIncome: optStr,
+  lunchFromSchool: z.boolean().optional(),
+  houseId: optStr,
+  isDefaulter: z.boolean().optional(),
+  rfid: optStr,
+  parentLoginEnabled: z.boolean().optional(),
+  fatherName: optStr,
+  addresses: z
+    .object({
+      permanent: addressSchema.optional(),
+      local: addressSchema.optional(),
+      localSameAsPermanent: z.boolean().optional(),
+    })
+    .optional(),
+  previousEdu: z
+    .object({
+      qualification: optStr,
+      board: optStr,
+      university: optStr,
+      universityState: optStr,
+      universityPrn: optStr,
+      marksObtained: z.union([z.string(), z.number()]).optional(),
+      marksTotal: z.union([z.string(), z.number()]).optional(),
+      percentage: z.union([z.string(), z.number()]).optional(),
+      lastClassName: optStr,
+      academicYear: optStr,
+      lastRollNo: optStr,
+      examSeatNo: optStr,
+      lastResult: optStr,
+    })
+    .optional(),
+  bank: z
+    .object({
+      accountNo: optStr,
+      holderName: optStr,
+      bankName: optStr,
+      ifsc: optStr,
+      branchName: optStr,
+      branchAddress: optStr,
+      accountType: optStr,
+    })
+    .optional(),
+  guardians: z
+    .object({
+      father: guardianInput.optional(),
+      mother: guardianInput.optional(),
+      spouse: guardianInput.optional(),
+    })
+    .optional(),
+  customFields: z
+    .array(
+      z.object({
+        fieldId: z.string().min(1),
+        value: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+export type StudentCreateInput = z.infer<typeof studentCreateSchema>;
+
+export const rollNumbersSchema = z.object({
+  classId: z.string().min(1),
+  sectionId: z.string().min(1),
+  startFrom: z.union([z.string(), z.number()]),
+  arrangement: z.enum(["mix", "boys_first", "girls_first"]),
+  sort: z.enum(["last", "first", "id"]),
+});
+
+function dec(value: string | number | undefined) {
+  if (value === undefined || value === "") return undefined;
+  return new Prisma.Decimal(value);
+}
+
+function parseGenderLabel(raw: string | undefined): Gender | undefined {
+  if (!raw?.trim()) return undefined;
+  const v = raw.trim().toUpperCase();
+  if (v === "M" || v === "MALE" || v === "BOY" || v === "BOYS") return Gender.MALE;
+  if (v === "F" || v === "FEMALE" || v === "GIRL" || v === "GIRLS") {
+    return Gender.FEMALE;
+  }
+  if (v === "O" || v === "OTHER") return Gender.OTHER;
+  throw validationError({ gender: "invalid gender" });
+}
+
+function parseDob(raw: string | undefined) {
+  if (!raw?.trim()) return undefined;
+  const value = raw.trim();
+  const dmy = /^(\d{2})[/-](\d{2})[/-](\d{4})$/.exec(value);
+  if (dmy) return parseDateOnly(`${dmy[3]}-${dmy[2]}-${dmy[1]}`);
+  return parseDateOnly(value);
+}
+
+export function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          cell += '"';
+          i += 1;
+        } else {
+          quoted = false;
+        }
+      } else {
+        cell += ch;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      quoted = true;
+    } else if (ch === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (ch === "\n") {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+    } else if (ch !== "\r") {
+      cell += ch;
+    }
+  }
+  if (cell.length || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows.filter((r) => r.some((c) => c.trim().length > 0));
+}
+
+const CSV_HEADERS: Record<string, string> = {
+  "student id": "admissionNo",
+  "admission no": "admissionNo",
+  "enrollment no": "enrollmentNo",
+  "enrolment no": "enrollmentNo",
+  "father name": "fatherName",
+  "parent name": "fatherName",
+  "guardian name": "fatherName",
+  "parent email": "parentEmail",
+  "father email": "parentEmail",
+  "class name": "className",
+  salutation: "salutation",
+  "full name (12th)": "nameAs12th",
+  "first name": "firstName",
+  middle: "middleName",
+  "middle name": "middleName",
+  last: "lastName",
+  "last name": "lastName",
+  roll: "rollNo",
+  "roll no": "rollNo",
+  class: "className",
+  section: "sectionName",
+  dob: "dob",
+  "birth place": "birthPlace",
+  email: "email",
+  qualification: "qualification",
+  mobile: "mobile",
+  phone: "phone",
+  gender: "gender",
+  category: "categoryName",
+};
+
+function displayName(s: {
+  firstName: string;
+  middleName?: string | null;
+  lastName?: string | null;
+}) {
+  return [s.firstName, s.middleName, s.lastName].filter(Boolean).join(" ");
+}
+
+export function studentListSearchOr(q: string): Prisma.StudentWhereInput[] {
+  const term = q.trim();
+  if (!term) return [];
+  const contains = { contains: term, mode: "insensitive" as const };
+  return [
+    { firstName: contains },
+    { lastName: contains },
+    { middleName: contains },
+    { admissionNo: contains },
+    { enrollmentNo: contains },
+    { mobile: { contains: term } },
+    { scholarNo: contains },
+    { pen: contains },
+    { apaarId: contains },
+    { sssmId: contains },
+    { grn: contains },
+    { saralId: contains },
+    { janAadhaar: contains },
+    { rollNo: contains },
+    { rfid: contains },
+    { guardians: { some: { guardian: { name: contains } } } },
+  ];
+}
+
+export function namedGuardianPairs(input: {
+  fatherName?: string | null;
+  motherName?: string | null;
+}) {
+  const pairs: Array<{ relation: "father" | "mother"; name: string }> = [];
+  const father = input.fatherName?.trim();
+  const mother = input.motherName?.trim();
+  if (father) pairs.push({ relation: "father", name: father });
+  if (mother) pairs.push({ relation: "mother", name: mother });
+  return pairs;
+}
+
+export function splitStudentPatch<
+  T extends { fatherName?: string | null; motherName?: string | null },
+>(body: T) {
+  const { fatherName, motherName, ...student } = body;
+  return {
+    student,
+    guardians: namedGuardianPairs({ fatherName, motherName }),
+  };
+}
+
+export function toStudentListRow(s: {
+  id: string;
+  admissionNo: string;
+  firstName: string;
+  middleName?: string | null;
+  lastName?: string | null;
+  rollNo?: string | null;
+  enrollmentNo?: string | null;
+  scholarNo?: string | null;
+  pen?: string | null;
+  apaarId?: string | null;
+  rfid?: string | null;
+  isDefaulter?: boolean;
+  photoUrl?: string | null;
+  parentLoginEnabled?: boolean;
+  userId?: string | null;
+  dob?: Date | null;
+  gender?: Gender | null;
+  mobile?: string | null;
+  status: StudentStatus;
+  category?: { name: string } | null;
+  enrollments: Array<{
+    id: string;
+    rollNo?: string | null;
+    class: { name: string };
+    section: { name: string };
+  }>;
+  guardians: Array<{ relation: string; guardian: { name: string } }>;
+}) {
+  const enrollment = s.enrollments[0];
+  const father =
+    s.guardians.find((g) => g.relation === "father")?.guardian ??
+    s.guardians.find((g) => g.relation === "spouse")?.guardian;
+  const mother = s.guardians.find((g) => g.relation === "mother")?.guardian;
+  return {
+    id: s.id,
+    admissionNo: s.admissionNo,
+    name: displayName(s),
+    class: enrollment?.class.name ?? null,
+    section: enrollment?.section.name ?? null,
+    rollNo: enrollment?.rollNo ?? s.rollNo,
+    enrollmentNo: s.enrollmentNo,
+    enrollmentId: enrollment?.id ?? null,
+    fatherName: father?.name ?? null,
+    motherName: mother?.name ?? null,
+    parentLoginEnabled: s.parentLoginEnabled ?? true,
+    studentLoginEnabled: Boolean(s.userId),
+    scholarNo: s.scholarNo ?? null,
+    pen: s.pen ?? null,
+    apaarId: s.apaarId ?? null,
+    rfid: s.rfid ?? null,
+    isDefaulter: s.isDefaulter ?? false,
+    photoUrl: s.photoUrl ?? null,
+    dob: s.dob,
+    gender: s.gender,
+    category: s.category?.name ?? null,
+    mobile: s.mobile,
+    status: s.status,
+  };
+}
+
+function listRow(
+  s: Parameters<typeof toStudentListRow>[0],
+) {
+  return toStudentListRow(s);
+}
+
+function filled(obj?: object | null) {
+  if (!obj) return false;
+  return Object.values(obj).some(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
+
+async function writeRelated(
+  tx: Prisma.TransactionClient,
+  studentId: string,
+  body: StudentCreateInput,
+) {
+  const permanent = filled(body.addresses?.permanent)
+    ? body.addresses?.permanent
+    : undefined;
+  const local = body.addresses?.localSameAsPermanent
+    ? permanent
+    : filled(body.addresses?.local)
+      ? body.addresses?.local
+      : undefined;
+  if (permanent) {
+    await tx.studentAddress.create({
+      data: { studentId, kind: "permanent", ...permanent },
+    });
+  }
+  if (local) {
+    await tx.studentAddress.create({
+      data: { studentId, kind: "local", ...local },
+    });
+  }
+  const edu = body.previousEdu;
+  if (edu && filled(edu)) {
+    await tx.studentEducation.create({
+      data: {
+        studentId,
+        qualification: edu.qualification,
+        board: edu.board,
+        university: edu.university,
+        universityState: edu.universityState,
+        universityPrn: edu.universityPrn,
+        marksObtained: dec(edu.marksObtained),
+        marksTotal: dec(edu.marksTotal),
+        percentage: dec(edu.percentage),
+        lastClassName: edu.lastClassName,
+        academicYear: edu.academicYear,
+        lastRollNo: edu.lastRollNo,
+        examSeatNo: edu.examSeatNo,
+        lastResult: edu.lastResult,
+      },
+    });
+  }
+  const bank = body.bank;
+  if (bank && filled(bank)) {
+    await tx.studentBank.create({
+      data: {
+        studentId,
+        accountNoEnc: encryptField(bank.accountNo),
+        holderName: bank.holderName,
+        bankName: bank.bankName,
+        ifsc: bank.ifsc,
+        branchName: bank.branchName,
+        branchAddress: bank.branchAddress,
+        accountType: bank.accountType,
+      },
+    });
+  }
+  const father =
+    body.guardians?.father ??
+    (body.fatherName ? { name: body.fatherName } : undefined);
+  const pairs: Array<{ relation: string; data: z.infer<typeof guardianInput> }> =
+    [];
+  if (father) pairs.push({ relation: "father", data: father });
+  if (body.guardians?.mother) {
+    pairs.push({ relation: "mother", data: body.guardians.mother });
+  }
+  if (body.guardians?.spouse) {
+    pairs.push({ relation: "spouse", data: body.guardians.spouse });
+  }
+  for (const pair of pairs) {
+    const guardian = await tx.guardian.create({
+      data: {
+        name: pair.data.name,
+        phone: pair.data.phone,
+        email: pair.data.email || null,
+        occupation: pair.data.occupation,
+        income: dec(pair.data.income),
+        panEnc: encryptField(pair.data.pan),
+      },
+    });
+    await tx.studentGuardian.create({
+      data: {
+        studentId,
+        guardianId: guardian.id,
+        relation: pair.relation,
+      },
+    });
+  }
+}
+
+export async function writeNamedGuardians(
+  tx: Prisma.TransactionClient,
+  studentId: string,
+  pairs: Array<{ relation: "father" | "mother"; name: string }>,
+) {
+  for (const pair of pairs) {
+    const existing = await tx.studentGuardian.findFirst({
+      where: { studentId, relation: pair.relation },
+    });
+    if (existing) {
+      await tx.guardian.update({
+        where: { id: existing.guardianId },
+        data: { name: pair.name },
+      });
+      continue;
+    }
+    const guardian = await tx.guardian.create({ data: { name: pair.name } });
+    await tx.studentGuardian.create({
+      data: {
+        studentId,
+        guardianId: guardian.id,
+        relation: pair.relation,
+      },
+    });
+  }
+}
+
+export async function createStudent(input: {
+  campusId: string;
+  body: StudentCreateInput;
+  tx?: Prisma.TransactionClient;
+}) {
+  const body = input.body;
+  if ((body.classId && !body.sectionId) || (body.sectionId && !body.classId)) {
+    throw validationError({
+      classId: "class and section must be provided together",
+    });
+  }
+  let sessionId = body.sessionId;
+  if (body.classId && body.sectionId) {
+    const klass = await classInCampus(input.campusId, body.classId);
+    const section = await sectionInCampus(input.campusId, body.sectionId);
+    if (section.classId !== klass.id) {
+      throw validationError({ sectionId: "section does not belong to class" });
+    }
+    if (!sessionId) {
+      sessionId =
+        (await currentSessionId({
+          campusId: input.campusId,
+        } as AuthPrincipal)) ?? undefined;
+    }
+    if (!sessionId) throw validationError({ sessionId: "session required" });
+  }
+  if (body.categoryId) {
+    const category = await prisma.category.findFirst({
+      where: { id: body.categoryId, campusId: input.campusId },
+    });
+    if (!category) throw notFound("category");
+  }
+  if (body.houseId) {
+    const house = await prisma.house.findFirst({
+      where: { id: body.houseId, campusId: input.campusId },
+    });
+    if (!house) throw notFound("house");
+  }
+
+  try {
+    const run = async (tx: Prisma.TransactionClient) => {
+      const created = await tx.student.create({
+        data: {
+          campusId: input.campusId,
+          admissionNo: body.admissionNo.trim(),
+          rollNo: body.rollNo,
+          enrollmentNo: body.enrollmentNo,
+          abcId: body.abcId,
+          admissionQuota: body.admissionQuota,
+          salutation: body.salutation,
+          firstName: body.firstName.trim(),
+          middleName: body.middleName,
+          lastName: body.lastName,
+          nameAs12th: body.nameAs12th,
+          nameAsAadhaar: body.nameAsAadhaar,
+          gender: body.gender,
+          dob: parseDob(body.dob),
+          birthPlace: body.birthPlace,
+          categoryId: body.categoryId,
+          religion: body.religion,
+          caste: body.caste,
+          subCaste: body.subCaste,
+          minority: body.minority,
+          nationality: body.nationality,
+          domicileState: body.domicileState,
+          feeCategory: body.feeCategory,
+          admissionDate: parseDob(body.admissionDate),
+          mobile: body.mobile,
+          email: body.email,
+          phone: body.phone,
+          instituteEmail: body.instituteEmail,
+          aadhaarEnc: encryptField(body.aadhaar),
+          panEnc: encryptField(body.pan),
+          janAadhaar: body.janAadhaar,
+          scholarNo: body.scholarNo,
+          sssmId: body.sssmId,
+          pen: body.pen,
+          apaarId: body.apaarId,
+          grn: body.grn,
+          saralId: body.saralId,
+          bloodGroup: body.bloodGroup,
+          isRte: body.isRte ?? false,
+          isOnlyChild: body.isOnlyChild ?? false,
+          admittedClass: body.admittedClass,
+          annualIncome: body.annualIncome,
+          lunchFromSchool: body.lunchFromSchool ?? false,
+          houseId: body.houseId,
+          isDefaulter: body.isDefaulter ?? false,
+          rfid: body.rfid,
+          parentLoginEnabled: body.parentLoginEnabled ?? true,
+        },
+      });
+      if (body.classId && body.sectionId && sessionId) {
+        await tx.studentEnrollment.create({
+          data: {
+            studentId: created.id,
+            sessionId,
+            classId: body.classId,
+            sectionId: body.sectionId,
+            rollNo: body.rollNo,
+            isCurrent: true,
+          },
+        });
+      }
+      await writeRelated(tx, created.id, body);
+      if (body.customFields?.length) {
+        for (const field of body.customFields) {
+          const def = await tx.customField.findFirst({
+            where: { id: field.fieldId, campusId: input.campusId, visible: true },
+          });
+          if (!def) continue;
+          await tx.customFieldValue.create({
+            data: {
+              fieldId: def.id,
+              entityId: created.id,
+              value: field.value ?? null,
+            },
+          });
+        }
+      }
+      return created;
+    };
+    if (input.tx) return run(input.tx);
+    return prisma.$transaction(run);
+  } catch (error) {
+    if (
+      prismaErrorCode(error) === "P2002"
+    ) {
+      throw conflict("duplicate admissionNo");
+    }
+    throw error;
+  }
+}
+
+export async function listStudents(input: {
+  campusId: string;
+  q?: string;
+  classId?: string;
+  sectionId?: string;
+  sessionId?: string | null;
+  status?: string | null;
+  page: number;
+  pageSize: number;
+  studentIds?: string[] | null;
+}) {
+  if (input.studentIds && input.studentIds.length === 0) {
+    return { data: [], total: 0, page: input.page, pageSize: input.pageSize };
+  }
+  const status =
+    input.status === "all"
+      ? undefined
+      : ((input.status as StudentStatus | null | undefined) ??
+        StudentStatus.ACTIVE);
+  const q = input.q?.trim();
+  const where: Prisma.StudentWhereInput = {
+    campusId: input.campusId,
+    ...(input.studentIds ? { id: { in: input.studentIds } } : {}),
+    ...(status ? { status } : {}),
+    ...(q ? { OR: studentListSearchOr(q) } : {}),
+    ...(input.classId || input.sectionId || input.sessionId
+      ? {
+          enrollments: {
+            some: {
+              ...enrollmentScope(input.sessionId),
+              ...(input.classId ? { classId: input.classId } : {}),
+              ...(input.sectionId ? { sectionId: input.sectionId } : {}),
+            },
+          },
+        }
+      : {}),
+  };
+  const [total, rows] = await prisma.$transaction([
+    prisma.student.count({ where }),
+    prisma.student.findMany({
+      where,
+      include: {
+        category: true,
+        enrollments: {
+          where: enrollmentScope(input.sessionId),
+          include: { class: true, section: true },
+          take: 1,
+        },
+        guardians: { include: { guardian: true } },
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+      skip: (input.page - 1) * input.pageSize,
+      take: input.pageSize,
+    }),
+  ]);
+  return { data: rows.map(listRow), total, page: input.page, pageSize: input.pageSize };
+}
+
+export async function getStudent360(campusId: string, id: string) {
+  const student = await prisma.student.findFirst({
+    where: { id, campusId },
+    include: {
+      category: true,
+      enrollments: {
+        include: { class: true, section: true, session: true },
+        orderBy: { session: { sequenceNo: "desc" } },
+      },
+      guardians: { include: { guardian: true } },
+      addresses: true,
+      previousEdu: true,
+      bank: true,
+      documents: { orderBy: { createdAt: "desc" } },
+      house: { select: { id: true, name: true } },
+      invoices: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          lines: { include: { feeType: true } },
+          payments: { orderBy: { paidAt: "asc" } },
+          master: { include: { group: true } },
+        },
+      },
+      transport: {
+        include: {
+          route: true,
+          pickup: true,
+          outRoute: true,
+          outPickup: true,
+        },
+      },
+      daycare: true,
+      immunizations: { orderBy: { createdAt: "asc" } },
+      attendances: { orderBy: { date: "desc" }, take: 30 },
+      marks: {
+        include: {
+          examSubject: {
+            include: { exam: { include: { group: true } } },
+          },
+        },
+      },
+    },
+  });
+  if (!student) throw notFound("student");
+  const extras = await listGuardianExtras(campusId);
+  const {
+    aadhaarEnc,
+    panEnc,
+    bank,
+    marks,
+    invoices,
+    attendances,
+    transport,
+    ...rest
+  } = student;
+  const total = invoices.reduce((sum, inv) => sum + Number(inv.total), 0);
+  const paid = invoices.reduce((sum, inv) => sum + Number(inv.paid), 0);
+  const examMarks = marks.map((m) => {
+    if (m.isBlocked) {
+      return {
+        id: m.id,
+        examSubjectId: m.examSubjectId,
+        exam: m.examSubject.exam.name,
+        group: m.examSubject.exam.group.name,
+        status: "withheld" as const,
+        marks: null,
+        isAbsent: null,
+      };
+    }
+    return {
+      id: m.id,
+      examSubjectId: m.examSubjectId,
+      exam: m.examSubject.exam.name,
+      group: m.examSubject.exam.group.name,
+      status: "ok" as const,
+      marks: m.marks,
+      isAbsent: m.isAbsent,
+      finalizedAt: m.finalizedAt,
+    };
+  });
+  const timeline = [
+    {
+      at: student.createdAt,
+      event: "admitted",
+      detail: student.admissionNo,
+    },
+    ...student.enrollments.map((e) => ({
+      at: e.session.startDate ?? student.createdAt,
+      event: e.isCurrent ? "enrolled" : "previous-enrollment",
+      detail: `${e.session.name} · ${e.class.name} / ${e.section.name}`,
+    })),
+  ];
+  return {
+    ...rest,
+    studentLoginEnabled: Boolean(student.userId),
+    guardians: attachGuardianExtras(rest.guardians, extras),
+    aadhaarMasked: maskId(decryptField(aadhaarEnc)),
+    panMasked: maskId(decryptField(panEnc)),
+    bank: bank
+      ? {
+          ...bank,
+          accountNoEnc: undefined,
+          accountNoMasked: maskId(decryptField(bank.accountNoEnc)),
+        }
+      : null,
+    invoicesSummary: {
+      count: invoices.length,
+      total,
+      paid,
+      balance: total - paid,
+      rows: invoices.map((inv) => ({
+        id: inv.id,
+        status: inv.status,
+        total: inv.total,
+        paid: inv.paid,
+        createdAt: inv.createdAt,
+      })),
+      payments: invoices.flatMap((inv) =>
+        inv.payments.map((payment) => ({
+          id: payment.id,
+          invoiceId: inv.id,
+          receiptNo: payment.receiptNo,
+          amount: Number(payment.amount),
+          method: payment.method,
+          cancelledAt: payment.cancelledAt,
+          paidAt: payment.paidAt,
+        })),
+      ),
+    },
+    feeLedger: feeLedgerFromInvoices(invoices),
+    transport: transport
+      ? {
+          inRoute: transport.route.name,
+          inStop: transport.pickup.name,
+          outRoute: transport.outRoute?.name ?? null,
+          outStop: transport.outPickup?.name ?? null,
+          routeId: transport.routeId,
+          pickupPointId: transport.pickupPointId,
+          outRouteId: transport.outRouteId,
+          outPickupPointId: transport.outPickupPointId,
+        }
+      : null,
+    attendance: attendances,
+    exams: {
+      withheld: examMarks.some((m) => m.status === "withheld"),
+      marks: examMarks,
+    },
+    timeline,
+  };
+}
+
+export async function generateRollNumbers(input: {
+  campusId: string;
+  classId: string;
+  sectionId: string;
+  startFrom: string | number;
+  arrangement: "mix" | "boys_first" | "girls_first";
+  sort: "last" | "first" | "id";
+}) {
+  const start = Number(input.startFrom);
+  if (!Number.isInteger(start) || start < 1) {
+    throw validationError({ startFrom: "must be a positive integer" });
+  }
+  await classInCampus(input.campusId, input.classId);
+  const section = await sectionInCampus(input.campusId, input.sectionId);
+  if (section.classId !== input.classId) {
+    throw validationError({ sectionId: "section does not belong to class" });
+  }
+  const enrollments = await prisma.studentEnrollment.findMany({
+    where: {
+      classId: input.classId,
+      sectionId: input.sectionId,
+      isCurrent: true,
+      student: { campusId: input.campusId, status: StudentStatus.ACTIVE },
+    },
+    include: { student: true },
+  });
+
+  const genderRank = (g: Gender | null) => {
+    if (input.arrangement === "mix") return 0;
+    if (input.arrangement === "boys_first") {
+      if (g === Gender.MALE) return 0;
+      if (g === Gender.FEMALE) return 1;
+      return 2;
+    }
+    if (g === Gender.FEMALE) return 0;
+    if (g === Gender.MALE) return 1;
+    return 2;
+  };
+  const sortKey = (s: (typeof enrollments)[number]["student"]) => {
+    if (input.sort === "last") return (s.lastName ?? "").toLowerCase();
+    if (input.sort === "first") return s.firstName.toLowerCase();
+    return s.admissionNo.toLowerCase();
+  };
+  const ordered = [...enrollments].sort((a, b) => {
+    const g = genderRank(a.student.gender) - genderRank(b.student.gender);
+    if (g !== 0) return g;
+    return sortKey(a.student).localeCompare(sortKey(b.student));
+  });
+
+  const rolls: Array<{ studentId: string; rollNo: string }> = [];
+  await prisma.$transaction(async (tx) => {
+    for (let i = 0; i < ordered.length; i++) {
+      const rollNo = String(start + i);
+      const row = ordered[i];
+      await tx.studentEnrollment.update({
+        where: { id: row.id },
+        data: { rollNo },
+      });
+      await tx.student.update({
+        where: { id: row.studentId },
+        data: { rollNo },
+      });
+      rolls.push({ studentId: row.studentId, rollNo });
+    }
+  });
+  return { updated: rolls.length, rolls };
+}
+
+export async function importStudentsCsv(input: {
+  campusId: string;
+  text: string;
+}) {
+  const rows = parseCsv(input.text);
+  if (rows.length < 2) {
+    throw validationError({ file: "CSV must include a header and at least one row" });
+  }
+  const header = rows[0].map((h) => h.trim().toLowerCase());
+  const mapped = header.map((h) => CSV_HEADERS[h] ?? null);
+  if (!mapped.includes("firstName")) {
+    throw validationError({
+      file: "CSV header must include First Name",
+    });
+  }
+
+  type LineError = { line: number; fields: Record<string, string> };
+  const errors: LineError[] = [];
+  const parsed: StudentCreateInput[] = [];
+  const seen = new Set<string>();
+
+  const classes = await prisma.class.findMany({
+    where: { program: { department: { campusId: input.campusId } } },
+    include: { sections: true },
+  });
+  const categories = await prisma.category.findMany({
+    where: { campusId: input.campusId },
+  });
+
+  for (let i = 1; i < rows.length; i++) {
+    const line = i + 1;
+    const fields: Record<string, string> = {};
+    const rec: Record<string, string> = {};
+    rows[i].forEach((value, idx) => {
+      const key = mapped[idx];
+      if (key) rec[key] = value.trim();
+    });
+    if (!rec.firstName) fields.firstName = "required";
+    if (!rec.className) fields.className = "required";
+    if (rec.mobile && !/^\d{10}$/.test(rec.mobile)) {
+      fields.mobile = "must be 10 digits";
+    }
+    const admissionKey = rec.admissionNo?.toLowerCase();
+    if (admissionKey && seen.has(admissionKey)) {
+      fields.admissionNo = "duplicate in file";
+    }
+    if (admissionKey) seen.add(admissionKey);
+
+    let gender: Gender | undefined;
+    try {
+      gender = parseGenderLabel(rec.gender);
+    } catch {
+      fields.gender = "invalid gender";
+    }
+
+    let classId: string | undefined;
+    let sectionId: string | undefined;
+    if (rec.className) {
+      const klass = classes.find(
+        (c) => c.name.toLowerCase() === rec.className.toLowerCase(),
+      );
+      if (!klass) fields.className = "class not found";
+      else {
+        classId = klass.id;
+        const wanted = (rec.sectionName || "A").toLowerCase();
+        const section = klass.sections.find(
+          (s) => s.name.toLowerCase() === wanted,
+        );
+        if (!section) fields.sectionName = "section not found";
+        else sectionId = section.id;
+      }
+    }
+
+    let categoryId: string | undefined;
+    if (rec.categoryName) {
+      const cat = categories.find(
+        (c) => c.name.toLowerCase() === rec.categoryName.toLowerCase(),
+      );
+      if (!cat) fields.categoryName = "category not found";
+      else categoryId = cat.id;
+    }
+
+    if (Object.keys(fields).length) {
+      errors.push({ line, fields });
+      continue;
+    }
+
+    parsed.push({
+      admissionNo: rec.admissionNo || `__gen__${line}`,
+      firstName: rec.firstName,
+      middleName: rec.middleName,
+      lastName: rec.lastName,
+      salutation: rec.salutation,
+      nameAs12th: rec.nameAs12th,
+      rollNo: rec.rollNo,
+      enrollmentNo: rec.enrollmentNo,
+      dob: rec.dob,
+      birthPlace: rec.birthPlace,
+      email: rec.email,
+      mobile: rec.mobile,
+      phone: rec.phone,
+      gender,
+      classId,
+      sectionId,
+      categoryId,
+      fatherName: rec.fatherName,
+      guardians: rec.fatherName
+        ? {
+            father: {
+              name: rec.fatherName,
+              email: rec.parentEmail,
+              phone: rec.mobile,
+            },
+          }
+        : undefined,
+      previousEdu: rec.qualification
+        ? { qualification: rec.qualification }
+        : undefined,
+    });
+  }
+
+  if (errors.length) {
+    const err = validationError({ file: "import failed" });
+    err.errors = errors;
+    throw err;
+  }
+
+  try {
+    const created: Array<{
+      id: string;
+      admissionNo: string;
+      enrollmentNo: string | null;
+      firstName: string;
+      lastName: string | null;
+      email: string | null;
+      fatherName?: string;
+      parentEmail?: string;
+    }> = [];
+    await prisma.$transaction(async (tx) => {
+      for (const body of parsed) {
+        const enrollmentNo =
+          body.enrollmentNo ||
+          (await nextEnrollmentNo(input.campusId, tx));
+        const admissionNo = body.admissionNo.startsWith("__gen__")
+          ? enrollmentNo
+          : body.admissionNo;
+        const student = await createStudent({
+          campusId: input.campusId,
+          body: { ...body, admissionNo, enrollmentNo },
+          tx,
+        });
+        created.push({
+          id: student.id,
+          admissionNo: student.admissionNo,
+          enrollmentNo: student.enrollmentNo,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          email: student.email,
+          fatherName: body.fatherName,
+          parentEmail: body.guardians?.father?.email,
+        });
+      }
+    });
+    const { provisionEnrollmentPortals } = await import(
+      "@/lib/services/portal-accounts"
+    );
+    const issued = [];
+    for (const row of created) {
+      const portals = await provisionEnrollmentPortals({
+        campusId: input.campusId,
+        studentId: row.id,
+        admissionNo: row.admissionNo,
+        studentEmail: row.email,
+        fatherName: row.fatherName,
+        parentEmail: row.parentEmail,
+        studentName: [row.firstName, row.lastName].filter(Boolean).join(" "),
+      });
+      issued.push({
+        admissionNo: row.admissionNo,
+        enrollmentNo: row.enrollmentNo,
+        ...portals,
+      });
+    }
+    return { inserted: created.length, ids: created.map((r) => r.id), issued };
+  } catch (error) {
+    if (prismaErrorCode(error) === "P2002") {
+      throw conflict("duplicate admissionNo");
+    }
+    throw error;
+  }
+}
+
+async function nextEnrollmentNo(
+  campusId: string,
+  tx: Prisma.TransactionClient,
+) {
+  const year = new Date().getFullYear();
+  const prefix = `ENR-${year}-`;
+  const last = await tx.student.findFirst({
+    where: { campusId, enrollmentNo: { startsWith: prefix } },
+    orderBy: { enrollmentNo: "desc" },
+    select: { enrollmentNo: true },
+  });
+  const n = last?.enrollmentNo
+    ? Number(last.enrollmentNo.slice(prefix.length)) + 1
+    : 1;
+  const seq = Number.isFinite(n) && n > 0 ? n : 1;
+  return `${prefix}${String(seq).padStart(4, "0")}`;
+}
+

@@ -25,7 +25,7 @@ model Campus {
   orgId          String
   org            Organization @relation(fields: [orgId], references: [id])
   name           String // LIVE sch_name
-  code           String? // LIVE sch_dise_code
+  code           String? @unique // LIVE sch_dise_code — login / public apply key
   address        String? // LIVE sch_address
   phone          String? // LIVE sch_phone
   email          String? // LIVE sch_email
@@ -39,9 +39,6 @@ model Campus {
   baseUrl        String?
   uploadPath     String?
   currentSessionId String?
-  slug           String?
-  isActive       Boolean  @default(true)
-  logoFileName   String?
   createdAt      DateTime @default(now())
 
   sessions     AcademicSession[]
@@ -51,6 +48,63 @@ model Campus {
   staff        Staff[]
   settings     Setting[]
   auditLogs    AuditLog[]
+  applications Application[]
+  cutoffRules      CutoffRule[]
+  paymentMerchants PaymentMerchant[]
+  gatewayOrders    GatewayOrder[]
+  hostels          Hostel[]
+  transportRoutes  TransportRoute[]
+  vehicles         Vehicle[]
+  messageTemplates MessageTemplate[]
+  messageLogs      MessageLog[]
+  printTemplates   PrintTemplate[]
+  certificateIssues CertificateIssue[]
+  enquiries        Enquiry[]
+  visitors         Visitor[]
+  frontOfficeTypes FrontOfficeType[]
+  books            Book[]
+  libraryMembers   LibraryMember[]
+  examFormWindows  ExamFormWindow[]
+  naacCriteria     NaacCriterion[]
+  programOutcomes  ProgramOutcome[]
+  feedbackForms    FeedbackForm[]
+  payElements      PayElement[]
+  payrollTaxSlabs  PayrollTaxSlab[]
+  payrollRuns      PayrollRun[]
+  seatingBlocks    SeatingBlock[]
+  liveClasses      LiveClass[]
+  canteenOutlets   CanteenOutlet[]
+  canteenMenuTypes CanteenMenuType[]
+  canteenFoodItems CanteenFoodItem[]
+  canteenMenus     CanteenMenu[]
+  canteenCoupons   CanteenCoupon[]
+  railwayConcessions RailwayConcession[]
+  lmsCategories    LmsCategory[]
+  lmsCourses       LmsCourse[]
+  onlineExams      OnlineExamBank[]
+  jobPostings      JobPosting[]
+  itemCategories   ItemCategory[]
+  itemStores       ItemStore[]
+  itemSuppliers    ItemSupplier[]
+  inventoryItems   InventoryItem[]
+  supportTopics    SupportTopic[]
+  chatThreads      ChatThread[]
+  parentRequests   ParentRequest[]
+  houses           House[]
+  campusEvents     CampusEvent[]
+  alumni           Alumnus[]
+  alumniEvents     AlumniEvent[]
+  mentorAssignments MentorAssignment[]
+  cmsPages         CmsPage[]
+  financeHeads     FinanceHead[]
+  tnpCompanies     TnpCompany[]
+  activityEvents   ActivityEvent[]
+  lessonPlans      LessonPlan[]
+  downloadTypes    DownloadType[]
+  bookableRooms    BookableRoom[]
+  slug           String?
+  isActive       Boolean  @default(true)
+  logoFileName   String?
   routes       SchoolRoute[]
   notices      Notice[]
   events       Event[]
@@ -80,11 +134,11 @@ model AcademicSession {
   enrollments StudentEnrollment[]
   feeMasters  FeeMaster[]
   examGroups  ExamGroup[]
-  invoices    FeeInvoice[]
-  optionalSubjects StudentOptionalSubject[]
 
   @@unique([campusId, name])
   @@index([campusId, isCurrent])
+  invoices    FeeInvoice[]
+  optionalSubjects StudentOptionalSubject[]
 }
 
 model Setting {
@@ -95,8 +149,6 @@ model Setting {
   value    Json
   @@unique([campusId, key])
 }
-
-// ─── Auth / RBAC ───────────────────────────────────────────
 
 enum ActorType {
   STAFF
@@ -113,10 +165,6 @@ model User {
   email        String?
   username     String
   passwordHash String
-  phone        String?
-  firstName    String    @default("")
-  lastName     String    @default("")
-  mustChangePassword Boolean @default(false)
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -127,9 +175,22 @@ model User {
   roles          UserRole[]
   audit          AuditLog[]
   passwordResets PasswordReset[]
+  authoredRequests  ParentRequest[]     @relation("ParentRequestAuthor")
+  receivedRequests  ParentRequest[]     @relation("ParentRequestRecipient")
+  parentRequestReads ParentRequestRead[]
 
   @@unique([campusId, username])
   @@index([campusId, email])
+  phone        String?
+  firstName    String    @default("")
+  lastName     String    @default("")
+  mustChangePassword Boolean @default(false)
+}
+
+model LoginAttempt {
+  key     String   @id
+  count   Int
+  resetAt DateTime
 }
 
 model Role {
@@ -196,8 +257,6 @@ model PasswordReset {
   @@index([userId])
 }
 
-// ─── Academics ─────────────────────────────────────────────
-
 enum ProgramLevel {
   UNDERGRADUATE // LIVE
   POSTGRADUATE
@@ -226,6 +285,9 @@ model Program {
   durationYears Int         @default(3)
   classes      Class[]
   specializations Specialization[]
+  applications Application[]
+  cutoffRules  CutoffRule[]
+  outcomes     ProgramOutcome[]
 }
 
 model Specialization {
@@ -248,6 +310,8 @@ model Class {
   extraStaffId   String?
   sections       Section[]
   enrollments    StudentEnrollment[]
+  feedbackAssignments FeedbackAssignment[]
+  liveClasses    LiveClass[]
   feeMasters     FeeMaster[]
   externalLinkClasses ExternalLinkClass[]
   optionalSubjects StudentOptionalSubject[]
@@ -270,11 +334,14 @@ model Subject {
   code     String?
   kind     String  @default("theory") // theory | practical | optional
   isOptional Boolean @default(false)
+  offerings  ClassSubject[]
+  courseOutcomes CourseOutcome[]
+  copoLessons    CopoLesson[]
+  liveClasses    LiveClass[]
   categoryId String?
   category   SubjectCategory? @relation(fields: [categoryId], references: [id])
   subjectTypeId String?
   subjectType SubjectType? @relation(fields: [subjectTypeId], references: [id])
-  offerings  ClassSubject[]
   optionalSelections StudentOptionalSubject[]
 }
 
@@ -320,8 +387,6 @@ model WorkingDay {
   @@unique([campusId, date])
 }
 
-// ─── People: students ──────────────────────────────────────
-
 enum StudentStatus {
   ACTIVE
   DISABLED
@@ -347,6 +412,61 @@ model DisableReason {
   id       String @id @default(cuid())
   campusId String
   name     String
+}
+
+enum ApplicationStatus {
+  APPLIED
+  FEE_PAID
+  ENROLLED
+  REJECTED
+}
+
+model Application {
+  id             String            @id @default(cuid())
+  campusId       String
+  campus         Campus            @relation(fields: [campusId], references: [id])
+  applicationNo  String
+  firstName      String
+  lastName       String?
+  email          String?
+  mobile         String?
+  dob            DateTime?         @db.Date
+  gender         Gender?
+  fatherName     String?
+  parentEmail    String?
+  previousQualification String?
+  programId      String?
+  program        Program?          @relation(fields: [programId], references: [id])
+  feeAmount      Decimal           @db.Decimal(12, 2)
+  feePaid        Decimal           @default(0) @db.Decimal(12, 2)
+  paymentStatus  String            @default("UNPAID")
+  paymentMethod  String?
+  status         ApplicationStatus @default(APPLIED)
+  studentId      String?           @unique
+  student        Student?          @relation(fields: [studentId], references: [id])
+  notes          String?
+  score          Decimal?          @db.Decimal(8, 2)
+  categoryCode   String?
+  meritRank      Int?
+  cutoffRound    Int?
+  selectionStatus String           @default("PENDING")
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([campusId, applicationNo])
+  @@index([campusId, status])
+}
+
+model CutoffRule {
+  id           String  @id @default(cuid())
+  campusId     String
+  campus       Campus  @relation(fields: [campusId], references: [id])
+  programId    String
+  program      Program @relation(fields: [programId], references: [id])
+  roundNo      Int
+  categoryCode String
+  minScore     Decimal @db.Decimal(8, 2)
+  @@unique([campusId, programId, roundNo, categoryCode])
 }
 
 model Student {
@@ -389,25 +509,30 @@ model Student {
 
   aadhaarEnc     String? // encrypt at app layer
   panEnc         String?
+  janAadhaar     String?
+  scholarNo      String?
+  sssmId         String?
+  pen            String?
+  apaarId        String?
+  grn            String?
+  saralId        String?
+
+  bloodGroup     String?
+  isRte          Boolean @default(false)
+  isOnlyChild    Boolean @default(false)
+  admittedClass  String?
+  annualIncome   String?
+  lunchFromSchool Boolean @default(false)
+  houseId        String?
+  house          House? @relation(fields: [houseId], references: [id])
+  isDefaulter    Boolean @default(false)
+  rfid           String?
+  parentLoginEnabled Boolean @default(true)
 
   admissionDate  DateTime? @db.Date
   feeCategory    String?
   photoUrl       String?
   signatureUrl   String?
-  bloodGroup     String?
-  house          String?
-  pinCode        String?
-  alternatePhone String?
-  feeDefaulter   Boolean @default(false)
-  rfidNumber     String?
-  rfidMapped     Boolean @default(false)
-  childIdActive  Boolean @default(true)
-  parentIdActive Boolean @default(true)
-  motherName     String?
-  primaryParentName String?
-  originalClass  String?
-  lastSeen       String?
-  details        Json?
 
   status         StudentStatus @default(ACTIVE)
   disableReasonId String?
@@ -424,11 +549,32 @@ model Student {
   invoices       FeeInvoice[]
   attendances    StudentAttendance[]
   marks          ExamMark[]
-  optionalSubjects StudentOptionalSubject[]
+  seatAssignments SeatAssignment[]
+  application    Application?
+  hostelAllocations HostelAllocation[]
+  transport         StudentTransport?
+  daycare           StudentDaycare?
+  immunizations     ImmunizationRecord[]
+  parentRequests    ParentRequest[]
+  libraryMember     LibraryMember?
+  examForms         ExamForm[]
 
   @@unique([campusId, admissionNo])
   @@index([campusId, enrollmentNo])
   @@index([campusId, lastName, firstName])
+  pinCode        String?
+  alternatePhone String?
+  feeDefaulter   Boolean @default(false)
+  rfidNumber     String?
+  rfidMapped     Boolean @default(false)
+  childIdActive  Boolean @default(true)
+  parentIdActive Boolean @default(true)
+  motherName     String?
+  primaryParentName String?
+  originalClass  String?
+  lastSeen       String?
+  details        Json?
+  optionalSubjects StudentOptionalSubject[]
 }
 
 model StudentEnrollment {
@@ -554,17 +700,17 @@ model CustomFieldValue {
   @@index([fieldId, entityId])
 }
 
-// ─── Fees ──────────────────────────────────────────────────
-
 model FeeType {
   id       String @id @default(cuid())
   campusId String
   name     String
   code     String?
   isActive Boolean @default(true)
+  lines    FeeMasterLine[]
+  invoiceLines FeeInvoiceLine[]
+  merchants PaymentMerchant[]
   description String?
   isRecurring Boolean @default(false)
-  lines    FeeMasterLine[]
 }
 
 model FeeGroup {
@@ -583,12 +729,12 @@ model FeeMaster {
   group     FeeGroup @relation(fields: [groupId], references: [id])
   dueDate   DateTime? @db.Date
   isActive  Boolean @default(true)
+  lines     FeeMasterLine[]
+  invoices  FeeInvoice[]
   name      String  @default("")
   description String?
   classId   String?
   class     Class?  @relation(fields: [classId], references: [id])
-  lines     FeeMasterLine[]
-  invoices  FeeInvoice[]
 }
 
 model FeeMasterLine {
@@ -635,7 +781,6 @@ model FeeInvoice {
   studentId   String
   student     Student       @relation(fields: [studentId], references: [id])
   sessionId   String
-  session     AcademicSession @relation(fields: [sessionId], references: [id])
   masterId    String?
   master      FeeMaster?    @relation(fields: [masterId], references: [id])
   status      InvoiceStatus @default(DUE)
@@ -643,11 +788,12 @@ model FeeInvoice {
   paid        Decimal       @default(0) @db.Decimal(12, 2)
   discount    Decimal       @default(0) @db.Decimal(12, 2)
   fine        Decimal       @default(0) @db.Decimal(12, 2)
-  reference   String?
   lines       FeeInvoiceLine[]
   payments    Payment[]
   createdAt   DateTime      @default(now())
   @@index([studentId, sessionId])
+  session     AcademicSession @relation(fields: [sessionId], references: [id])
+  reference   String?
 }
 
 model FeeInvoiceLine {
@@ -655,11 +801,14 @@ model FeeInvoiceLine {
   invoiceId  String
   invoice    FeeInvoice @relation(fields: [invoiceId], references: [id])
   feeTypeId  String
+  feeType    FeeType    @relation(fields: [feeTypeId], references: [id])
   description String
   amount     Decimal    @db.Decimal(12, 2)
   paid       Decimal    @default(0) @db.Decimal(12, 2)
-  installmentName String @default("Single Installment")
+  discount   Decimal    @default(0) @db.Decimal(12, 2)
+  fine       Decimal    @default(0) @db.Decimal(12, 2)
   dueDate    DateTime?  @db.Date
+  installmentName String @default("Single Installment")
   reference  String?
   metadata   Json?
 }
@@ -677,25 +826,62 @@ enum PaymentMethod {
 }
 
 model Payment {
-  id          String        @id @default(cuid())
-  invoiceId   String
-  invoice     FeeInvoice    @relation(fields: [invoiceId], references: [id])
-  amount      Decimal       @db.Decimal(12, 2)
-  discount    Decimal       @default(0) @db.Decimal(12, 2)
-  fine        Decimal       @default(0) @db.Decimal(12, 2)
-  method      PaymentMethod
-  reference   String?
-  receiptNo   String        @unique
-  note        String?
+  id              String        @id @default(cuid())
+  invoiceId       String
+  invoice         FeeInvoice    @relation(fields: [invoiceId], references: [id])
+  amount          Decimal       @db.Decimal(12, 2)
+  discount        Decimal       @default(0) @db.Decimal(12, 2)
+  fine            Decimal       @default(0) @db.Decimal(12, 2)
+  method          PaymentMethod
+  reference       String?
+  idempotencyKey  String?       @unique
+  lineId          String?
+  receiptNo       String        @unique
+  note            String?
+  paidAt          DateTime
+  collectedBy     String?
+  cancelledAt     DateTime?
+  createdAt       DateTime      @default(now())
   cashDepositNumber String?
   reversalReason String?
-  paidAt      DateTime
-  collectedBy String?
-  cancelledAt DateTime?
-  createdAt   DateTime      @default(now())
 }
 
-// ─── Attendance ────────────────────────────────────────────
+model PaymentMerchant {
+  id                String   @id @default(cuid())
+  campusId          String
+  campus            Campus   @relation(fields: [campusId], references: [id])
+  name              String
+  provider          String
+  keyId             String
+  keySecretEnc      String
+  webhookSecretEnc  String
+  isDefault         Boolean  @default(false)
+  feeTypeId         String?
+  feeType           FeeType? @relation(fields: [feeTypeId], references: [id])
+  orders            GatewayOrder[]
+  createdAt         DateTime @default(now())
+  @@index([campusId, provider])
+}
+
+model GatewayOrder {
+  id              String   @id @default(cuid())
+  campusId        String
+  campus          Campus   @relation(fields: [campusId], references: [id])
+  merchantId      String?
+  merchant        PaymentMerchant? @relation(fields: [merchantId], references: [id])
+  provider        String
+  providerOrderId String   @unique
+  amount          Decimal  @db.Decimal(12, 2)
+  currency        String   @default("INR")
+  purpose         String
+  invoiceId       String?
+  enrollmentId    String?
+  applicationId   String?
+  studentId       String?
+  status          String   @default("CREATED")
+  createdAt       DateTime @default(now())
+  @@index([campusId, status])
+}
 
 enum AttendanceStatus {
   PRESENT
@@ -714,9 +900,9 @@ model StudentAttendance {
   subjectId String?
   status    AttendanceStatus
   markedBy  String?
-  note      String @default("")
   @@unique([studentId, date, subjectId])
   @@index([date])
+  note      String @default("")
 }
 
 model StaffAttendance {
@@ -751,8 +937,6 @@ model LeaveRequest {
   approverId String?
 }
 
-// ─── Exams ─────────────────────────────────────────────────
-
 enum ExamKind {
   GENERAL_PASS_FAIL
   SCHOOL_GRADE
@@ -777,6 +961,8 @@ model ExamGroup {
   isActive       Boolean  @default(true)
   revaluationOn  Boolean  @default(false)
   exams          Exam[]
+  formWindows    ExamFormWindow[]
+  examForms      ExamForm[]
 }
 
 model Exam {
@@ -799,6 +985,8 @@ model ExamSubject {
   maxMarks  Decimal  @db.Decimal(8, 2)
   minMarks  Decimal  @db.Decimal(8, 2)
   marks     ExamMark[]
+  coAssessments CoAssessment[]
+  seatAssignments SeatAssignment[]
 }
 
 model Grade {
@@ -825,7 +1013,267 @@ model ExamMark {
   @@unique([examSubjectId, studentId])
 }
 
-// ─── Staff ─────────────────────────────────────────────────
+model SeatingBlock {
+  id          String           @id @default(cuid())
+  campusId    String
+  campus      Campus           @relation(fields: [campusId], references: [id])
+  name        String
+  capacity    Int
+  assignments SeatAssignment[]
+  @@unique([campusId, name])
+}
+
+model SeatAssignment {
+  id            String       @id @default(cuid())
+  blockId       String
+  block         SeatingBlock @relation(fields: [blockId], references: [id])
+  examSubjectId String
+  examSubject   ExamSubject  @relation(fields: [examSubjectId], references: [id])
+  studentId     String
+  student       Student      @relation(fields: [studentId], references: [id])
+  seatNo        String
+  @@unique([examSubjectId, studentId])
+  @@unique([examSubjectId, blockId, seatNo])
+}
+
+enum ExamFormKind {
+  ATKT
+  REVAL
+}
+
+model ExamFormWindow {
+  id          String       @id @default(cuid())
+  campusId    String
+  campus      Campus       @relation(fields: [campusId], references: [id])
+  kind        ExamFormKind
+  examGroupId String
+  examGroup   ExamGroup    @relation(fields: [examGroupId], references: [id])
+  opensAt     DateTime
+  closesAt    DateTime
+  feeAmount   Decimal      @db.Decimal(12, 2)
+  isActive    Boolean      @default(true)
+  forms       ExamForm[]
+  @@index([campusId, kind])
+}
+
+model ExamForm {
+  id           String         @id @default(cuid())
+  campusId     String
+  windowId     String
+  window       ExamFormWindow @relation(fields: [windowId], references: [id])
+  studentId    String
+  student      Student        @relation(fields: [studentId], references: [id])
+  examGroupId  String
+  examGroup    ExamGroup      @relation(fields: [examGroupId], references: [id])
+  kind         ExamFormKind
+  subjectIds   Json
+  feeInvoiceId String?
+  createdAt    DateTime       @default(now())
+  @@unique([studentId, examGroupId, kind])
+}
+
+enum NaacAssignmentStatus {
+  OPEN
+  DONE
+}
+
+model NaacCriterion {
+  id       String     @id @default(cuid())
+  campusId String
+  campus   Campus     @relation(fields: [campusId], references: [id])
+  number   Int
+  title    String
+  tasks    NaacTask[]
+  @@unique([campusId, number])
+}
+
+model NaacTask {
+  id               String           @id @default(cuid())
+  campusId         String
+  criterionId      String
+  criterion        NaacCriterion    @relation(fields: [criterionId], references: [id])
+  title            String
+  keyIndicator     String?
+  dueOn            DateTime?        @db.Date
+  evidenceRequired Boolean          @default(true)
+  assignments      NaacAssignment[]
+  evidence         NaacEvidence[]
+  @@index([campusId, criterionId])
+}
+
+model NaacAssignment {
+  id        String                @id @default(cuid())
+  taskId    String
+  task      NaacTask              @relation(fields: [taskId], references: [id])
+  staffId   String
+  staff     Staff                 @relation(fields: [staffId], references: [id])
+  status    NaacAssignmentStatus  @default(OPEN)
+  @@unique([taskId, staffId])
+}
+
+model NaacEvidence {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      NaacTask @relation(fields: [taskId], references: [id])
+  note      String?
+  fileUrl   String
+  createdAt DateTime @default(now())
+}
+
+enum ProgramOutcomeKind {
+  PO
+  PSO
+}
+
+enum CopoLessonStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+model ProgramOutcome {
+  id         String             @id @default(cuid())
+  campusId   String
+  campus     Campus             @relation(fields: [campusId], references: [id])
+  programId  String
+  program    Program            @relation(fields: [programId], references: [id])
+  code       String
+  title      String
+  kind       ProgramOutcomeKind @default(PO)
+  mappings   CoPoMapping[]
+  indirect   IndirectPoScore?
+  @@unique([programId, code])
+}
+
+model CourseOutcome {
+  id          String         @id @default(cuid())
+  campusId    String
+  subjectId   String
+  subject     Subject        @relation(fields: [subjectId], references: [id])
+  code        String
+  title       String
+  mappings    CoPoMapping[]
+  assessments CoAssessment[]
+  lessons     CopoLesson[]
+  @@unique([subjectId, code])
+}
+
+model CoPoMapping {
+  id               String         @id @default(cuid())
+  courseOutcomeId  String
+  courseOutcome    CourseOutcome  @relation(fields: [courseOutcomeId], references: [id])
+  programOutcomeId String
+  programOutcome   ProgramOutcome @relation(fields: [programOutcomeId], references: [id])
+  weight           Int
+  @@unique([courseOutcomeId, programOutcomeId])
+}
+
+model CoAssessment {
+  id              String        @id @default(cuid())
+  courseOutcomeId String
+  courseOutcome   CourseOutcome @relation(fields: [courseOutcomeId], references: [id])
+  examSubjectId   String
+  examSubject     ExamSubject   @relation(fields: [examSubjectId], references: [id])
+  @@unique([courseOutcomeId, examSubjectId])
+}
+
+model IndirectPoScore {
+  id               String         @id @default(cuid())
+  programOutcomeId String         @unique
+  programOutcome   ProgramOutcome @relation(fields: [programOutcomeId], references: [id])
+  percent          Decimal        @db.Decimal(5, 2)
+}
+
+model CopoLesson {
+  id              String           @id @default(cuid())
+  campusId        String
+  subjectId       String
+  subject         Subject          @relation(fields: [subjectId], references: [id])
+  courseOutcomeId String?
+  courseOutcome   CourseOutcome?   @relation(fields: [courseOutcomeId], references: [id])
+  title           String
+  status          CopoLessonStatus @default(SUBMITTED)
+}
+
+enum FeedbackFieldKind {
+  RATING
+  TEXT
+  MCQ
+}
+
+enum FeedbackAudience {
+  STUDENT
+  STAFF
+  ALL
+}
+
+model FeedbackForm {
+  id           String                 @id @default(cuid())
+  campusId     String
+  campus       Campus                 @relation(fields: [campusId], references: [id])
+  name         String
+  fields       FeedbackField[]
+  assignments  FeedbackAssignment[]
+  responses    FeedbackResponse[]
+}
+
+model FeedbackField {
+  id        String            @id @default(cuid())
+  formId    String
+  form      FeedbackForm      @relation(fields: [formId], references: [id])
+  label     String
+  kind      FeedbackFieldKind
+  options   Json?
+  sortOrder Int               @default(0)
+}
+
+model FeedbackAssignment {
+  id        String            @id @default(cuid())
+  formId    String
+  form      FeedbackForm      @relation(fields: [formId], references: [id])
+  classId   String?
+  class     Class?            @relation(fields: [classId], references: [id])
+  audience  FeedbackAudience  @default(STUDENT)
+  opensAt   DateTime
+  closesAt  DateTime
+  responses FeedbackResponse[]
+}
+
+model FeedbackResponse {
+  id            String              @id @default(cuid())
+  assignmentId  String
+  assignment    FeedbackAssignment  @relation(fields: [assignmentId], references: [id])
+  formId        String
+  form          FeedbackForm        @relation(fields: [formId], references: [id])
+  respondentId  String
+  answers       Json
+  createdAt     DateTime            @default(now())
+  @@unique([assignmentId, respondentId])
+}
+
+enum LiveClassProvider {
+  GMEET
+  ZOOM
+}
+
+model LiveClass {
+  id           String            @id @default(cuid())
+  campusId     String
+  campus       Campus            @relation(fields: [campusId], references: [id])
+  provider     LiveClassProvider
+  title        String
+  meetingUrl   String
+  recordingUrl String?
+  startsAt     DateTime
+  classId      String?
+  class        Class?            @relation(fields: [classId], references: [id])
+  subjectId    String?
+  subject      Subject?          @relation(fields: [subjectId], references: [id])
+  staffId      String?
+  staff        Staff?            @relation(fields: [staffId], references: [id])
+  @@index([campusId, startsAt])
+}
 
 model Designation {
   id       String @id @default(cuid())
@@ -854,30 +1302,405 @@ model Staff {
   isActive       Boolean  @default(true)
   photoUrl       String?
   attendances    StaffAttendance[]
+  libraryMember  LibraryMember?
+  naacAssignments NaacAssignment[]
+  payStructure    StaffPayStructure[]
+  payrollSlips    PayrollSlip[]
+  liveClasses     LiveClass[]
   @@unique([campusId, employeeId])
 }
 
-// ─── Comms ─────────────────────────────────────────────────
+enum PayElementKind {
+  EARNING
+  DEDUCTION
+}
+
+model PayElement {
+  id          String         @id @default(cuid())
+  campusId    String
+  campus      Campus         @relation(fields: [campusId], references: [id])
+  name        String
+  code        String
+  kind        PayElementKind
+  isStatutory Boolean        @default(false)
+  structures  StaffPayStructure[]
+  @@unique([campusId, code])
+}
+
+model StaffPayStructure {
+  id        String     @id @default(cuid())
+  staffId   String
+  staff     Staff      @relation(fields: [staffId], references: [id])
+  elementId String
+  element   PayElement @relation(fields: [elementId], references: [id])
+  amount    Decimal    @db.Decimal(12, 2)
+  @@unique([staffId, elementId])
+}
+
+model PayrollTaxSlab {
+  id        String  @id @default(cuid())
+  campusId  String
+  campus    Campus  @relation(fields: [campusId], references: [id])
+  kind      String
+  minAmount Decimal @db.Decimal(12, 2)
+  maxAmount Decimal? @db.Decimal(12, 2)
+  rate      Decimal? @db.Decimal(8, 4)
+  taxAmount Decimal? @db.Decimal(12, 2)
+}
+
+model PayrollRun {
+  id      String        @id @default(cuid())
+  campusId String
+  campus  Campus        @relation(fields: [campusId], references: [id])
+  year    Int
+  month   Int
+  status  String        @default("DRAFT")
+  slips   PayrollSlip[]
+  @@unique([campusId, year, month])
+}
+
+model PayrollSlip {
+  id     String      @id @default(cuid())
+  runId  String
+  run    PayrollRun  @relation(fields: [runId], references: [id])
+  staffId String
+  staff  Staff       @relation(fields: [staffId], references: [id])
+  gross  Decimal     @db.Decimal(12, 2)
+  pf     Decimal     @db.Decimal(12, 2)
+  esi    Decimal     @db.Decimal(12, 2)
+  pt     Decimal     @db.Decimal(12, 2)
+  tds    Decimal     @db.Decimal(12, 2)
+  net    Decimal     @db.Decimal(12, 2)
+  lines  Json
+  @@unique([runId, staffId])
+}
+
+model Book {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  isbn       String?
+  title      String
+  author     String?
+  publisher  String?
+  qty        Int    @default(1)
+  rack       String?
+  price      Decimal @default(0) @db.Decimal(12, 2)
+  issues     BookIssue[]
+  @@index([campusId, title])
+}
+
+model LibraryMember {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  memberNo  String
+  studentId String? @unique
+  student   Student? @relation(fields: [studentId], references: [id])
+  staffId   String? @unique
+  staff     Staff? @relation(fields: [staffId], references: [id])
+  issues    BookIssue[]
+  @@unique([campusId, memberNo])
+}
+
+model BookIssue {
+  id         String    @id @default(cuid())
+  bookId     String
+  book       Book      @relation(fields: [bookId], references: [id])
+  memberId   String
+  member     LibraryMember @relation(fields: [memberId], references: [id])
+  issuedAt   DateTime  @default(now())
+  dueOn      DateTime  @db.Date
+  returnedAt DateTime?
+  fine       Decimal   @default(0) @db.Decimal(12, 2)
+  @@index([memberId, returnedAt])
+}
+
+model Hostel {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  feeAmount Decimal @db.Decimal(12, 2)
+  rooms    HostelRoom[]
+  @@unique([campusId, name])
+}
+
+model HostelRoom {
+  id         String @id @default(cuid())
+  hostelId   String
+  hostel     Hostel @relation(fields: [hostelId], references: [id])
+  number     String
+  capacity   Int    @default(1)
+  roomType   String @default("2-share")
+  allocations HostelAllocation[]
+  @@unique([hostelId, number])
+}
+
+model HostelAllocation {
+  id        String    @id @default(cuid())
+  roomId    String
+  room      HostelRoom @relation(fields: [roomId], references: [id])
+  studentId String
+  student   Student   @relation(fields: [studentId], references: [id])
+  fromDate  DateTime  @default(now())
+  leftAt    DateTime?
+  @@index([studentId, leftAt])
+}
+
+model TransportRoute {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  name      String
+  feeAmount Decimal @db.Decimal(12, 2)
+  pickups   PickupPoint[]
+  vehicles  Vehicle[]
+  riders    StudentTransport[] @relation("TransportInRoute")
+  outRiders StudentTransport[] @relation("TransportOutRoute")
+  @@unique([campusId, name])
+}
+
+model PickupPoint {
+  id        String @id @default(cuid())
+  routeId   String
+  route     TransportRoute @relation(fields: [routeId], references: [id])
+  name      String
+  sortOrder Int    @default(0)
+  riders    StudentTransport[] @relation("TransportInPickup")
+  outRiders StudentTransport[] @relation("TransportOutPickup")
+}
+
+model Vehicle {
+  id             String @id @default(cuid())
+  campusId       String
+  campus         Campus @relation(fields: [campusId], references: [id])
+  registrationNo String
+  routeId        String?
+  route          TransportRoute? @relation(fields: [routeId], references: [id])
+  @@unique([campusId, registrationNo])
+}
+
+model StudentTransport {
+  id            String @id @default(cuid())
+  studentId     String @unique
+  student       Student @relation(fields: [studentId], references: [id])
+  routeId       String
+  route         TransportRoute @relation("TransportInRoute", fields: [routeId], references: [id])
+  pickupPointId String
+  pickup        PickupPoint @relation("TransportInPickup", fields: [pickupPointId], references: [id])
+  outRouteId       String?
+  outRoute         TransportRoute? @relation("TransportOutRoute", fields: [outRouteId], references: [id])
+  outPickupPointId String?
+  outPickup        PickupPoint? @relation("TransportOutPickup", fields: [outPickupPointId], references: [id])
+}
+
+model StudentDaycare {
+  id        String  @id @default(cuid())
+  studentId String  @unique
+  student   Student @relation(fields: [studentId], references: [id])
+  enrolled  Boolean @default(false)
+  checkIn   String?
+  checkOut  String?
+  allowCctv Boolean @default(false)
+  lastCheckInAt  DateTime?
+  lastCheckOutAt DateTime?
+  updatedAt DateTime @updatedAt
+  visits    DaycareVisit[]
+}
+
+model DaycareVisit {
+  id           String    @id @default(cuid())
+  daycareId    String
+  daycare      StudentDaycare @relation(fields: [daycareId], references: [id], onDelete: Cascade)
+  checkedInAt  DateTime  @default(now())
+  checkedOutAt DateTime?
+}
+
+model ImmunizationRecord {
+  id               String    @id @default(cuid())
+  campusId         String
+  studentId        String
+  student          Student   @relation(fields: [studentId], references: [id])
+  vaccineName      String
+  scheduleDate     DateTime? @db.Date
+  administeredDate DateTime? @db.Date
+  remarks          String?
+  status           String    @default("SCHEDULED")
+  imageUrl         String?
+  createdAt        DateTime  @default(now())
+  @@index([campusId, studentId])
+}
+
+model ParentRequest {
+  id              String    @id @default(cuid())
+  campusId        String
+  campus          Campus    @relation(fields: [campusId], references: [id])
+  authorUserId    String
+  author          User      @relation("ParentRequestAuthor", fields: [authorUserId], references: [id])
+  studentId       String?
+  student         Student?  @relation(fields: [studentId], references: [id])
+  recipientUserId String?
+  recipient       User?     @relation("ParentRequestRecipient", fields: [recipientUserId], references: [id])
+  classId         String?
+  threadId        String?
+  body            String
+  attachmentUrl   String?
+  hashTag         String?
+  category        String    @default("Others")
+  status          String    @default("OPEN")
+  scheduledAt     DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime  @default(now())
+  reads           ParentRequestRead[]
+  @@index([campusId, createdAt])
+  @@index([campusId, status])
+}
+
+model ParentRequestRead {
+  requestId String
+  userId    String
+  readAt    DateTime @default(now())
+  request   ParentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id])
+  @@id([requestId, userId])
+}
+
+model MessageTemplate {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  channel   String
+  name      String
+  subject   String?
+  body      String
+  createdAt DateTime @default(now())
+  @@unique([campusId, channel, name])
+}
+
+model FrontOfficeType {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  kind     String
+  name     String
+  @@unique([campusId, kind, name])
+}
+
+model Enquiry {
+  id             String    @id @default(cuid())
+  campusId       String
+  campus         Campus    @relation(fields: [campusId], references: [id])
+  name           String
+  phone          String?
+  email          String?
+  source         String?
+  classInterested String?
+  followUpOn     DateTime? @db.Date
+  remarks        String?
+  status         String    @default("UNASSIGNED")
+  assignedTo     String?
+  applicationId  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  @@index([campusId, status])
+}
+
+model Visitor {
+  id        String    @id @default(cuid())
+  campusId  String
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  name      String
+  phone     String?
+  purpose   String?
+  toMeet    String?
+  inAt      DateTime  @default(now())
+  outAt     DateTime?
+  note      String?
+  @@index([campusId, inAt])
+}
+
+model PrintTemplate {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  kind      String
+  name      String
+  body      String
+  createdAt DateTime @default(now())
+  @@unique([campusId, kind, name])
+}
+
+model CertificateIssue {
+  id         String   @id @default(cuid())
+  campusId   String
+  campus     Campus   @relation(fields: [campusId], references: [id])
+  templateId String?
+  studentId  String?
+  staffId    String?
+  title      String
+  createdAt  DateTime @default(now())
+  @@index([campusId, createdAt])
+}
+
+model MessageLog {
+  id         String   @id @default(cuid())
+  campusId   String
+  campus     Campus   @relation(fields: [campusId], references: [id])
+  channel    String
+  templateId String?
+  studentId  String?
+  toAddress  String
+  subject    String?
+  body       String
+  status     String
+  createdAt  DateTime @default(now())
+  @@index([campusId, createdAt])
+}
+
+model House {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  name      String
+  students  Student[]
+  @@unique([campusId, name])
+}
 
 model Notice {
   id          String   @id @default(cuid())
   campusId    String
-  campus      Campus   @relation(fields: [campusId], references: [id])
   title       String
   body        String
-  audience    String // all | staff | students | class
-  classId     String?
-  noticeType  String   @default("News")
+  audience    String // all | staff | students | class — kept for older rows
+  channelKind String   @default("school") // school | teachers | daycare | class | route
+  type        String   @default("news") // news | alert | homework_worksheet | homework_assignment
   allowReply  Boolean  @default(false)
+  hashTag     String?
+  classId     String?
+  routeId     String?
+  publishAt   DateTime @default(now())
+  isPublished Boolean  @default(true)
+  reads       NoticeRead[]
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  noticeType  String   @default("News")
   authorName  String   @default("")
   authorUserId String?
   board       String   @default("school")
   audienceKey String   @default("all")
   academicYear String  @default("")
-  publishAt   DateTime @default(now())
-  isPublished Boolean  @default(true)
   attachments NoticeAttachment[]
   views       NoticeView[]
+}
+
+model NoticeRead {
+  noticeId  String
+  userId    String
+  studentId String?
+  readAt    DateTime @default(now())
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  @@id([noticeId, userId])
+  @@index([noticeId])
 }
 
 model Homework {
@@ -905,7 +1728,453 @@ model ScreenRecord {
   @@index([campusId, screenKey])
 }
 
-// ─── School World additions ────────────────────────────────
+model CanteenOutlet {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  code     String?
+  menus    CanteenMenu[]
+  coupons  CanteenCoupon[]
+  @@unique([campusId, name])
+}
+
+model CanteenMenuType {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  menus    CanteenMenu[]
+  @@unique([campusId, name])
+}
+
+model CanteenFoodItem {
+  id       String  @id @default(cuid())
+  campusId String
+  campus   Campus  @relation(fields: [campusId], references: [id])
+  name     String
+  price    Decimal @default(0) @db.Decimal(12, 2)
+  isActive Boolean @default(true)
+  @@index([campusId, name])
+}
+
+model CanteenMenu {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  outletId   String
+  outlet     CanteenOutlet @relation(fields: [outletId], references: [id])
+  menuTypeId String?
+  menuType   CanteenMenuType? @relation(fields: [menuTypeId], references: [id])
+  name       String
+  servedOn   DateTime? @db.Date
+  itemIds    Json
+  @@index([campusId, servedOn])
+}
+
+model CanteenCoupon {
+  id        String    @id @default(cuid())
+  campusId  String
+  campus    Campus    @relation(fields: [campusId], references: [id])
+  outletId  String?
+  outlet    CanteenOutlet? @relation(fields: [outletId], references: [id])
+  studentId String?
+  code      String
+  amount    Decimal   @default(0) @db.Decimal(12, 2)
+  redeemedAt DateTime?
+  createdAt DateTime  @default(now())
+  @@unique([campusId, code])
+}
+
+model RailwayConcession {
+  id          String   @id @default(cuid())
+  campusId    String
+  campus      Campus   @relation(fields: [campusId], references: [id])
+  studentId   String
+  fromStation String
+  toStation   String
+  className   String   @default("SECOND")
+  periodFrom  DateTime? @db.Date
+  periodTo    DateTime? @db.Date
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  @@index([campusId, status])
+}
+
+model LmsCategory {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  courses  LmsCourse[]
+  @@unique([campusId, name])
+}
+
+model LmsCourse {
+  id          String @id @default(cuid())
+  campusId    String
+  campus      Campus @relation(fields: [campusId], references: [id])
+  categoryId  String?
+  category    LmsCategory? @relation(fields: [categoryId], references: [id])
+  title       String
+  price       Decimal @default(0) @db.Decimal(12, 2)
+  published   Boolean @default(true)
+  enrollments LmsEnrollment[]
+  questions   LmsQuestion[]
+}
+
+model LmsEnrollment {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    LmsCourse @relation(fields: [courseId], references: [id])
+  studentId String
+  paid      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@unique([courseId, studentId])
+}
+
+model LmsQuestion {
+  id       String @id @default(cuid())
+  courseId String
+  course   LmsCourse @relation(fields: [courseId], references: [id])
+  body     String
+  options  Json
+  answer   String
+}
+
+model OnlineExamBank {
+  id          String @id @default(cuid())
+  campusId    String
+  campus      Campus @relation(fields: [campusId], references: [id])
+  title       String
+  durationMin Int    @default(60)
+  published   Boolean @default(true)
+  questions   OnlineExamQuestion[]
+  attempts    OnlineExamAttempt[]
+}
+
+model OnlineExamQuestion {
+  id     String @id @default(cuid())
+  examId String
+  exam   OnlineExamBank @relation(fields: [examId], references: [id])
+  body   String
+  options Json
+  answer String
+  marks  Int    @default(1)
+}
+
+model OnlineExamAttempt {
+  id          String    @id @default(cuid())
+  examId      String
+  exam        OnlineExamBank @relation(fields: [examId], references: [id])
+  studentId   String
+  answers     Json?
+  score       Decimal?  @db.Decimal(8, 2)
+  submittedAt DateTime?
+  createdAt   DateTime  @default(now())
+  @@unique([examId, studentId])
+}
+
+model JobPosting {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  title      String
+  department String?
+  status     String @default("OPEN")
+  closesOn   DateTime? @db.Date
+  applicants JobApplicant[]
+}
+
+model JobApplicant {
+  id        String @id @default(cuid())
+  jobId     String
+  job       JobPosting @relation(fields: [jobId], references: [id])
+  name      String
+  email     String?
+  phone     String?
+  status    String @default("APPLIED")
+  createdAt DateTime @default(now())
+}
+
+model ItemCategory {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  items    InventoryItem[]
+  @@unique([campusId, name])
+}
+
+model ItemStore {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  stocks   ItemStock[]
+  @@unique([campusId, name])
+}
+
+model ItemSupplier {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  phone    String?
+  @@unique([campusId, name])
+}
+
+model InventoryItem {
+  id         String @id @default(cuid())
+  campusId   String
+  campus     Campus @relation(fields: [campusId], references: [id])
+  categoryId String?
+  category   ItemCategory? @relation(fields: [categoryId], references: [id])
+  name       String
+  unit       String @default("pcs")
+  stocks     ItemStock[]
+  issues     ItemIssue[]
+}
+
+model ItemStock {
+  id      String @id @default(cuid())
+  itemId  String
+  item    InventoryItem @relation(fields: [itemId], references: [id])
+  storeId String
+  store   ItemStore @relation(fields: [storeId], references: [id])
+  qty     Int    @default(0)
+  note    String?
+  @@unique([itemId, storeId])
+}
+
+model ItemIssue {
+  id        String    @id @default(cuid())
+  itemId    String
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  studentId String?
+  staffId   String?
+  qty       Int
+  issuedAt  DateTime  @default(now())
+  returnedAt DateTime?
+}
+
+model SupportTopic {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  tickets  SupportTicket[]
+  @@unique([campusId, name])
+}
+
+model SupportTicket {
+  id        String @id @default(cuid())
+  topicId   String
+  topic     SupportTopic @relation(fields: [topicId], references: [id])
+  studentId String?
+  title     String
+  body      String?
+  status    String @default("OPEN")
+  createdAt DateTime @default(now())
+}
+
+model ChatThread {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  title     String
+  studentId String?
+  createdAt DateTime @default(now())
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String @id @default(cuid())
+  threadId  String
+  thread    ChatThread @relation(fields: [threadId], references: [id])
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+  @@index([threadId, createdAt])
+}
+
+model Alumnus {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  studentId String?
+  name      String
+  year      String?
+  email     String?
+  phone     String?
+}
+
+model AlumniEvent {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  title    String
+  heldOn   DateTime? @db.Date
+  venue    String?
+}
+
+model MentorAssignment {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  staffId   String
+  studentId String
+  @@unique([campusId, staffId, studentId])
+}
+
+model MentorProject {
+  id        String @id @default(cuid())
+  campusId  String
+  staffId   String?
+  studentId String
+  title     String
+  kind      String @default("PROJECT")
+  status    String @default("PENDING")
+  chapter   String?
+}
+
+model CmsPage {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  slug      String
+  title     String
+  body      String
+  kind      String @default("page")
+  published Boolean @default(true)
+  @@unique([campusId, slug])
+}
+
+model FinanceHead {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  kind     String
+  name     String
+  entries  FinanceEntry[]
+  @@unique([campusId, kind, name])
+}
+
+model FinanceEntry {
+  id          String   @id @default(cuid())
+  headId      String
+  head        FinanceHead @relation(fields: [headId], references: [id])
+  amount      Decimal  @db.Decimal(12, 2)
+  entryOn     DateTime @db.Date
+  description String?
+}
+
+model TnpCompany {
+  id      String @id @default(cuid())
+  campusId String
+  campus  Campus @relation(fields: [campusId], references: [id])
+  name    String
+  sector  String?
+  contact String?
+  drives  TnpDrive[]
+}
+
+model TnpDrive {
+  id        String @id @default(cuid())
+  companyId String
+  company   TnpCompany @relation(fields: [companyId], references: [id])
+  title     String
+  heldOn    DateTime? @db.Date
+  status    String @default("OPEN")
+}
+
+model StudentResume {
+  id        String @id @default(cuid())
+  campusId  String
+  studentId String
+  headline  String
+  body      String
+  @@unique([campusId, studentId])
+}
+
+model ActivityEvent {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  title    String
+  heldOn   DateTime? @db.Date
+  venue    String?
+  notes    String?
+}
+
+model CampusEvent {
+  id        String   @id @default(cuid())
+  campusId  String
+  campus    Campus   @relation(fields: [campusId], references: [id])
+  title     String
+  body      String?
+  classId   String?
+  startsAt  DateTime
+  endsAt    DateTime?
+  createdAt DateTime @default(now())
+  @@index([campusId, startsAt])
+}
+
+model LessonPlan {
+  id        String @id @default(cuid())
+  campusId  String
+  campus    Campus @relation(fields: [campusId], references: [id])
+  classId   String?
+  subjectId String?
+  title     String
+  topic     String?
+  body      String?
+  weekNo    Int?
+}
+
+model DownloadType {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  contents SharedContent[]
+  @@unique([campusId, name])
+}
+
+model SharedContent {
+  id       String @id @default(cuid())
+  typeId   String?
+  type     DownloadType? @relation(fields: [typeId], references: [id])
+  campusId String
+  title    String
+  url      String
+  audience String @default("all")
+}
+
+model BookableRoom {
+  id       String @id @default(cuid())
+  campusId String
+  campus   Campus @relation(fields: [campusId], references: [id])
+  name     String
+  capacity Int    @default(20)
+  bookings RoomBooking[]
+  @@unique([campusId, name])
+}
+
+model RoomBooking {
+  id          String   @id @default(cuid())
+  roomId      String
+  room        BookableRoom @relation(fields: [roomId], references: [id])
+  title       String
+  startAt     DateTime
+  endAt       DateTime
+  status      String   @default("PENDING")
+  requestedBy String?
+}
+
+
+
+// School World models kept from the school-world branch
 
 model AdmissionEnquiry {
   id            String   @id @default(cuid())
@@ -1256,3 +2525,4 @@ model SchoolTemplateAssignment {
   appliedAt       DateTime @default(now())
   @@unique([userId, templateType])
 }
+

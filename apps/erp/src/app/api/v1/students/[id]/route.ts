@@ -3,7 +3,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
-import { requireApiPermission } from "@/lib/principal";
+import { assertCanAccessStudent, requireApiPermission } from "@/lib/principal";
+import { assertHouseInCampus } from "@/lib/services/diary";
+import { siblingsFor } from "@/lib/services/engagement";
+import {
+  getStudent360,
+  splitStudentPatch,
+  writeNamedGuardians,
+} from "@/lib/services/students";
 
 const patchSchema = z.object({
   firstName: z.string().optional(),
@@ -14,26 +21,27 @@ const patchSchema = z.object({
   status: z.nativeEnum(StudentStatus).optional(),
   rollNo: z.string().optional(),
   enrollmentNo: z.string().optional(),
+  janAadhaar: z.string().optional(),
+  scholarNo: z.string().optional(),
+  sssmId: z.string().optional(),
+  pen: z.string().optional(),
+  apaarId: z.string().optional(),
+  grn: z.string().optional(),
+  saralId: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  isRte: z.boolean().optional(),
+  isOnlyChild: z.boolean().optional(),
+  admittedClass: z.string().optional(),
+  annualIncome: z.string().optional(),
+  lunchFromSchool: z.boolean().optional(),
+  houseId: z.string().nullable().optional(),
+  isDefaulter: z.boolean().optional(),
+  rfid: z.string().optional(),
+  photoUrl: z.string().optional(),
+  parentLoginEnabled: z.boolean().optional(),
+  fatherName: z.string().optional(),
+  motherName: z.string().optional(),
 });
-
-async function loadStudent(campusId: string, id: string) {
-  const student = await prisma.student.findFirst({
-    where: { id, campusId },
-    include: {
-      enrollments: {
-        include: { class: true, section: true, session: true },
-        orderBy: { session: { sequenceNo: "desc" } },
-      },
-      guardians: { include: { guardian: true } },
-      addresses: true,
-      previousEdu: true,
-      bank: true,
-      documents: true,
-    },
-  });
-  if (!student) throw notFound("student");
-  return student;
-}
 
 export async function GET(
   request: Request,
@@ -47,7 +55,10 @@ export async function GET(
       "view",
     );
     const { id } = await context.params;
-    return ok(await loadStudent(user.campusId, id));
+    assertCanAccessStudent(user, id);
+    const student = await getStudent360(user.campusId, id);
+    const siblings = await siblingsFor(user.campusId, id);
+    return ok({ ...student, siblings });
   } catch (error) {
     return fail(error);
   }
@@ -65,16 +76,37 @@ export async function PATCH(
       "edit",
     );
     const { id } = await context.params;
-    await loadStudent(user.campusId, id);
-    const body = patchSchema.parse(await readJson(request));
-    const updated = await prisma.student.update({
-      where: { id },
-      data: {
-        ...body,
-        email: body.email === "" ? null : body.email,
-      },
+    const existing = await prisma.student.findFirst({
+      where: { id, campusId: user.campusId },
     });
-    return ok(updated);
+    if (!existing) throw notFound("student");
+    const body = patchSchema.parse(await readJson(request));
+    if (body.houseId) {
+      await assertHouseInCampus(user.campusId, body.houseId);
+    }
+    const { student: fields, guardians } = splitStudentPatch(body);
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.student.update({
+        where: { id },
+        data: {
+          ...fields,
+          email: fields.email === "" ? null : fields.email,
+        },
+      });
+      if (guardians.length) {
+        await writeNamedGuardians(tx, id, guardians);
+      }
+      return row;
+    });
+    return ok({
+      id: updated.id,
+      admissionNo: updated.admissionNo,
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      status: updated.status,
+      parentLoginEnabled: updated.parentLoginEnabled,
+      studentLoginEnabled: Boolean(updated.userId),
+    });
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

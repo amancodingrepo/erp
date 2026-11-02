@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 15, React 19, Prisma 6, PostgreSQL 18, Zod, Vitest, jose JWT, bcrypt (migrate to Argon2id), `@react-pdf/renderer` for receipts/marksheets, local disk then S3-compatible uploads, Razorpay later (MVP cash/UPI offline first).
 
-**Execution:** Subagent-driven. Stopped after Task 2 at user request (2026-09-05). **Resume at Task 3.** Branch `main`. Tests at stop: 34 passing.
+**Execution:** Subagent-driven. Phase B-1 online admission implemented 2026-09-06. Branch `main`.
 
 ### Progress
 
@@ -17,8 +17,17 @@
 | 0 Baseline (secrets, migrate, health) | **Done** | `3bb7208` |
 | 1 RBAC, audit, users/roles, password reset | **Done** | `a58c9e8` + `e2839d3` (SuperAdmin lockout 409, guardian campus IDOR) |
 | 2 Academics (periods, timetable, working days, promotion) | **Done** | `b17acdc` + `6f447fe` (empty `studentIds` 422, per-student same-section, timetable campus checks) |
-| 3 Students SIS | **Next** | — |
-| 4–13 Fees through acceptance | Pending | — |
+| 3 Students SIS | **Done** | `cb08823` |
+| 4 Fees production | **Done** | `19ace1e` |
+| 5 Attendance + leave | **Done** | `867e948` |
+| 6 Examinations production | **Done** | `09bc265` |
+| 7 Staff directory + notices + settings | **Done** | `1f15b4a` |
+| 8 Student and parent portals | **Done** | `fcd51d2` |
+| 9 Files, PDF letterhead, command palette | **Done** | `a13ad9c` |
+| 10 First-class reports | **Done** | `3934717` |
+| 11 Hide unwired screens | **Done** | `8b01ace` |
+| 12 Security and ops hardening | **Done** | `0add3f4` |
+| 13 Acceptance test suite | **Done** | — |
 
 **Leftover (non-blocking, pick up in later tasks):**
 - Timetable clash read is still outside the write `$transaction` (TOCTOU) — fold into Task 5/12 if concurrent PUTs matter.
@@ -477,21 +486,21 @@ it("student cannot collect fees", async () => {
 
 ---
 
-### Task 11: Hide unwired screens; only v1 routes are real
+### Task 11: Hide unwired screens; only v1 routes are real — DONE
 
 **v1 wired set** (must not use `GenericScreen`): every href listed in Tasks 2–10 (students, fees, attendance, exams, academics, staff, notices, settings, roles, users, reports, portals).
 
 **Everything else** (including CSV `priority=core` extras: railway, ATKT, seating, online exam, System Update, merit): hidden via `Setting module.*.enabled=false` **or** shown with a non-editable “Not in production v1” empty state. No `ScreenRecord` writes in production seed.
 
-- [ ] **Step 1:** Seed optional + out-of-v1 modules disabled. SuperAdmin can enable for demo, but workbench is read-only.
+- [x] **Step 1:** Seed optional + out-of-v1 modules disabled. SuperAdmin can enable for demo, but workbench is read-only.
 
-- [ ] **Step 2:** Grep `GenericScreen` / `ScreenRecord` — zero writes from v1 wired pages.
+- [x] **Step 2:** Grep `GenericScreen` / `ScreenRecord` — zero writes from v1 wired pages.
 
-- [ ] **Step 3:** Commit `feat: hide unwired screens for v1`
+- [x] **Step 3:** Commit `feat: hide unwired screens for v1`
 
 ---
 
-### Task 12: Security and ops hardening
+### Task 12: Security and ops hardening — DONE
 
 **Files:**
 - Create: `apps/erp/src/lib/rate-limit-db.ts` (table `LoginAttempt` or reuse existing map until table exists — prefer DB)
@@ -500,21 +509,21 @@ it("student cannot collect fees", async () => {
 - Create: `apps/erp/docs/ops-backup.md` (operator runs `pg_dump`; **do not** shell out `pg_dump` from a Next route)
 - Test: `src/test/login-rate-limit.test.ts`
 
-- [ ] **Step 1:** Failing test: 6th bad password → 429 (acceptance Auth). Persist attempts in DB so restart does not reset.
+- [x] **Step 1:** Failing test: 6th bad password → 429 (acceptance Auth). Persist attempts in DB so restart does not reset.
 
-- [ ] **Step 2:** Argon2id for new hashes; bcrypt.compare still accepted for seed admin until rehash on login.
+- [x] **Step 2:** Argon2id for new hashes; bcrypt.compare still accepted for seed admin until rehash on login.
 
-- [ ] **Step 3:** Security headers: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`.
+- [x] **Step 3:** Security headers: `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`.
 
-- [ ] **Step 4:** `FIELD_ENCRYPTION_KEY` required when `NODE_ENV=production`.
+- [x] **Step 4:** `FIELD_ENCRYPTION_KEY` required when `NODE_ENV=production`.
 
-- [ ] **Step 5:** Backup runbook only. `/staff/updater` stays disabled forever.
+- [x] **Step 5:** Backup runbook only. `/staff/updater` stays disabled forever.
 
-- [ ] **Step 6:** Commit `chore: security ops hardening`
+- [x] **Step 6:** Commit `chore: security ops hardening`
 
 ---
 
-### Task 13: Acceptance test suite (gate to call it production)
+### Task 13: Acceptance test suite (gate to call it production) — DONE
 
 **Files:** `apps/erp/src/app/api/acceptance/` or `apps/erp/src/test/acceptance/*.test.ts` using Prisma test DB.
 
@@ -541,9 +550,9 @@ Manual (still required):
 9. Disable student → cannot login
 10. Turn module hostel off → nav gone
 
-- [ ] **Step 1:** CI script `npm test && npm run build` documented in `apps/erp/README.md`.
+- [x] **Step 1:** CI script `npm test && npm run build` documented in `apps/erp/README.md`.
 
-- [ ] **Step 2:** Commit `test: production acceptance matrix`
+- [x] **Step 2:** Commit `test: production acceptance matrix`
 
 ---
 
@@ -551,19 +560,26 @@ Manual (still required):
 
 Order from `16-rebuild-blueprint.md`:
 
-1. Online admission public form + application fee (`05-admissions.md`)
-2. Razorpay/Cashfree webhook + multi-merchant mapping
-3. Merit/cutoff batch job (only if government college)
-4. Hostel + transport + fee heads
-5. SMS/email templates + reminders
-6. ID cards / certificates templates
-7. Enquiry CRM (front office)
-8. Library issue/return
-9. ATKT + revaluation windows
+1. Online admission public form + application fee (`05-admissions.md`) — **in progress**
+2. Razorpay/Cashfree webhook + multi-merchant mapping — **done**
+3. Merit/cutoff batch job (only if government college) — **done**
+4. Hostel + transport + fee heads — **done**
+5. SMS/email templates + reminders — **done**
+6. ID cards / certificates templates — **done**
+7. Enquiry CRM (front office) — **done**
+8. Library issue/return — **done**
+9. ATKT + revaluation windows — **done**
 
 ## Phase C (accreditation / university)
 
-NAAC tasks + evidence, CO-PO mapping + attainment, feedback forms, Indian payroll statutory (PF/ESI/PT/TDS), seating arrangement, GMeet/Zoom as URL storage only.
+Order:
+
+1. NAAC tasks + evidence — **done**
+2. CO-PO mapping + attainment — **done**
+3. Feedback forms — **done**
+4. Indian payroll statutory (PF/ESI/PT/TDS) — **done**
+5. Seating arrangement — **done**
+6. GMeet/Zoom as URL storage only — **done**
 
 **Skip until a signed SOW:** canteen POS, railway concession, multi-branch, LMS/online course, system updater, visiting-staff payroll, chat.
 

@@ -1,17 +1,25 @@
 import { AttendanceStatus } from "@prisma/client";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { markStudents, roster } from "@/lib/services/attendance";
+import { withAttendanceIdempotency } from "@/lib/services/campus-attendance-idempotency";
+import { viewingSessionId } from "@/lib/services/session-context";
 
 const putSchema = z.object({
   date: z.string(),
   sectionId: z.string(),
   subjectId: z.string().optional(),
+  override: z.boolean().optional(),
   entries: z.array(
     z.object({
       studentId: z.string(),
-      status: z.nativeEnum(AttendanceStatus),
+      status: z
+        .nativeEnum(AttendanceStatus)
+        .or(z.literal(""))
+        .nullable()
+        .optional(),
+      source: z.enum(["manual", "rfid", "gps"]).optional(),
     }),
   ),
 });
@@ -25,35 +33,15 @@ export async function GET(request: Request) {
       "view",
     );
     const params = new URL(request.url).searchParams;
-    const sectionId = params.get("sectionId");
-    const date = params.get("date");
-    const subjectId = params.get("subjectId");
-    const day = date ? new Date(date) : new Date();
-    const enrollments = await prisma.studentEnrollment.findMany({
-      where: {
-        isCurrent: true,
-        ...(sectionId ? { sectionId } : {}),
-        student: { campusId: user.campusId },
-      },
-      include: { student: true },
-    });
-    const marks = await prisma.studentAttendance.findMany({
-      where: {
-        date: day,
-        studentId: { in: enrollments.map((e) => e.studentId) },
-        ...(subjectId ? { subjectId } : {}),
-      },
-    });
-    const byStudent = new Map(marks.map((m) => [m.studentId, m]));
-    return ok({
-      date: day.toISOString().slice(0, 10),
-      data: enrollments.map((e) => ({
-        studentId: e.studentId,
-        admissionNo: e.student.admissionNo,
-        name: [e.student.firstName, e.student.lastName].filter(Boolean).join(" "),
-        status: byStudent.get(e.studentId)?.status ?? null,
-      })),
-    });
+    return ok(
+      await roster({
+        campusId: user.campusId,
+        sectionId: params.get("sectionId") ?? undefined,
+        date: params.get("date") ?? new Date().toISOString().slice(0, 10),
+        subjectId: params.get("subjectId") ?? undefined,
+        sessionId: await viewingSessionId(request, user),
+      }),
+    );
   } catch (error) {
     return fail(error);
   }
@@ -68,29 +56,18 @@ export async function PUT(request: Request) {
       "edit",
     );
     const body = putSchema.parse(await readJson(request));
-    const date = new Date(body.date);
-    await prisma.$transaction(
-      body.entries.map((entry) =>
-        prisma.studentAttendance.upsert({
-          where: {
-            studentId_date_subjectId: {
-              studentId: entry.studentId,
-              date,
-              subjectId: body.subjectId ?? "",
-            },
-          },
-          update: { status: entry.status, markedBy: user.id },
-          create: {
-            studentId: entry.studentId,
-            date,
-            subjectId: body.subjectId ?? "",
-            status: entry.status,
-            markedBy: user.id,
-          },
+    return ok(
+      await withAttendanceIdempotency(user.campusId, request, body, () =>
+        markStudents({
+          user,
+          date: body.date,
+          sectionId: body.sectionId,
+          subjectId: body.subjectId,
+          override: body.override,
+          entries: body.entries,
         }),
       ),
     );
-    return ok({ ok: true, count: body.entries.length });
   } catch (error) {
     return fail(error);
   }

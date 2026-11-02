@@ -7,8 +7,6 @@ import { Input, Label } from "@/components/ui/input";
 type Klass = { id: string; name: string; sections: { id: string; name: string }[] };
 type Row = { studentId: string; admissionNo: string; name: string; status: string | null };
 
-const STATUSES = ["PRESENT", "ABSENT", "LATE", "HALFDAY", "LEAVE"] as const;
-
 export default function AttendancePage() {
   const [classes, setClasses] = useState<Klass[]>([]);
   const [classId, setClassId] = useState("");
@@ -17,6 +15,8 @@ export default function AttendancePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [report, setReport] = useState<Array<{ studentId: string; name: string; percent: number }>>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [override, setOverride] = useState(false);
+  const [statuses, setStatuses] = useState<string[]>([]);
 
   useEffect(() => {
     fetch("/api/v1/classes")
@@ -29,26 +29,39 @@ export default function AttendancePage() {
   async function loadRoster(event?: FormEvent) {
     event?.preventDefault();
     const res = await fetch(
-      `/api/v1/attendance/students?sectionId=${sectionId}&date=${date}`,
+      `/api/v1/attendance?book=class&class_id=${sectionId}&date=${date}`,
     );
     const json = await res.json();
     setRows(json.data ?? []);
+    setStatuses(json.statuses ?? []);
   }
 
   async function save() {
-    const res = await fetch("/api/v1/attendance/students", {
+    const res = await fetch("/api/v1/attendance/day", {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "Idempotency-Key": crypto.randomUUID(),
+      },
       body: JSON.stringify({
+        book: "class",
         date,
-        sectionId,
-        entries: rows.map((r) => ({
-          studentId: r.studentId,
-          status: r.status ?? "PRESENT",
+        class_id: sectionId,
+        override,
+        marks: rows.map((r) => ({
+          student_id: r.studentId,
+          status: r.status || "not_taken",
         })),
       }),
     });
-    setMessage(res.ok ? "Attendance saved" : "Save failed");
+    const json = await res.json().catch(() => ({}));
+    setMessage(
+      res.ok
+        ? "Attendance saved"
+        : json.fields?.date === "holiday"
+          ? "Holiday — enable override to mark"
+          : json.message ?? "Save failed",
+    );
   }
 
   async function loadReport() {
@@ -106,6 +119,14 @@ export default function AttendancePage() {
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
+        <label className="flex items-end gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={override}
+            onChange={(e) => setOverride(e.target.checked)}
+          />
+          Override holiday
+        </label>
         <Button type="submit" className="self-end">
           Load
         </Button>
@@ -127,14 +148,15 @@ export default function AttendancePage() {
                 <td className="px-3 py-2">
                   <select
                     className="h-9 rounded-md border border-[var(--rule)] bg-[var(--paper)] px-2"
-                    value={row.status ?? "PRESENT"}
+                    value={row.status ?? ""}
                     onChange={(e) => {
                       const next = [...rows];
-                      next[i] = { ...row, status: e.target.value };
+                      next[i] = { ...row, status: e.target.value || null };
                       setRows(next);
                     }}
                   >
-                    {STATUSES.map((s) => (
+                    <option value="">Not Taken</option>
+                    {statuses.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>

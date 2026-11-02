@@ -8,7 +8,9 @@ Use this pack as a **feature and information-architecture spec** for your own ER
 
 | File | Contents |
 | --- | --- |
-| [00-FULL-APPLICATION-SPEC.md](00-FULL-APPLICATION-SPEC.md) | Rebuild blueprint: tenancy, roles, routes, features, API, build order |
+Spec pack (copied into this repo): [`docs/school-diary-erp-spec/`](docs/school-diary-erp-spec/). Gap vs this ERP: [`docs/school-diary-gap.md`](docs/school-diary-gap.md).
+
+| [00-FULL-APPLICATION-SPEC.md](docs/school-diary-erp-spec/00-FULL-APPLICATION-SPEC.md) | Rebuild blueprint: tenancy, roles, routes, features, API, build order |
 | [01-overview.md](01-overview.md) | Product shape, tenancy, tech surface, IA |
 | [02-auth-roles.md](02-auth-roles.md) | Login, role switching, session variants |
 | [03-branch-admin-modules.md](03-branch-admin-modules.md) | Every Branch Admin sidebar module and what it does |

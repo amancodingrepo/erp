@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db";
 import { fail, ok } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { setCurrentSession } from "@/lib/services/session-context";
 
 export async function POST(
   request: Request,
@@ -14,22 +14,7 @@ export async function POST(
       "edit",
     );
     const { id } = await context.params;
-    await prisma.$transaction([
-      prisma.academicSession.updateMany({
-        where: { campusId: user.campusId },
-        data: { isCurrent: false },
-      }),
-      prisma.academicSession.update({
-        where: { id },
-        data: { isCurrent: true, isActive: true },
-      }),
-      prisma.campus.update({
-        where: { id: user.campusId },
-        data: { currentSessionId: id },
-      }),
-    ]);
-    const session = await prisma.academicSession.findUnique({ where: { id } });
-    return ok(session);
+    return ok(await setCurrentSession(user.campusId, id));
   } catch (error) {
     return fail(error);
   }

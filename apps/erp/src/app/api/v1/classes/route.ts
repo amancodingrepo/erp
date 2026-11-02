@@ -1,9 +1,23 @@
 import { z } from "zod";
-import { currentSessionId } from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import {
+  attachClassFlags,
+  listClassFlags,
+  saveClassFlags,
+} from "@/lib/services/campus-comms";
+import {
+  attachClassDates,
+  listOpeningDates,
+  listResultDates,
+} from "@/lib/services/campus-class-dates";
+import {
+  attachClassTeachers,
+  listClassTeachers,
+  viewingSessionId,
+} from "@/lib/services/session-context";
 
 const createSchema = z.object({
   programId: z.string().min(1),
@@ -11,6 +25,9 @@ const createSchema = z.object({
   yearNo: z.number().int().optional(),
   sectionNames: z.array(z.string()).optional(),
   isOtherCourse: z.boolean().optional(),
+  sendAbsentSms: z.boolean().optional(),
+  virtualClassroom: z.boolean().optional(),
+  sequenceNo: z.number().int().optional(),
 });
 
 export async function GET(request: Request) {
@@ -23,17 +40,36 @@ export async function GET(request: Request) {
     );
     const params = new URL(request.url).searchParams;
     const programId = params.get("programId") ?? undefined;
-    const sessionId =
-      params.get("sessionId") ?? (await currentSessionId(user));
-    const data = await prisma.class.findMany({
-      where: {
-        program: { department: { campusId: user.campusId } },
-        ...(programId ? { programId } : {}),
-      },
-      include: { sections: true, program: true },
-      orderBy: { sequenceNo: "asc" },
+    const includeInactive =
+      params.get("inactive") === "1" || params.get("all") === "1";
+    const sessionId = await viewingSessionId(request, user);
+    const [data, teachers, staff, flags, resultDates, openingDates] = await Promise.all([
+      prisma.class.findMany({
+        where: {
+          program: { department: { campusId: user.campusId } },
+          ...(programId ? { programId } : {}),
+          ...(includeInactive ? {} : { isActive: true }),
+        },
+        include: { sections: true, program: true },
+        orderBy: { sequenceNo: "asc" },
+      }),
+      listClassTeachers(user.campusId),
+      prisma.staff.findMany({
+        where: { campusId: user.campusId },
+        select: { id: true, firstName: true, lastName: true },
+      }),
+      listClassFlags(user.campusId),
+      listResultDates(user.campusId),
+      listOpeningDates(user.campusId),
+    ]);
+    return ok({
+      data: attachClassDates(
+        attachClassFlags(attachClassTeachers(data, teachers, staff), flags),
+        resultDates,
+        openingDates,
+      ),
+      sessionId,
     });
-    return ok({ data, sessionId });
   } catch (error) {
     return fail(error);
   }
@@ -60,6 +96,7 @@ export async function POST(request: Request) {
         programId: body.programId,
         name: body.name,
         yearNo: body.yearNo,
+        sequenceNo: body.sequenceNo ?? 0,
         isOtherCourse: body.isOtherCourse ?? false,
         sections: body.sectionNames?.length
           ? {
@@ -69,7 +106,18 @@ export async function POST(request: Request) {
       },
       include: { sections: true },
     });
-    return created(row);
+    if (body.sendAbsentSms || body.virtualClassroom) {
+      await saveClassFlags(user.campusId, {
+        classId: row.id,
+        sendAbsentSms: body.sendAbsentSms,
+        virtualClassroom: body.virtualClassroom,
+      });
+    }
+    return created({
+      ...row,
+      sendAbsentSms: Boolean(body.sendAbsentSms),
+      virtualClassroom: Boolean(body.virtualClassroom),
+    });
   } catch (error) {
     return fail(error);
   }

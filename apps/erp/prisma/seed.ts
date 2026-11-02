@@ -1,15 +1,29 @@
 import { ActorType, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { OPTIONAL_MODULES } from "../src/lib/catalog/nav-permissions";
+import { NAAC_CRITERIA } from "../src/lib/naac-criteria";
 import {
   PERMISSION_CATALOG,
   ROLE_GRANTS,
   SYSTEM_ROLES,
 } from "../src/lib/permission-catalog";
+import { provisionCampusTenant } from "../src/lib/services/tenants";
+import { ensureSchoolClasses } from "../src/lib/school-classes";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const existing = await prisma.campus.count();
+  if (existing > 0 && process.env.FORCE_SEED !== "true") {
+    const campuses = await prisma.campus.findMany({ select: { id: true, name: true } });
+    for (const row of campuses) {
+      await ensureSchoolClasses(row.id);
+    }
+    console.log(
+      "Seed skipped (campuses already exist); Nursery–Class 12 ensured. Set FORCE_SEED=true to re-run.",
+    );
+    return;
+  }
   const password = process.env.SEED_ADMIN_PASSWORD ?? "Admin@12345";
   const passwordHash = await bcrypt.hash(password, 12);
 
@@ -147,6 +161,12 @@ async function main() {
   await prisma.userRole.create({
     data: { userId: adminUser.id, roleId: superAdmin.id },
   });
+  const platformAdmin = roles.get("PlatformAdmin");
+  if (platformAdmin) {
+    await prisma.userRole.create({
+      data: { userId: adminUser.id, roleId: platformAdmin.id },
+    });
+  }
 
   const teacherRole = roles.get("Teacher")!;
   const teacherUser = await prisma.user.upsert({
@@ -184,20 +204,293 @@ async function main() {
     data: { userId: teacherUser.id, roleId: teacherRole.id },
   });
 
+  const defaultCategories = [
+    { name: "General", code: "GEN" },
+    { name: "OBC", code: "OBC" },
+    { name: "SC", code: "SC" },
+    { name: "ST", code: "ST" },
+  ];
+  for (const cat of defaultCategories) {
+    const existing = await prisma.category.findFirst({
+      where: { campusId: campus.id, name: cat.name },
+    });
+    if (!existing) {
+      await prisma.category.create({
+        data: { campusId: campus.id, name: cat.name, code: cat.code },
+      });
+    }
+  }
+  for (const name of ["Left college", "Disciplinary", "Transferred"]) {
+    const existing = await prisma.disableReason.findFirst({
+      where: { campusId: campus.id, name },
+    });
+    if (!existing) {
+      await prisma.disableReason.create({
+        data: { campusId: campus.id, name },
+      });
+    }
+  }
+
+  await prisma.setting.upsert({
+    where: { campusId_key: { campusId: campus.id, key: "attendance.lockDays" } },
+    update: {},
+    create: { campusId: campus.id, key: "attendance.lockDays", value: 7 },
+  });
+
   for (const id of OPTIONAL_MODULES) {
     const key = `module.${id}.enabled`;
+    const enabled = id !== "updater";
     await prisma.setting.upsert({
       where: { campusId_key: { campusId: campus.id, key } },
-      update: { value: false },
-      create: { campusId: campus.id, key, value: false },
+      update: { value: enabled },
+      create: { campusId: campus.id, key, value: enabled },
+    });
+  }
+  for (const row of NAAC_CRITERIA) {
+    await prisma.naacCriterion.upsert({
+      where: { campusId_number: { campusId: campus.id, number: row.number } },
+      update: { title: row.title },
+      create: { campusId: campus.id, number: row.number, title: row.title },
+    });
+  }
+  await prisma.setting.upsert({
+    where: {
+      campusId_key: { campusId: campus.id, key: "admission.applicationFee" },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      key: "admission.applicationFee",
+      value: 500,
+    },
+  });
+  await prisma.messageTemplate.upsert({
+    where: {
+      campusId_channel_name: {
+        campusId: campus.id,
+        channel: "SMS",
+        name: "fee_due",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      channel: "SMS",
+      name: "fee_due",
+      body: "Dear {{name}}, fee due {{balance}} at {{campus}}. ID {{admissionNo}}.",
+    },
+  });
+  await prisma.messageTemplate.upsert({
+    where: {
+      campusId_channel_name: {
+        campusId: campus.id,
+        channel: "EMAIL",
+        name: "fee_due",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      channel: "EMAIL",
+      name: "fee_due",
+      subject: "Fee reminder — {{campus}}",
+      body: "Dear {{name}}, your outstanding balance is {{balance}}.",
+    },
+  });
+  await prisma.messageTemplate.upsert({
+    where: {
+      campusId_channel_name: {
+        campusId: campus.id,
+        channel: "EMAIL",
+        name: "portal_login",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      channel: "EMAIL",
+      name: "portal_login",
+      subject: "{{campus}} {{portal}} portal login",
+      body: "Dear {{name}}, your {{portal}} portal login for {{campus}} is ready.\n\nCampus code: {{campusCode}}\nUsername: {{username}}\nPassword: {{password}}\nAdmission no: {{admissionNo}}\n\nSign in at {{loginUrl}}.",
+    },
+  });
+  await prisma.printTemplate.upsert({
+    where: {
+      campusId_kind_name: {
+        campusId: campus.id,
+        kind: "CERTIFICATE",
+        name: "Bonafide",
+      },
+    },
+    update: {},
+    create: {
+      campusId: campus.id,
+      kind: "CERTIFICATE",
+      name: "Bonafide",
+      body: "This is to certify that {{name}} ({{admissionNo}}) is a bona fide student of {{campus}}, class {{class}} / {{section}}.",
+    },
+  });
+
+  const demoDept = await prisma.department.upsert({
+    where: { id: "seed-dept-demo" },
+    update: { name: "General" },
+    create: {
+      id: "seed-dept-demo",
+      campusId: campus.id,
+      name: "Demo Arts",
+      code: "DEMO",
+    },
+  });
+  const demoProgram = await prisma.program.upsert({
+    where: { id: "seed-program-demo" },
+    update: { name: "BA / Class 11–12 Arts" },
+    create: {
+      id: "seed-program-demo",
+      departmentId: demoDept.id,
+      name: "BA / Class 11–12 Arts",
+      level: "UNDERGRADUATE",
+    },
+  });
+  const demoClass = await prisma.class.upsert({
+    where: { id: "seed-class-fy" },
+    update: { name: "FY BA" },
+    create: {
+      id: "seed-class-fy",
+      programId: demoProgram.id,
+      name: "FY BA",
+      yearNo: 1,
+    },
+  });
+  const demoSection = await prisma.section.upsert({
+    where: { id: "seed-section-a" },
+    update: { name: "A" },
+    create: {
+      id: "seed-section-a",
+      classId: demoClass.id,
+      name: "A",
+    },
+  });
+
+  await ensureSchoolClasses(campus.id);
+
+  const studentRole = roles.get("Student")!;
+  const parentRole = roles.get("Parent")!;
+
+  const studentUser = await prisma.user.upsert({
+    where: { campusId_username: { campusId: campus.id, username: "student1" } },
+    update: { passwordHash, isActive: true, actorType: ActorType.STUDENT },
+    create: {
+      campusId: campus.id,
+      actorType: ActorType.STUDENT,
+      username: "student1",
+      email: "student1@college.local",
+      passwordHash,
+      isActive: true,
+    },
+  });
+  const demoStudent = await prisma.student.upsert({
+    where: {
+      campusId_admissionNo: { campusId: campus.id, admissionNo: "STU-001" },
+    },
+    update: { userId: studentUser.id, firstName: "Demo", lastName: "Student" },
+    create: {
+      campusId: campus.id,
+      userId: studentUser.id,
+      admissionNo: "STU-001",
+      firstName: "Demo",
+      lastName: "Student",
+    },
+  });
+  await prisma.studentEnrollment.upsert({
+    where: { id: "seed-enroll-stu001" },
+    update: {
+      classId: demoClass.id,
+      sectionId: demoSection.id,
+      sessionId: session.id,
+      isCurrent: true,
+    },
+    create: {
+      id: "seed-enroll-stu001",
+      studentId: demoStudent.id,
+      sessionId: session.id,
+      classId: demoClass.id,
+      sectionId: demoSection.id,
+      isCurrent: true,
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: studentUser.id } });
+  await prisma.userRole.create({
+    data: { userId: studentUser.id, roleId: studentRole.id },
+  });
+
+  const parentUser = await prisma.user.upsert({
+    where: { campusId_username: { campusId: campus.id, username: "parent1" } },
+    update: { passwordHash, isActive: true, actorType: ActorType.GUARDIAN },
+    create: {
+      campusId: campus.id,
+      actorType: ActorType.GUARDIAN,
+      username: "parent1",
+      email: "parent1@college.local",
+      passwordHash,
+      isActive: true,
+    },
+  });
+  const guardian = await prisma.guardian.upsert({
+    where: { userId: parentUser.id },
+    update: { name: "Demo Parent" },
+    create: {
+      userId: parentUser.id,
+      name: "Demo Parent",
+      phone: "9000000000",
+    },
+  });
+  await prisma.studentGuardian.upsert({
+    where: {
+      studentId_guardianId_relation: {
+        studentId: demoStudent.id,
+        guardianId: guardian.id,
+        relation: "father",
+      },
+    },
+    update: {},
+    create: {
+      studentId: demoStudent.id,
+      guardianId: guardian.id,
+      relation: "father",
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: parentUser.id } });
+  await prisma.userRole.create({
+    data: { userId: parentUser.id, roleId: parentRole.id },
+  });
+
+  const east = await prisma.campus.findFirst({ where: { code: "EAST" } });
+  if (!east) {
+    await provisionCampusTenant({
+      orgId: org.id,
+      name: "East Campus",
+      code: "EAST",
+      adminUsername: "admin",
+      adminPasswordHash: passwordHash,
+      demoUsers: true,
+    });
+  } else {
+    await prisma.user.updateMany({
+      where: {
+        campusId: east.id,
+        username: { in: ["admin", "teacher", "student1", "parent1"] },
+      },
+      data: { passwordHash, isActive: true },
     });
   }
 
   console.log("Seed complete.");
-  console.log("  campus:", campus.name);
+  console.log("  campus: MAIN (Main Campus) and EAST (East Campus)");
   console.log("  session: 2025-26 (current)");
+  console.log("  pick campus on login, then:");
   console.log("  login: admin / (SEED_ADMIN_PASSWORD or Admin@12345)");
   console.log("  login: teacher / (same password, Teacher grants only)");
+  console.log("  login: student1 / parent1 (same password, student & parent portals)");
 }
 
 main()
