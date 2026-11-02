@@ -45,7 +45,7 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npx tsc --noEmit
-      - run: npx vitest run --exclude src/test/**
+      - run: npm run test:unit
 
   backend-integration:
     name: backend-integration-postgres
