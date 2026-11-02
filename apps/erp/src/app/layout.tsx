@@ -14,6 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(window.parent!==window)document.documentElement.classList.add('erp-embed')}catch(e){}",
+          }}
+        />
+      </head>
       <body className="antialiased">
         <I18nProvider>{children}</I18nProvider>
       </body>

@@ -512,7 +512,8 @@ function SchoolDiaryApp({ user, onLogout }) {
     [Building2, "My Branch"], [Users, "Contacts"], [Wallet, "Fees"], [Star, "Attendance"],
     [ChartNoAxesColumn, "Attendance Dashboard"], [Users, "Day Care"], [Search, "Search Users"],
     [ChartNoAxesColumn, "Performance Report"], [FileText, "Reports"], [BookOpen, "Admission/Enquiry Form"],
-    [Truck, "Transport"], [ClipboardList, "Questionnaires"], [Package, "Manage Store"], [Store, "Store Vendor"]
+    [Truck, "Transport"], [ClipboardList, "Questionnaires"], [Package, "Manage Store"], [Store, "Store Vendor"],
+    [LayoutGrid, "Campus desk"]
   ];
 
   async function saveEditedStudent(data, scope, photoDataUrl) {

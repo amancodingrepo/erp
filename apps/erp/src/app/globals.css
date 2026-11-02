@@ -115,3 +115,21 @@ main [class*="border-[var(--rule)]"] {
   color: #fff;
   background: linear-gradient(90deg, #c9a054 0%, #9aaa58 38%, #3d7a4e 72%, #1f5a3c 100%);
 }
+
+html.erp-embed .erp-staff-aside,
+html.erp-embed .erp-staff-header {
+  display: none !important;
+}
+
+html.erp-embed .erp-staff-frame,
+html.erp-embed .erp-staff-grid {
+  display: block;
+  height: auto;
+  max-height: none;
+  max-width: none;
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}

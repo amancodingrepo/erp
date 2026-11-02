@@ -21,6 +21,7 @@ import QuestionnairesModulePage from "../pages/Questionnaires/QuestionnairesModu
 import StoreInventoryPage from "../pages/ManageStore/StoreInventoryPage.jsx";
 import StoreVendorPage from "../pages/StoreVendor/StoreVendorPage.jsx";
 import GenericModulePage from "../pages/Shared/GenericModulePage.jsx";
+import CampusDeskPage from "../pages/CampusDesk/CampusDeskPage.jsx";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 
@@ -42,7 +43,8 @@ const moduleDescriptions = {
   "Transport": "Review school routes and add demo route records.",
   "Questionnaires": "Build questionnaires and quizzes, assign classes, import PDF questionnaires, and review submissions.",
   "Manage Store": "Review stock quantities and update demo inventory.",
-  "Store Vendor": "Maintain a local demo list of store vendors."
+  "Store Vendor": "Maintain a local demo list of store vendors.",
+  "Campus desk": "Open the campus screens from the previous project. Their backend is already connected."
 };
 
 
@@ -163,6 +165,9 @@ export function SidebarModulePage({ moduleName, userRole = "staff", students = [
       break;
     case "Campus Settings":
       content = <SettingsScreen />;
+      break;
+    case "Campus desk":
+      content = <CampusDeskPage />;
       break;
     default:
       content = <GenericModulePage moduleName={moduleName} t={t} notify={notify} />;

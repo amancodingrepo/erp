@@ -2,7 +2,7 @@ const KNOWN_MODULES = new Set([
   "Dashboard", "Notice Board", "Events", "Messages", "My Branch", "Contacts", "Fees",
   "Attendance", "Attendance Dashboard", "Day Care", "Search Users", "Performance Report",
   "Reports", "Transport", "Questionnaires", "Manage Store", "Store Vendor",
-  "Admission/Enquiry Form",
+  "Admission/Enquiry Form", "Campus desk",
   "Departments", "Programs", "Sessions", "Timetable", "Exams", "Fee Masters",
   "Collect Fee", "Staff Directory", "Users", "Roles", "Promotion", "Campus Settings"
 ]);

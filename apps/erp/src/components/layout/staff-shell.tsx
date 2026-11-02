@@ -263,9 +263,9 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="h-dvh max-h-dvh overflow-hidden px-3 py-4 sm:px-5">
-      <div className="mx-auto grid h-full min-h-0 max-w-[1440px] grid-cols-1 grid-rows-[minmax(0,38vh)_minmax(0,1fr)] gap-4 overflow-hidden rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)] lg:grid-cols-[248px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
-      <aside className="flex min-h-0 flex-col overflow-hidden rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
+    <div className="erp-staff-frame h-dvh max-h-dvh overflow-hidden px-3 py-4 sm:px-5">
+      <div className="erp-staff-grid mx-auto grid h-full min-h-0 max-w-[1440px] grid-cols-1 grid-rows-[minmax(0,38vh)_minmax(0,1fr)] gap-4 overflow-hidden rounded-[28px] bg-[#f4f5f7] p-3 shadow-[0_30px_80px_rgba(20,30,20,0.08)] lg:grid-cols-[248px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
+      <aside className="erp-staff-aside flex min-h-0 flex-col overflow-hidden rounded-3xl bg-white p-4 shadow-[var(--shadow)]">
         <div className="mb-4 flex shrink-0 items-center gap-2.5 px-1">
           <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(135deg,#2d8f5b,#1e6b44)] text-sm font-extrabold text-white shadow-[0_6px_14px_rgba(30,107,68,0.28)]">
             C
@@ -409,7 +409,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden px-1 pb-1 lg:px-2">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-1 py-2">
+        <header className="erp-staff-header flex shrink-0 flex-wrap items-center justify-between gap-3 px-1 py-2">
           <button
             type="button"
             className="flex h-11 max-w-md flex-1 items-center rounded-full border border-[var(--rule)] bg-white px-4 text-sm text-[var(--muted)] shadow-[0_1px_0_rgba(0,0,0,0.02)]"
