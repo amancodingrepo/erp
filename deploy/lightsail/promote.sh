@@ -10,12 +10,16 @@ sudo docker run -d --name campus-erp --restart unless-stopped \
   -v /opt/campus-erp/uploads:/app/uploads \
   "$IMAGE"
 
-check='const health = await fetch("http://127.0.0.1:3000/api/health");
+# Quoted heredoc so the JavaScript quotes survive this shell.
+check=$(cat <<'EOF'
+const health = await fetch("http://127.0.0.1:3000/api/health");
 const body = await health.text();
 if (!health.ok || !body.includes('"db":"up"')) process.exit(1);
 const page = await fetch("http://127.0.0.1:3000/");
 const html = await page.text();
-if (!page.ok || !html.includes("School World")) process.exit(1);'
+if (!page.ok || !html.includes("School World")) process.exit(1);
+EOF
+)
 
 healthy=0
 for _ in $(seq 1 30); do
