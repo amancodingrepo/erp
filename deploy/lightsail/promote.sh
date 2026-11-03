@@ -1,7 +1,34 @@
 set -euo pipefail
 
+ENV_FILE=/opt/campus-erp/app.env
+NET=campus-net
+CADDY_IMAGE=caddy:2.8.4-alpine
+
 echo "$GHCR_TOKEN" | sudo docker login ghcr.io -u "$GHCR_USER" --password-stdin
 prev="$(sudo docker inspect -f '{{.Image}}' campus-erp 2>/dev/null || true)"
+
+# HTTPS is switched on by the server, not by this script: when AUTH_URL in app.env is
+# https://<domain> (a name, not an IP), Caddy fronts the app on 80/443 and gets a free
+# certificate for that domain. Otherwise the app serves plain HTTP on port 80, as before.
+auth_url="$(sudo grep -E '^(AUTH_URL|NEXTAUTH_URL)=' "$ENV_FILE" 2>/dev/null | head -1 | cut -d= -f2- | tr -d "\"' \r" || true)"
+domain=""
+case "$auth_url" in
+  https://*)
+    host="${auth_url#https://}"; host="${host%%/*}"; host="${host%%:*}"
+    if ! printf '%s' "$host" | grep -Eq '^[0-9.]+$'; then domain="$host"; fi
+    ;;
+esac
+# Only go HTTPS when the domain already points at this server; otherwise a certificate cannot be
+# issued and the site would break. Stay on HTTP and say why.
+if [ -n "$domain" ]; then
+  public_ip="$(curl -fsS -m 10 https://checkip.amazonaws.com 2>/dev/null | tr -d '[:space:]' || true)"
+  resolved="$(getent ahostsv4 "$domain" 2>/dev/null | awk '{print $1; exit}' || true)"
+  if [ -z "$public_ip" ] || [ "$resolved" != "$public_ip" ]; then
+    echo "AUTH_URL names $domain, but it resolves to '${resolved:-nothing}' and this server is '${public_ip:-unknown}'. Staying on plain HTTP until DNS points here."
+    domain=""
+  fi
+fi
+if [ -n "$domain" ]; then echo "Mode: HTTPS for $domain"; else echo "Mode: plain HTTP"; fi
 
 # Back up the database with the running container before anything changes. If the dump fails,
 # set -e stops the deploy here and the current version keeps running. The file lands in the
@@ -22,13 +49,40 @@ else
   '
 fi
 
+sudo docker network inspect "$NET" >/dev/null 2>&1 || sudo docker network create "$NET" >/dev/null
+
+# run_app IMAGE MODE: MODE "https" keeps the app off the host ports (Caddy owns 80/443).
+run_app() {
+  sudo docker rm -f campus-erp >/dev/null 2>&1 || true
+  local ports="-p 80:3000"
+  if [ "$2" = https ]; then ports=""; fi
+  # shellcheck disable=SC2086
+  sudo docker run -d --name campus-erp --restart unless-stopped \
+    --network "$NET" \
+    --env-file "$ENV_FILE" \
+    $ports \
+    -v /opt/campus-erp/uploads:/app/uploads \
+    "$1" >/dev/null
+}
+
+start_caddy() {
+  sudo docker rm -f campus-caddy >/dev/null 2>&1 || true
+  sudo mkdir -p /opt/campus-erp/caddy/data /opt/campus-erp/caddy/config
+  sudo docker run -d --name campus-caddy --restart unless-stopped \
+    --network "$NET" \
+    -p 80:80 -p 443:443 \
+    -v /opt/campus-erp/caddy/data:/data \
+    -v /opt/campus-erp/caddy/config:/config \
+    "$CADDY_IMAGE" \
+    caddy reverse-proxy --from "$1" --to campus-erp:3000 >/dev/null
+}
+
+mode=http
+if [ -n "$domain" ]; then mode=https; fi
+
 sudo docker pull "$IMAGE"
-sudo docker rm -f campus-erp >/dev/null 2>&1 || true
-sudo docker run -d --name campus-erp --restart unless-stopped \
-  --env-file /opt/campus-erp/app.env \
-  -p 80:3000 \
-  -v /opt/campus-erp/uploads:/app/uploads \
-  "$IMAGE"
+if [ "$mode" = http ]; then sudo docker rm -f campus-caddy >/dev/null 2>&1 || true; fi
+run_app "$IMAGE" "$mode"
 
 # Quoted heredoc so the JavaScript quotes survive this shell.
 check=$(cat <<'EOF'
@@ -50,19 +104,46 @@ for _ in $(seq 1 30); do
   sleep 3
 done
 
-sudo docker logout ghcr.io >/dev/null 2>&1 || true
-
 if [ "$healthy" != 1 ]; then
+  sudo docker logout ghcr.io >/dev/null 2>&1 || true
   echo "New container failed the health check. Restoring the previous image."
-  sudo docker rm -f campus-erp >/dev/null 2>&1 || true
-  if [ -n "$prev" ]; then
-    sudo docker run -d --name campus-erp --restart unless-stopped \
-      --env-file /opt/campus-erp/app.env \
-      -p 80:3000 \
-      -v /opt/campus-erp/uploads:/app/uploads \
-      "$prev"
-  fi
+  if [ -n "$prev" ]; then run_app "$prev" "$mode"; else sudo docker rm -f campus-erp >/dev/null 2>&1 || true; fi
   exit 1
 fi
 
-sudo docker ps --filter name=campus-erp
+if [ "$mode" = https ]; then
+  start_caddy "$domain"
+  # Caddy must be running and able to reach the app; the certificate itself may take a minute.
+  proxied=0
+  for _ in $(seq 1 20); do
+    if [ "$(sudo docker inspect -f '{{.State.Running}}' campus-caddy 2>/dev/null)" = true ] \
+      && sudo docker exec campus-caddy wget -q -O /dev/null http://campus-erp:3000/api/health; then
+      proxied=1
+      break
+    fi
+    sleep 3
+  done
+  # Then a real HTTPS request through Caddy, certificate included (issuing can take a minute).
+  if [ "$proxied" = 1 ]; then
+    proxied=0
+    for _ in $(seq 1 40); do
+      if curl -fsS -m 10 --resolve "$domain:443:127.0.0.1" -o /dev/null "https://$domain/api/health"; then
+        proxied=1
+        break
+      fi
+      sleep 3
+    done
+  fi
+  if [ "$proxied" != 1 ]; then
+    echo "HTTPS did not come up for $domain. Falling back to plain HTTP on port 80 so the site stays reachable."
+    sudo docker logs --tail 30 campus-caddy || true
+    sudo docker rm -f campus-caddy >/dev/null 2>&1 || true
+    run_app "$IMAGE" http
+    sudo docker logout ghcr.io >/dev/null 2>&1 || true
+    exit 1
+  fi
+  echo "HTTPS proxy is up for https://$domain"
+fi
+
+sudo docker logout ghcr.io >/dev/null 2>&1 || true
+sudo docker ps --filter name=campus-
