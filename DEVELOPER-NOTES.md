@@ -387,3 +387,123 @@ Do not “fix” those by copying vendor apps.
 | `erp-spec/` | Old college demo map (catalog generator) |
 
 If this notes file and the running code disagree, **trust the code** and update this file.
+
+---
+
+## Developer notes: School World conversion of the remaining staff screens
+
+Status: all 323 Campus desk entries now open a native School World screen, and none fall back to the old iframe.
+- Tests: 306 backend unit tests, 19 School World tests, type check and production build all pass.
+- Checked in the browser against the local database, which was then restored.
+- Nothing is committed.
+
+### Decisions (and why each is the best option)
+
+#### Backend
+1. **Registers live in the existing `ScreenRecord` table (`screenKey = "register:<kind>"`) behind a strict API, not in new tables.**
+   - Why: there's no migration to run against the live database.
+   - Each of the 33 kinds still declares its fields once (`src/lib/services/registers.ts`). The server validates types, enums, ranges, date order and required fields, and checks each kind's own view and write permission.
+   - Linked records (staff, student, class, subject, program, leave type, exam paper, another register) must belong to the caller's campus.
+   - Screens read the field definitions from `GET /v1/registers`, so each rule lives in one place.
+   - If a register later needs reporting joins, it can move to a real table without changing the API.
+2. **The free-form stores (`/v1/records`, `/api/module-data/*`) refuse `register:` keys.** Why: both let any staff member read or write any key, which would bypass register validation and permissions.
+3. **Rules that span rows are enforced on the server**, not just shown in the UI:
+   - A student can have only one gate pass that is issued or out.
+   - Other-course applications are refused for closed courses and for duplicates.
+   - An application can't be approved once the course's seats are full.
+   - A register row that another register still points at can't be deleted.
+4. **Gate passes get a server-made code** that can't be edited. Why: the gate scans or types it, so it must be unique and can't be chosen by the client.
+5. **Login Credentials Send (`POST /v1/students/send-logins`) emails a new temporary password.** It changes a password only after the email is delivered, and refuses to run when email isn't set up. Why: stored passwords are hashed, so the old one can't be resent, and resetting first could lock people out.
+6. **The message log keeps a masked copy of login emails** (`********`). Why: staff can read the log, and it used to store plain-text portal passwords.
+7. **New reports were added to the existing engine**, so CSV, Excel and PDF work for free:
+   - `transport-students` and `hostel-students`
+   - `student-log`
+   - `backlog`: finalised marks below the pass mark, or absent. Draft marks are ignored.
+   - `admission-summary`: by program, using the real statuses Applied, Fee paid, Enrolled and Rejected.
+8. **Student profile edits now write an audit entry** with the changed fields only. Why: otherwise "Student log update" would be empty for the most common change.
+9. **Specializations get their own API**, and Assign Major/Minor is `PATCH /v1/sections/[id]`. The specialization must belong to the section's own program, and one in use can't be deleted.
+10. **Generate Income Tax is worked out on the server** (`POST /v1/payroll/income-tax`) with the payroll engine's own `tdsAnnual` function and slabs. Each declaration is capped at its element's limit, and nothing is saved. Why: the yearly figure and the monthly payslip TDS can never disagree, and the maths is unit-tested (`src/lib/income-tax.test.ts`).
+11. **SMS and email gateway settings stay in server settings.** `GET /v1/message-channels` returns only "on" or "off". Why: storing a webhook address per campus would let a campus admin make the server call any address (SSRF).
+
+#### Screens
+12. **Bulk Delete disables students** (reason required) and doesn't hard-delete them. Why: there's no delete API, and erasing a student would break fee receipts, marks and attendance history. They can be enabled again.
+13. **Bulk Update is an editable grid per class or section, not a CSV upload.**
+    - It saves only the rows you changed, one at a time, and names any that failed.
+    - Roll number, status and email are left out: roll numbers belong to the enrollment (they have their own screen), status changes have their own flows, and the list doesn't return email.
+    - Staff bulk update can change an email but not clear it, because the API rejects a blank email.
+14. **Exam remuneration bill prices a duty only when exactly one rate exists for it.** Otherwise it flags "no rate" or "more than one rate" instead of guessing.
+15. **Copy Old Lessons skips lessons the target class already has** (same subject, week and title), so running it twice doesn't duplicate them.
+16. **Video Tutorial uses the shared-content store**, with a "Video" content type created on first use. Why: videos then also appear in the content share list, with no second store.
+17. **Desk entries whose work an existing screen already does reuse that screen.** Exam Form, Exam Result, Mark Entry Multi Subjectwise, Assign Seat Number, Student ID Card, Design Admit Card, Print Marksheet Format, Manage Attributes, Sidebar Menu, Payment Category (both), Batch Setting, Optional Subjects (both) and Online Admission Setting all work this way. Why: one screen per job avoids two versions drifting apart.
+18. **Features that have no engine get an honest information page**: Captcha, Languages, System Fields, Student Profile Update, System Update, Online Course Setting, Notification Setting and the Schedule Email/SMS log. Why: a form that saves settings nothing reads would be misleading.
+
+### Security fixes made along the way
+- `POST /v1/programs` now checks that the department is in your campus.
+- `POST /v1/sections` now checks the specialization.
+- The staff routes no longer return the password hash. This needs a deploy and password resets.
+
+### Wiring check (every link and request)
+- **Static check.** Every API address that School World calls (398 distinct) was matched against the 495 backend routes and their HTTP methods.
+  - Only the Super Admin page's `/superadmin/*` calls have no backend. That page can't be reached, because no account is ever given the `super_admin` role.
+- **Runtime sweep.** All 325 Campus desk buttons were opened in the browser with every request recorded: no crashes, and no failed requests except the expected 403 on Multi Branch for a non-platform admin.
+- **Sidebar links.** All 30 sidebar modules, plus the Campus desk, open a page.
+- **Fixed during the check:**
+  - Fee reminder (Fees module and the student page) had no backend. `POST /api/students/[code]/fee-reminder` now puts the outstanding fees for the year in each linked parent's inbox. Nothing is emailed, matching what the screen says.
+  - "Reset password" in Manage Students had no backend. `POST /api/students/[code]/reset-password` (school admins) returns a temporary password the student must change.
+  - The parent and student inbox, mark-as-read and attachments allowed staff only, so the parent portal's messages never loaded. Accounts can now read their own messages; posting to the school stays staff-only.
+  - Parent "Contact Staff" had no backend. It now lists staff in active categories the school hasn't blocked for parents, and allows at most 20 messages an hour.
+  - Scheduled messages were never delivered, because nothing switched them from "scheduled" to "sent". They now appear in the inbox once their time has passed.
+  - **Data leak:** `/api/fees`, fee receipt data, `/api/attendance` and the attendance calendar returned every student's records to any signed-in account, including parents and students. They're now limited by `ownStudentsFilter`: staff see the campus, a student sees themselves, and a parent sees their children (tested in `school-world-shape.test.ts`).
+  - Removed the "previous screen" frames and the desk's old-layout fallback. The ERP sends `X-Frame-Options: DENY`, so they could only ever show a blank frame.
+
+### Not verified
+- Sending login emails was only tested up to the "email is not set up" refusal, because there's no mail server locally.
+- Multi Branch add/switch was only seen as the "platform administrators only" message, because the local admin isn't a platform admin.
+- Backup and restore were only opened, not run.
+- Copy Old Lessons copying across classes wasn't run, because the local database has only one class. The same-class guard and the skip logic were checked.
+
+### Found, not fixed (needs a decision)
+- Marksheet formats (Design Marksheet) are stored and assigned, but the marksheet PDF ignores them, and there's no API to unassign a section back to the standard layout.
+- `loadSmtpConfig` falls back to **any campus's** SMTP settings, so one campus can send mail with another campus's credentials.
+- The login URL in emails falls back to a Railway address when `AUTH_URL` isn't set.
+- Earlier findings still stand:
+  - Exam endpoints don't check that ids belong to the campus.
+  - The reports API only checks that the caller is staff.
+  - SuperAdmin can be granted by anyone with `users.edit`.
+  - Backup restore replaces every campus.
+
+### Deploy strategy (School World release)
+
+**Why staged:** a push to `main` deploys to the live Lightsail server straight away, and this release changes access rules (fees, attendance, messages) as well as screens. So every step is set up to be stopped or undone, and nothing reaches production untested.
+
+**What already protects a deploy** (`.github/workflows/docker-image.yml` + `deploy/lightsail/promote.sh`):
+- The image is built only after `ci` passes on `main`.
+- The new container must pass a health check (`/api/health` reports the database up, and `/` serves School World) within 90 seconds. Otherwise the previous image is started again automatically.
+
+**Added in this release:**
+- `promote.sh` now takes a `pg_dump` of the production database inside the running container before swapping images. If the dump fails, the deploy stops and the current version keeps running.
+- Dumps go to `uploads/backups/erp-predeploy-*.dump`, which persists across image swaps and shows in Backup / Restore. The last 5 are kept.
+- Why: the nightly backup workflow has failed every day since the move to Lightsail (`ERP_BACKUP_URL` returns 404), so without this there would be no restore point.
+
+**Steps:**
+1. **Local gate.** Type check, unit tests, School World tests and build all pass. Every Campus desk screen was opened in the browser, with requests recorded.
+2. **Pull request.** Push the `school-world` branch and open a PR to `main`. CI runs everything, including the Postgres integration tests (`src/test`), on a throwaway database, and nothing deploys. Fix and re-push until it's green.
+3. **Merge.** Merging triggers `ci` on `main`, then `docker-image`: build, push to GHCR, back up, swap, health check, automatic rollback if unhealthy.
+4. **Smoke test on the live site:**
+   - `/api/health`
+   - The School World home page and Campus desk
+   - A register screen (add and remove a row)
+   - A report
+   - Fees and attendance as staff, and as a parent account showing only their own child
+5. **Afterwards:**
+   - Reset staff passwords, because older versions sent password hashes in staff API responses.
+   - Save the campus mail server under Email Setting so login emails go out.
+   - Fix the nightly backup: point `ERP_BACKUP_URL` at the Lightsail host's `/api/v1/backup/job` and put a matching `BACKUP_JOB_TOKEN` (16+ characters) in `/opt/campus-erp/app.env`. This is a server setting, so the owner does it.
+
+**Rollback:**
+- **App only:** this release has no database migration, so going back is safe at any time. Revert the merge commit on `main` (`git revert -m 1 <merge sha>`) and push. That deploys the previous code, again behind CI and the health check.
+- **Data:** if data needs restoring, use Backup / Restore with the `erp-predeploy-*` dump. This replaces every campus, so it's a last resort.
+
+**Known limits after deploy:**
+- SMS is only logged until `SMS_WEBHOOK_URL` is set on the server.
+- The old `/staff/...` pages and the ERP `/login` still work; School World is at `/`.
