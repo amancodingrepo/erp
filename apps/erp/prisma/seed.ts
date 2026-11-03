@@ -9,8 +9,30 @@ import {
 } from "../src/lib/permission-catalog";
 import { provisionCampusTenant } from "../src/lib/services/tenants";
 import { ensureSchoolClasses } from "../src/lib/school-classes";
+import { PUBLIC_DEFAULT_PASSWORD, hardenDefaultAccounts, shouldHardenDefaults } from "../src/lib/default-credentials";
 
 const prisma = new PrismaClient();
+
+/** Production only: switch off demo logins and flag admins still on a known seed password. */
+async function hardenDefaults() {
+  if (!shouldHardenDefaults(process.env)) return;
+  const changed = await hardenDefaultAccounts(
+    {
+      findUsers: (usernames) =>
+        prisma.user.findMany({
+          where: { username: { in: usernames } },
+          select: { id: true, username: true, passwordHash: true, isActive: true, mustChangePassword: true },
+        }),
+      update: (id, data) => prisma.user.update({ where: { id }, data }),
+    },
+    [PUBLIC_DEFAULT_PASSWORD, process.env.SEED_ADMIN_PASSWORD ?? ""],
+  );
+  for (const row of changed) {
+    console.log(row.action === "disabled"
+      ? `Security: demo login "${row.username}" used a known password and was switched off.`
+      : `Security: "${row.username}" uses a known password and must change it at next sign-in.`);
+  }
+}
 
 async function main() {
   const existing = await prisma.campus.count();
@@ -22,6 +44,7 @@ async function main() {
     console.log(
       "Seed skipped (campuses already exist); Nursery–Class 12 ensured. Set FORCE_SEED=true to re-run.",
     );
+    await hardenDefaults();
     return;
   }
   const password = process.env.SEED_ADMIN_PASSWORD ?? "Admin@12345";
@@ -131,7 +154,7 @@ async function main() {
     where: {
       campusId_username: { campusId: campus.id, username: "admin" },
     },
-    update: { passwordHash, isActive: true, actorType: ActorType.STAFF },
+    update: { actorType: ActorType.STAFF },
     create: {
       campusId: campus.id,
       actorType: ActorType.STAFF,
@@ -173,7 +196,7 @@ async function main() {
     where: {
       campusId_username: { campusId: campus.id, username: "teacher" },
     },
-    update: { passwordHash, isActive: true, actorType: ActorType.STAFF },
+    update: { actorType: ActorType.STAFF },
     create: {
       campusId: campus.id,
       actorType: ActorType.STAFF,
@@ -378,7 +401,7 @@ async function main() {
 
   const studentUser = await prisma.user.upsert({
     where: { campusId_username: { campusId: campus.id, username: "student1" } },
-    update: { passwordHash, isActive: true, actorType: ActorType.STUDENT },
+    update: { actorType: ActorType.STUDENT },
     create: {
       campusId: campus.id,
       actorType: ActorType.STUDENT,
@@ -425,7 +448,7 @@ async function main() {
 
   const parentUser = await prisma.user.upsert({
     where: { campusId_username: { campusId: campus.id, username: "parent1" } },
-    update: { passwordHash, isActive: true, actorType: ActorType.GUARDIAN },
+    update: { actorType: ActorType.GUARDIAN },
     create: {
       campusId: campus.id,
       actorType: ActorType.GUARDIAN,
@@ -474,15 +497,9 @@ async function main() {
       adminPasswordHash: passwordHash,
       demoUsers: true,
     });
-  } else {
-    await prisma.user.updateMany({
-      where: {
-        campusId: east.id,
-        username: { in: ["admin", "teacher", "student1", "parent1"] },
-      },
-      data: { passwordHash, isActive: true },
-    });
   }
+  // A re-run (FORCE_SEED) no longer resets passwords or re-enables accounts on either campus.
+  await hardenDefaults();
 
   console.log("Seed complete.");
   console.log("  campus: MAIN (Main Campus) and EAST (East Campus)");
