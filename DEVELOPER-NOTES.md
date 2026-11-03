@@ -507,3 +507,13 @@ Status: all 323 Campus desk entries now open a native School World screen, and n
 **Known limits after deploy:**
 - SMS is only logged until `SMS_WEBHOOK_URL` is set on the server.
 - The old `/staff/...` pages and the ERP `/login` still work; School World is at `/`.
+
+### Default passwords (fixed after the first live audit)
+- **What was wrong:** the first seed on a new database creates `admin`, `teacher`, `student1` and `parent1` on the MAIN and EAST campuses. All of them get `SEED_ADMIN_PASSWORD`, or the public default `Admin@12345` from the README, CI and tests when that isn't set. Normal restarts skip the seed when campuses exist, so passwords were never reset. But until changed, these logins worked on production with a known password. A forced re-seed (`FORCE_SEED=true`) also reset every one of them.
+- **Fix:** `src/lib/default-credentials.ts`, called from the seed on every production start.
+  - Demo accounts still on a known password are switched off.
+  - `admin` accounts still on a known password must change it at next School World sign-in. They're never switched off, so nobody is locked out.
+  - Accounts whose password was changed are left alone, and it's skipped outside production (or with `ALLOW_DEFAULT_PASSWORDS=true`).
+  - A forced re-seed no longer resets passwords or re-enables accounts.
+  - Why this approach: it closes the hole without anyone having to remember a manual step, and it can't lock the owner out.
+- **Still to do:** the old ERP `/login` doesn't enforce "must change password", so change the admin password yourself as well. Set a strong `SEED_ADMIN_PASSWORD` on the server, so any future fresh install doesn't start on a known password.
