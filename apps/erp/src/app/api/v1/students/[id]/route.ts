@@ -1,5 +1,6 @@
 import { Gender, Prisma, StudentStatus } from "@prisma/client";
 import { z } from "zod";
+import { requestIp, writeAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
@@ -97,6 +98,24 @@ export async function PATCH(
         await writeNamedGuardians(tx, id, guardians);
       }
       return row;
+    });
+    // Record what changed, so the student log update report can show profile edits.
+    const changed = Object.keys(body).filter((key) => key !== "fatherName" && key !== "motherName");
+    const pick = (source: Record<string, unknown>) =>
+      Object.fromEntries(changed.map((key) => [key, source[key] instanceof Date ? (source[key] as Date).toISOString() : (source[key] ?? null)]));
+    await writeAudit({
+      userId: user.id,
+      campusId: user.campusId,
+      action: "update",
+      entity: "Student",
+      entityId: id,
+      before: pick(existing as unknown as Record<string, unknown>) as Prisma.InputJsonValue,
+      after: {
+        ...pick(updated as unknown as Record<string, unknown>),
+        ...(body.fatherName !== undefined ? { fatherName: body.fatherName } : {}),
+        ...(body.motherName !== undefined ? { motherName: body.motherName } : {}),
+      } as Prisma.InputJsonValue,
+      ip: requestIp(request),
     });
     return ok({
       id: updated.id,

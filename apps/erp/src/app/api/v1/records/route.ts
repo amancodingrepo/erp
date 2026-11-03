@@ -2,6 +2,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { assertStaff, principalFromRequest } from "@/lib/principal";
+import { forbidden } from "@/lib/errors";
+import { isRegisterScreenKey } from "@/lib/services/registers";
 
 const createSchema = z.object({
   screenKey: z.string().min(1),
@@ -14,7 +16,7 @@ export async function GET(request: Request) {
     const user = await principalFromRequest(request);
     assertStaff(user);
     const screenKey = new URL(request.url).searchParams.get("screenKey");
-    if (!screenKey) return ok({ data: [] });
+    if (!screenKey || isRegisterScreenKey(screenKey)) return ok({ data: [] });
     const data = await prisma.screenRecord.findMany({
       where: { campusId: user.campusId, screenKey },
       orderBy: { createdAt: "desc" },
@@ -31,6 +33,8 @@ export async function POST(request: Request) {
     const user = await principalFromRequest(request);
     assertStaff(user);
     const body = createSchema.parse(await readJson(request));
+    // Registers have their own validated API; this free-form store must not write into them.
+    if (isRegisterScreenKey(body.screenKey)) throw forbidden("use /v1/registers for this record");
     const row = await prisma.screenRecord.create({
       data: {
         campusId: user.campusId,

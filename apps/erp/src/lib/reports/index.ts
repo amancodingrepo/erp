@@ -113,6 +113,16 @@ export async function runReport(
       return admissionTests(campusId);
     case "fuel-logs":
       return fuelLogs(campusId);
+    case "transport-students":
+      return transportStudents(campusId, filters);
+    case "hostel-students":
+      return hostelStudents(campusId, filters);
+    case "student-log":
+      return studentLog(campusId, filters);
+    case "backlog":
+      return backlog(campusId, filters);
+    case "admission-summary":
+      return admissionSummary(campusId, filters);
   }
 }
 
@@ -673,3 +683,198 @@ async function fuelLogs(campusId: string): Promise<ReportResult> {
   };
 }
 
+
+function currentEnrollmentFilter(filters: Filters) {
+  return filters.classId || filters.sectionId
+    ? {
+        enrollments: {
+          some: {
+            isCurrent: true,
+            ...(filters.classId ? { classId: filters.classId } : {}),
+            ...(filters.sectionId ? { sectionId: filters.sectionId } : {}),
+          },
+        },
+      }
+    : {};
+}
+
+const currentEnrollment = {
+  enrollments: {
+    where: { isCurrent: true },
+    include: { class: { select: { name: true } }, section: { select: { name: true } } },
+    take: 1,
+  },
+} as const;
+
+async function transportStudents(campusId: string, filters: Filters): Promise<ReportResult> {
+  const rows = await prisma.studentTransport.findMany({
+    where: { route: { campusId }, student: { campusId, status: StudentStatus.ACTIVE, ...currentEnrollmentFilter(filters) } },
+    include: {
+      student: { include: currentEnrollment },
+      route: { include: { vehicles: { select: { registrationNo: true } } } },
+      pickup: { select: { name: true } },
+      outRoute: { select: { name: true } },
+      outPickup: { select: { name: true } },
+    },
+    take: 5000,
+  });
+  rows.sort((a, b) => a.route.name.localeCompare(b.route.name) || a.student.admissionNo.localeCompare(b.student.admissionNo));
+  return {
+    title: "Student transport",
+    columns: ["admissionNo", "name", "class", "section", "route", "pickup", "returnRoute", "returnPickup", "vehicles", "routeFee"],
+    rows: rows.map((row) => ({
+      admissionNo: row.student.admissionNo,
+      name: [row.student.firstName, row.student.lastName].filter(Boolean).join(" "),
+      class: row.student.enrollments[0]?.class.name ?? null,
+      section: row.student.enrollments[0]?.section.name ?? null,
+      route: row.route.name,
+      pickup: row.pickup.name,
+      returnRoute: row.outRoute?.name ?? null,
+      returnPickup: row.outPickup?.name ?? null,
+      vehicles: row.route.vehicles.map((v) => v.registrationNo).join(", ") || null,
+      routeFee: Number(row.route.feeAmount),
+    })),
+  };
+}
+
+async function hostelStudents(campusId: string, filters: Filters): Promise<ReportResult> {
+  const rows = await prisma.hostelAllocation.findMany({
+    where: { leftAt: null, room: { hostel: { campusId } }, student: { campusId, status: StudentStatus.ACTIVE, ...currentEnrollmentFilter(filters) } },
+    include: { student: { include: currentEnrollment }, room: { include: { hostel: true } } },
+    take: 5000,
+  });
+  rows.sort((a, b) => a.room.hostel.name.localeCompare(b.room.hostel.name) || a.room.number.localeCompare(b.room.number, undefined, { numeric: true }));
+  return {
+    title: "Student hostel",
+    columns: ["admissionNo", "name", "class", "section", "hostel", "room", "roomType", "since", "hostelFee"],
+    rows: rows.map((row) => ({
+      admissionNo: row.student.admissionNo,
+      name: [row.student.firstName, row.student.lastName].filter(Boolean).join(" "),
+      class: row.student.enrollments[0]?.class.name ?? null,
+      section: row.student.enrollments[0]?.section.name ?? null,
+      hostel: row.room.hostel.name,
+      room: row.room.number,
+      roomType: row.room.roomType,
+      since: row.fromDate.toISOString().slice(0, 10),
+      hostelFee: Number(row.room.hostel.feeAmount),
+    })),
+  };
+}
+
+function dateRange(filters: Filters) {
+  const from = filters.from ? parseDateOnly(filters.from) : undefined;
+  const to = filters.to ? parseDateOnly(filters.to) : undefined;
+  // "to" is a whole day: include everything before the next midnight.
+  const end = to ? new Date(to.getTime() + 24 * 60 * 60 * 1000) : undefined;
+  return from || end ? { ...(from ? { gte: from } : {}), ...(end ? { lt: end } : {}) } : undefined;
+}
+
+function describeChanges(before: unknown, after: unknown) {
+  const a = (after && typeof after === "object" ? after : {}) as Record<string, unknown>;
+  const b = (before && typeof before === "object" ? before : {}) as Record<string, unknown>;
+  const keys = [...new Set([...Object.keys(b), ...Object.keys(a)])].filter((key) => JSON.stringify(b[key] ?? null) !== JSON.stringify(a[key] ?? null));
+  const show = (value: unknown) => (value == null || value === "" ? "-" : typeof value === "object" ? JSON.stringify(value) : String(value));
+  return keys.map((key) => key + ": " + show(b[key]) + " -> " + show(a[key])).join("; ") || null;
+}
+
+async function studentLog(campusId: string, filters: Filters): Promise<ReportResult> {
+  const range = dateRange(filters);
+  const rows = await prisma.auditLog.findMany({
+    where: { campusId, entity: { in: ["Student", "student"] }, ...(range ? { createdAt: range } : {}) },
+    include: { user: { select: { username: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 2000,
+  });
+  const ids = [...new Set(rows.map((r) => r.entityId).filter((id): id is string => Boolean(id)))];
+  const students = ids.length
+    ? await prisma.student.findMany({ where: { id: { in: ids }, campusId }, select: { id: true, admissionNo: true, firstName: true, lastName: true } })
+    : [];
+  const byId = new Map(students.map((s) => [s.id, s]));
+  return {
+    title: "Student log update",
+    columns: ["at", "by", "action", "admissionNo", "name", "changes"],
+    rows: rows.map((r) => {
+      const s = r.entityId ? byId.get(r.entityId) : undefined;
+      return {
+        at: r.createdAt.toISOString(),
+        by: r.user?.username ?? null,
+        action: r.action,
+        admissionNo: s?.admissionNo ?? null,
+        name: s ? [s.firstName, s.lastName].filter(Boolean).join(" ") : null,
+        changes: describeChanges(r.before, r.after),
+      };
+    }),
+  };
+}
+
+/** Finalised marks below the paper's pass marks, or absent: the papers a student must clear again. */
+async function backlog(campusId: string, filters: Filters): Promise<ReportResult> {
+  const marks = await prisma.examMark.findMany({
+    where: {
+      finalizedAt: { not: null },
+      student: { campusId, status: StudentStatus.ACTIVE, ...currentEnrollmentFilter(filters) },
+      examSubject: { exam: { group: { campusId } } },
+    },
+    include: {
+      student: { include: currentEnrollment },
+      examSubject: { include: { exam: { include: { group: { select: { name: true } } } } } },
+    },
+    take: 20000,
+  });
+  const failed = marks.filter((m) => m.isAbsent || m.marks == null || m.marks.lessThan(m.examSubject.minMarks));
+  const subjectIds = [...new Set(failed.map((m) => m.examSubject.subjectId))];
+  const subjects = subjectIds.length
+    ? await prisma.subject.findMany({ where: { id: { in: subjectIds }, campusId }, select: { id: true, name: true } })
+    : [];
+  const subjectName = new Map(subjects.map((s) => [s.id, s.name]));
+  failed.sort((a, b) => a.student.admissionNo.localeCompare(b.student.admissionNo));
+  return {
+    title: "Backlog",
+    columns: ["admissionNo", "name", "class", "section", "group", "exam", "subject", "marks", "passMarks", "maxMarks"],
+    rows: failed.map((m) => ({
+      admissionNo: m.student.admissionNo,
+      name: [m.student.firstName, m.student.lastName].filter(Boolean).join(" "),
+      class: m.student.enrollments[0]?.class.name ?? null,
+      section: m.student.enrollments[0]?.section.name ?? null,
+      group: m.examSubject.exam.group.name,
+      exam: m.examSubject.exam.name,
+      subject: subjectName.get(m.examSubject.subjectId) ?? null,
+      marks: m.isAbsent ? "AB" : m.marks == null ? "not entered" : Number(m.marks),
+      passMarks: Number(m.examSubject.minMarks),
+      maxMarks: Number(m.examSubject.maxMarks),
+    })),
+  };
+}
+
+const ADMISSION_COLUMNS = { APPLIED: "applied", FEE_PAID: "feePaid", ENROLLED: "enrolled", REJECTED: "rejected" } as const;
+type AdmissionCounts = { applied: number; feePaid: number; enrolled: number; rejected: number; total: number; feeCollected: number };
+const noCounts = (): AdmissionCounts => ({ applied: 0, feePaid: 0, enrolled: 0, rejected: 0, total: 0, feeCollected: 0 });
+
+async function admissionSummary(campusId: string, filters: Filters): Promise<ReportResult> {
+  const range = dateRange(filters);
+  const apps = await prisma.application.findMany({
+    where: { campusId, ...(range ? { createdAt: range } : {}) },
+    select: { status: true, feePaid: true, program: { select: { name: true } } },
+  });
+  const groups = new Map<string, AdmissionCounts>();
+  for (const app of apps) {
+    const key = app.program?.name ?? "No program";
+    const row = groups.get(key) ?? noCounts();
+    row[ADMISSION_COLUMNS[app.status]]++;
+    row.total++;
+    row.feeCollected += Number(app.feePaid);
+    groups.set(key, row);
+  }
+  const round = (row: AdmissionCounts) => ({ ...row, feeCollected: Math.round(row.feeCollected * 100) / 100 });
+  const rows: Array<Record<string, string | number | null>> = [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([program, row]) => ({ program, ...round(row) }));
+  if (groups.size > 1) {
+    const total = [...groups.values()].reduce((sum, row) => {
+      (Object.keys(sum) as Array<keyof AdmissionCounts>).forEach((key) => { sum[key] += row[key]; });
+      return sum;
+    }, noCounts());
+    rows.push({ program: "All programs", ...round(total) });
+  }
+  return { title: "Admission summary", columns: ["program", "applied", "feePaid", "enrolled", "rejected", "total", "feeCollected"], rows };
+}
