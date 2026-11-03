@@ -23,6 +23,11 @@ export const REPORT_KEYS = [
   "consolidated-performance",
   "admission-tests",
   "fuel-logs",
+  "transport-students",
+  "hostel-students",
+  "student-log",
+  "backlog",
+  "admission-summary",
 ] as const;
 
 export type ReportKey = (typeof REPORT_KEYS)[number];

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
-import { HttpError } from "@/lib/errors";
+import { HttpError, forbidden } from "@/lib/errors";
+import { isRegisterScreenKey } from "@/lib/services/registers";
 import { fail, ok, readJson } from "@/lib/http";
 import { principalFromRequest } from "@/lib/principal";
 import { assertCampusStaff } from "@/lib/school-world-shape";
@@ -12,6 +13,7 @@ export async function GET(
     const user = await principalFromRequest(request);
     assertCampusStaff(user);
     const { moduleKey } = await context.params;
+    if (isRegisterScreenKey(moduleKey)) throw forbidden("use /v1/registers for this record");
     const row = await prisma.screenRecord.findFirst({
       where: { campusId: user.campusId, screenKey: moduleKey, title: "state" },
       orderBy: { updatedAt: "desc" },
@@ -30,6 +32,8 @@ export async function PUT(
     const user = await principalFromRequest(request);
     assertCampusStaff(user);
     const { moduleKey } = await context.params;
+    // Registers have their own validated API; this free-form store must not write into them.
+    if (isRegisterScreenKey(moduleKey)) throw forbidden("use /v1/registers for this record");
     const body = await readJson<{ data?: unknown }>(request);
     const payload = body.data ?? {};
     if (JSON.stringify(payload).length > 2 * 1024 * 1024) {

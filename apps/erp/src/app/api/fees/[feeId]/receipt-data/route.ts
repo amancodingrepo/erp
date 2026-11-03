@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { conflict, notFound } from "@/lib/errors";
 import { fail, ok } from "@/lib/http";
 import { principalFromRequest } from "@/lib/principal";
+import { ownStudentsFilter } from "@/lib/school-world-shape";
 import { asRecord, dayText, defaultReceiptSettings, feeLineInclude, money } from "@/lib/school-world-fees";
 
 export async function GET(
@@ -13,7 +14,7 @@ export async function GET(
     const { feeId } = await context.params;
     const requestedReceipt = new URL(request.url).searchParams.get("receiptNumber")?.trim() ?? "";
     const line = await prisma.feeInvoiceLine.findFirst({
-      where: { id: feeId, invoice: { student: { campusId: user.campusId } } },
+      where: { id: feeId, invoice: { student: { campusId: user.campusId, ...ownStudentsFilter(user) } } },
       include: feeLineInclude,
     });
     if (!line) throw notFound("Fee record");

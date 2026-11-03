@@ -2,6 +2,26 @@ set -euo pipefail
 
 echo "$GHCR_TOKEN" | sudo docker login ghcr.io -u "$GHCR_USER" --password-stdin
 prev="$(sudo docker inspect -f '{{.Image}}' campus-erp 2>/dev/null || true)"
+
+# Back up the database with the running container before anything changes. If the dump fails,
+# set -e stops the deploy here and the current version keeps running. The file lands in the
+# uploads volume, so it survives the image swap and shows in Backup / Restore. Keeps the last 5.
+running="$(sudo docker inspect -f '{{.State.Running}}' campus-erp 2>/dev/null || echo false)"
+if [ "$running" != true ]; then
+  echo "No running campus-erp container, so no pre-deploy backup (nothing is serving)."
+else
+  sudo docker exec campus-erp sh -c '
+    set -e
+    dir="${UPLOAD_DIR:-/app/uploads}/backups"
+    mkdir -p "$dir"
+    file="$dir/erp-predeploy-$(date -u +%Y-%m-%dT%H-%M-%SZ).dump"
+    pg_dump --format=custom --file="$file" "$DATABASE_URL"
+    test -s "$file"
+    ls -1t "$dir"/erp-predeploy-*.dump | tail -n +6 | xargs -r rm -f
+    echo "Pre-deploy backup: $file ($(wc -c < "$file") bytes)"
+  '
+fi
+
 sudo docker pull "$IMAGE"
 sudo docker rm -f campus-erp >/dev/null 2>&1 || true
 sudo docker run -d --name campus-erp --restart unless-stopped \

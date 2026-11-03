@@ -146,6 +146,31 @@ export const REPORT_CATALOG: Record<ReportKey, ReportCatalogEntry> = {
     columns: ["vehicleId", "litres", "amount", "odometer", "at", "note"],
     filters: [],
   },
+  "transport-students": {
+    title: "Student transport",
+    columns: ["admissionNo", "name", "class", "section", "route", "pickup", "returnRoute", "returnPickup", "vehicles", "routeFee"],
+    filters: ["classId", "sectionId"],
+  },
+  "hostel-students": {
+    title: "Student hostel",
+    columns: ["admissionNo", "name", "class", "section", "hostel", "room", "roomType", "since", "hostelFee"],
+    filters: ["classId", "sectionId"],
+  },
+  "student-log": {
+    title: "Student log update",
+    columns: ["at", "by", "action", "admissionNo", "name", "changes"],
+    filters: ["from", "to"],
+  },
+  backlog: {
+    title: "Backlog",
+    columns: ["admissionNo", "name", "class", "section", "group", "exam", "subject", "marks", "passMarks", "maxMarks"],
+    filters: ["classId", "sectionId"],
+  },
+  "admission-summary": {
+    title: "Admission summary",
+    columns: ["program", "applied", "feePaid", "enrolled", "rejected", "total", "feeCollected"],
+    filters: ["from", "to"],
+  },
 };
 
 function trim(value: unknown) {

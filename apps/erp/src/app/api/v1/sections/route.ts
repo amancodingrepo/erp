@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { classInCampus } from "@/lib/campus";
 import { prisma } from "@/lib/db";
-import { conflict } from "@/lib/errors";
+import { conflict, validationError } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
@@ -44,7 +44,11 @@ export async function POST(request: Request) {
       "create",
     );
     const body = createSchema.parse(await readJson(request));
-    await classInCampus(user.campusId, body.classId);
+    const klass = await classInCampus(user.campusId, body.classId);
+    if (body.specializationId) {
+      const spec = await prisma.specialization.findFirst({ where: { id: body.specializationId, programId: klass.programId } });
+      if (!spec) throw validationError({ specializationId: "must be a specialization of this class's program" });
+    }
     const duplicate = await prisma.section.findFirst({
       where: { classId: body.classId, name: body.name },
     });

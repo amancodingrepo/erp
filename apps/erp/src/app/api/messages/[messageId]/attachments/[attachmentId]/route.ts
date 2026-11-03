@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { fail } from "@/lib/http";
-import { messageAttachment, requireStaff } from "@/lib/school-world-bridge";
+import { messageAttachment, requireCampusUser } from "@/lib/school-world-bridge";
 
 export async function GET(request: Request, context: { params: Promise<{ messageId: string; attachmentId: string }> }) {
   try {
-    const user = await requireStaff(request);
+    const user = await requireCampusUser(request);
     const { messageId, attachmentId } = await context.params;
     const file = await messageAttachment(user.campusId, user.id, decodeURIComponent(messageId), decodeURIComponent(attachmentId));
     const name = file.fileName.replace(/[^\x20-\x7E]/g, "_");
