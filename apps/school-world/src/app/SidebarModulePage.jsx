@@ -44,7 +44,7 @@ const moduleDescriptions = {
   "Questionnaires": "Build questionnaires and quizzes, assign classes, import PDF questionnaires, and review submissions.",
   "Manage Store": "Review stock quantities and update demo inventory.",
   "Store Vendor": "Maintain a local demo list of store vendors.",
-  "Campus desk": "Open the campus screens from the previous project. Their backend is already connected."
+  "Campus desk": "Every campus screen in one place, all running in School World."
 };
 
 
