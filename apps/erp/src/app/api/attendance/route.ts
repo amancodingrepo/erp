@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { fail, ok } from "@/lib/http";
 import { principalFromRequest } from "@/lib/principal";
+import { ownStudentsFilter } from "@/lib/school-world-shape";
 import { parseDay } from "@/lib/school-world-fees";
 
 const TO_SCHOOL: Record<string, string> = {
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     const rows = await prisma.studentAttendance.findMany({
       where: {
         date: day ?? undefined,
-        student: { campusId: user.campusId },
+        student: { campusId: user.campusId, ...ownStudentsFilter(user) },
       },
       include: {
         student: {

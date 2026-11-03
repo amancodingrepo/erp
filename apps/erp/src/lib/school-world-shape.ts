@@ -49,3 +49,15 @@ export function feeStatus(amount: number, paid: number) {
   if (paid + 0.001 >= amount) return "Paid";
   return "Partial";
 }
+
+/**
+ * Which students a signed-in account may see records of: staff see the whole campus, a student sees
+ * only themselves, a parent only their linked children, anyone else nobody. Spread into a
+ * Prisma `student` filter together with `campusId`.
+ */
+export function ownStudentsFilter(principal: AuthPrincipal): { id?: string | { in: string[] } } {
+  if (principal.actorType === "STUDENT") return { id: principal.studentId || "__none__" };
+  if (principal.actorType === "GUARDIAN") return { id: { in: principal.childIds ?? [] } };
+  if (principal.actorType === "APPLICANT") return { id: "__none__" };
+  return {};
+}

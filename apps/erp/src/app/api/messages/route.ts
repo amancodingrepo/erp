@@ -1,9 +1,10 @@
 import { created, fail, ok, readJson } from "@/lib/http";
-import { listMessages, postMessage, requireStaff } from "@/lib/school-world-bridge";
+import { listMessages, postMessage, requireCampusUser, requireStaff } from "@/lib/school-world-bridge";
 
 export async function GET(request: Request) {
   try {
-    const user = await requireStaff(request);
+    // Everyone reads their own inbox and sent messages; only staff may post to the school.
+    const user = await requireCampusUser(request);
     const folder = new URL(request.url).searchParams.get("folder") || "inbox";
     return ok({ folder, messages: await listMessages(user.campusId, user.id, folder) });
   } catch (error) {

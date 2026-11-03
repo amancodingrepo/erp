@@ -103,6 +103,8 @@ export async function queueRendered(input: {
   to: string;
   subject?: string | null;
   body: string;
+  /** What the message log keeps when the sent body holds a secret (a password). */
+  logBody?: string;
 }) {
   if (!input.to.trim()) {
     throw validationError({ to: "recipient required" });
@@ -122,7 +124,7 @@ export async function queueRendered(input: {
       studentId: input.studentId,
       toAddress: input.to,
       subject: input.subject ?? null,
-      body: input.body,
+      body: input.logBody ?? input.body,
       status,
     },
   });
@@ -246,6 +248,15 @@ export async function composeToClass(input: {
   return { sent };
 }
 
+export const PASSWORD_MASK = "********";
+
+/** True when an email would actually leave the system (SMTP or an email webhook), not just be logged. */
+export async function emailChannelReady(campusId: string) {
+  if (process.env.EMAIL_WEBHOOK_URL) return true;
+  const { loadSmtpConfig } = await import("@/lib/smtp");
+  return Boolean((await loadSmtpConfig(campusId))?.host);
+}
+
 const PORTAL_LOGIN_BODY =
   "Dear {{name}}, your {{portal}} portal login for {{campus}} is ready.\n\nCampus code: {{campusCode}}\nUsername: {{username}}\nPassword: {{password}}\nAdmission no: {{admissionNo}}\n\nSign in at {{loginUrl}} (choose campus, then Student or Parent).\nThis password is shown only once.";
 
@@ -296,10 +307,17 @@ export async function sendPortalLoginEmail(input: {
     campusCode: input.campusCode,
     loginUrl: `${loginUrl.replace(/\/$/, "")}/login`,
   };
-  let body = renderTemplate(template.body, vars);
-  if (input.portal === "student" && input.parentUsername && input.parentPassword) {
-    body += `\n\nParent / guardian portal (please share with parent):\nCampus code: ${input.campusCode}\nUsername: ${input.parentUsername}\nPassword: ${input.parentPassword}\n`;
-  }
+  // The message log is readable by staff, so it keeps a copy with the passwords masked.
+  const portalTemplate = template;
+  const render = (password: string, parentPassword?: string | null) => {
+    let text = renderTemplate(portalTemplate.body, { ...vars, password });
+    if (input.portal === "student" && input.parentUsername && parentPassword) {
+      text += `\n\nParent / guardian portal (please share with parent):\nCampus code: ${input.campusCode}\nUsername: ${input.parentUsername}\nPassword: ${parentPassword}\n`;
+    }
+    return text;
+  };
+  const body = render(input.password, input.parentPassword);
+  const logBody = render(PASSWORD_MASK, input.parentPassword ? PASSWORD_MASK : null);
   const log = await queueRendered({
     campusId: input.campusId,
     channel: "EMAIL",
@@ -308,6 +326,7 @@ export async function sendPortalLoginEmail(input: {
     to: input.to.trim(),
     subject: renderTemplate(template.subject ?? "{{campus}} portal login", vars),
     body,
+    logBody,
   });
   return log.status;
 }

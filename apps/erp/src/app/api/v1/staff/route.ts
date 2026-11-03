@@ -107,9 +107,10 @@ export async function GET(request: Request) {
           subjectRows,
         ),
         documents,
-      ).map((row) => ({
+      ).map(({ user: account, ...row }) => ({
+        // Never send the linked user row: it carries the password hash.
         ...row,
-        login: toStaffLogin(row.user),
+        login: toStaffLogin(account),
       })),
     });
   } catch (error) {

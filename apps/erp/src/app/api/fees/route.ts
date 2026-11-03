@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
 import { fail, ok } from "@/lib/http";
 import { principalFromRequest } from "@/lib/principal";
+import { ownStudentsFilter } from "@/lib/school-world-shape";
 import { feeLineInclude, schoolFee } from "@/lib/school-world-fees";
 
 export async function GET(request: Request) {
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
         invoice: {
           student: {
             campusId: user.campusId,
+            ...ownStudentsFilter(user),
             ...(studentCode ? { admissionNo: studentCode } : {}),
           },
         },

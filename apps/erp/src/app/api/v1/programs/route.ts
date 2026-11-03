@@ -1,6 +1,7 @@
 import { ProgramLevel } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { validationError } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 
@@ -36,8 +37,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireApiPermission(request, "academics", "program", "create");
+    const user = await requireApiPermission(request, "academics", "program", "create");
     const body = createSchema.parse(await readJson(request));
+    // The department must belong to the caller's campus, or programs could be planted in another campus.
+    const department = await prisma.department.findFirst({ where: { id: body.departmentId, campusId: user.campusId }, select: { id: true } });
+    if (!department) throw validationError({ departmentId: "department was not found in this campus" });
     const row = await prisma.program.create({
       data: {
         departmentId: body.departmentId,

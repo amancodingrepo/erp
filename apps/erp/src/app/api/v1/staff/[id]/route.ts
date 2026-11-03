@@ -25,6 +25,7 @@ import {
   attachStaffDocuments,
   listStaffDocuments,
 } from "@/lib/services/campus-staff-docs";
+import { toStaffLogin } from "@/lib/services/campus-staff-login";
 
 const patchSchema = z.object({
   firstName: z.string().optional(),
@@ -52,9 +53,15 @@ export async function GET(
     const { id } = await context.params;
     const staff = await prisma.staff.findFirst({
       where: { id, campusId: user.campusId },
-      include: { department: true, designation: true, user: true },
+      include: {
+        department: true,
+        designation: true,
+        user: { include: { roles: { include: { role: true } } } },
+      },
     });
     if (!staff) throw notFound("staff");
+    // Never send the linked user row: it carries the password hash.
+    const { user: account, ...staffRow } = staff;
     const extras = await listStaffExtras(user.campusId);
     const modules = await listStaffModules(user.campusId);
     const [classRows, subjectRows, documents] = await Promise.all([
@@ -62,16 +69,17 @@ export async function GET(
       listStaffSubjects(user.campusId),
       listStaffDocuments(user.campusId),
     ]);
-    return ok(
-      attachStaffDocuments(
+    return ok({
+      ...attachStaffDocuments(
         attachStaffAssignments(
-          attachStaffModules(attachStaffExtras([staff], extras), modules),
+          attachStaffModules(attachStaffExtras([staffRow], extras), modules),
           classRows,
           subjectRows,
         ),
         documents,
       )[0],
-    );
+      login: toStaffLogin(account),
+    });
   } catch (error) {
     return fail(error);
   }

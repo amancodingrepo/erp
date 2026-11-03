@@ -54,6 +54,14 @@ export async function requireStaff(request: Request) {
   return user;
 }
 
+/** Any signed-in school account (staff, student or parent); applicants are refused. */
+export async function requireCampusUser(request: Request) {
+  const { principalFromRequest } = await import("./principal");
+  const user = await principalFromRequest(request);
+  if (user.actorType === "APPLICANT") throw forbidden("This action is for school accounts.");
+  return user;
+}
+
 export async function requireSchoolAdmin(request: Request) {
   const user = await requireStaff(request);
   const role = schoolWorldRole(user);
@@ -1682,7 +1690,12 @@ export async function listMessages(campusId: string, userId: string, folder: str
   const rows = await prisma.message.findMany({
     where: sent
       ? { campusId, senderId: userId }
-      : { campusId, status: "sent", recipients: { some: { userId } } },
+      : {
+          campusId,
+          recipients: { some: { userId } },
+          // Scheduled messages reach the inbox once their time has come; there is no separate sender job.
+          OR: [{ status: "sent" }, { status: "scheduled", scheduledAt: { lte: new Date() } }],
+        },
     include: {
       recipients: true,
       attachments: { select: { id: true, fileName: true, contentType: true, fileSize: true } },
@@ -1707,7 +1720,7 @@ export async function listMessages(campusId: string, userId: string, folder: str
       body: row.body,
       sentAt: row.sentAt,
       scheduledAt: row.scheduledAt,
-      status: row.status,
+      status: row.status === "scheduled" && row.scheduledAt && row.scheduledAt <= new Date() ? "sent" : row.status,
       readAt: mine?.readAt || null,
       senderName: label(row.senderId),
       senderChildInfo: "",
