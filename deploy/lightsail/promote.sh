@@ -18,7 +18,17 @@ case "$auth_url" in
     if ! printf '%s' "$host" | grep -Eq '^[0-9.]+$'; then domain="$host"; fi
     ;;
 esac
-if [ -n "$domain" ]; then echo "Mode: HTTPS for $domain"; else echo "Mode: plain HTTP (AUTH_URL is not an https domain)"; fi
+# Only go HTTPS when the domain already points at this server; otherwise a certificate cannot be
+# issued and the site would break. Stay on HTTP and say why.
+if [ -n "$domain" ]; then
+  public_ip="$(curl -fsS -m 10 https://checkip.amazonaws.com 2>/dev/null | tr -d '[:space:]' || true)"
+  resolved="$(getent ahostsv4 "$domain" 2>/dev/null | awk '{print $1; exit}' || true)"
+  if [ -z "$public_ip" ] || [ "$resolved" != "$public_ip" ]; then
+    echo "AUTH_URL names $domain, but it resolves to '${resolved:-nothing}' and this server is '${public_ip:-unknown}'. Staying on plain HTTP until DNS points here."
+    domain=""
+  fi
+fi
+if [ -n "$domain" ]; then echo "Mode: HTTPS for $domain"; else echo "Mode: plain HTTP"; fi
 
 # Back up the database with the running container before anything changes. If the dump fails,
 # set -e stops the deploy here and the current version keeps running. The file lands in the
@@ -113,8 +123,19 @@ if [ "$mode" = https ]; then
     fi
     sleep 3
   done
+  # Then a real HTTPS request through Caddy, certificate included (issuing can take a minute).
+  if [ "$proxied" = 1 ]; then
+    proxied=0
+    for _ in $(seq 1 40); do
+      if curl -fsS -m 10 --resolve "$domain:443:127.0.0.1" -o /dev/null "https://$domain/api/health"; then
+        proxied=1
+        break
+      fi
+      sleep 3
+    done
+  fi
   if [ "$proxied" != 1 ]; then
-    echo "Caddy did not come up. Falling back to plain HTTP on port 80 so the site stays reachable."
+    echo "HTTPS did not come up for $domain. Falling back to plain HTTP on port 80 so the site stays reachable."
     sudo docker logs --tail 30 campus-caddy || true
     sudo docker rm -f campus-caddy >/dev/null 2>&1 || true
     run_app "$IMAGE" http

@@ -14,7 +14,8 @@
 3. **Redeploy:** re-run the latest `docker-image` workflow, or merge any change to `main`.
    - `promote.sh` sees the https domain and starts Caddy on ports 80/443. Caddy gets a free Let's Encrypt certificate and proxies to the app; the app is no longer published on port 80 itself.
    - Sign-in cookies become HTTPS-only.
-   - If Caddy can't start, the script goes back to plain HTTP on port 80, so the site stays reachable, and the deploy is marked failed.
+   - HTTPS turns on only if the domain already resolves to this server. Otherwise the script stays on plain HTTP and says why in the deploy log.
+   - If a real HTTPS request through Caddy doesn't succeed within about 2 minutes, the script goes back to plain HTTP on port 80, so the site stays reachable, and the deploy is marked failed.
 4. **Check:** open `https://erp.yourschool.in`. `http://` now redirects to `https://`.
 5. **Turning it off:** set `AUTH_URL` back to `http://...` and redeploy.
 
