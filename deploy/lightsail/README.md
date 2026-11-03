@@ -1,4 +1,28 @@
-# Deploy to AWS Lightsail (single instance, Docker Compose)
+# Deploy to AWS Lightsail
+
+## How the live server runs today
+- A push to `main` runs `ci` and then `docker-image`. That workflow builds the image, then SSHes in and runs `promote.sh`, which:
+  - backs up the database;
+  - swaps the `campus-erp` container;
+  - health-checks it, and rolls back if it's unhealthy.
+- Settings live in `/opt/campus-erp/app.env` on the server. The database is the managed Lightsail Postgres `campus-erp-db`.
+- The Docker Compose steps further down are the original single-box setup. They're not what the live server uses.
+
+### Turning on HTTPS (one time)
+1. **DNS:** create an A record for your domain (for example `erp.yourschool.in`) pointing at the static IP `15.134.63.44`. Wait until `nslookup erp.yourschool.in` returns that IP.
+2. **Server settings:** in `/opt/campus-erp/app.env`, set `AUTH_URL=https://erp.yourschool.in` and `NEXTAUTH_URL=https://erp.yourschool.in`.
+3. **Redeploy:** re-run the latest `docker-image` workflow, or merge any change to `main`.
+   - `promote.sh` sees the https domain and starts Caddy on ports 80/443. Caddy gets a free Let's Encrypt certificate and proxies to the app; the app is no longer published on port 80 itself.
+   - Sign-in cookies become HTTPS-only.
+   - If Caddy can't start, the script goes back to plain HTTP on port 80, so the site stays reachable, and the deploy is marked failed.
+4. **Check:** open `https://erp.yourschool.in`. `http://` now redirects to `https://`.
+5. **Turning it off:** set `AUTH_URL` back to `http://...` and redeploy.
+
+Certificates are kept in `/opt/campus-erp/caddy` and renew automatically.
+
+---
+
+## Original single-box setup (Docker Compose)
 
 Runs Postgres + the Next.js app + Caddy (automatic HTTPS) on one Lightsail Linux instance.
 

@@ -18,3 +18,17 @@ export function authCookieOptions(maxAge = MAX_AGE) {
     secure: cookieSecure(),
   };
 }
+
+/** True only when AUTH_URL / NEXTAUTH_URL is explicitly https (no production guess). */
+export function authUrlIsHttps() {
+  return (process.env.AUTH_URL || process.env.NEXTAUTH_URL || "").trim().startsWith("https://");
+}
+
+/**
+ * Cookie options for the School World sign-in. Unlike authCookieOptions it never guesses Secure
+ * from NODE_ENV: a server still on plain HTTP with no AUTH_URL would otherwise drop the cookie
+ * and nobody could sign in.
+ */
+export function schoolWorldCookieOptions(maxAge?: number) {
+  return { ...authCookieOptions(maxAge), secure: authUrlIsHttps() };
+}

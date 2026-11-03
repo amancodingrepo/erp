@@ -1,3 +1,4 @@
+import { AUTH_COOKIE, schoolWorldCookieOptions } from "@/lib/auth-cookie";
 import { Prisma } from "@prisma/client";
 import { signAuthToken } from "@/lib/auth-token";
 import { campusSummary } from "@/lib/campus";
@@ -49,12 +50,8 @@ export async function POST(request: Request) {
     const response = ok({
       user: schoolWorldUser(principal, account, campus),
     });
-    response.cookies.set("erp_token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 12,
-    });
+    // Same options as the ERP sign-in: Secure once AUTH_URL is https, so the session never rides plain HTTP.
+    response.cookies.set(AUTH_COOKIE, token, schoolWorldCookieOptions());
     return response;
   } catch (error) {
     if (isDatabaseFailure(error)) {
