@@ -71,7 +71,7 @@ export default function EventDetailsDialog({ context }) {
               <div className="events-detail-meta">
                 <ContactRound size={16} />
                 <span>
-                  {(selectedEvent.recipientIds || []).length} {t("selected recipients")}
+                  {(selectedEvent.recipientIds || []).length} {t((selectedEvent.recipientIds || []).length === 1 ? "selected recipient" : "selected recipients")}
                 </span>
               </div>
             )}

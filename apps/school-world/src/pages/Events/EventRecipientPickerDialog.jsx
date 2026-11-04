@@ -277,7 +277,7 @@ export default function EventRecipientPickerDialog({ context }) {
             />
           </label>
           <span className="events-broadcast-count">
-            {selectedRecipientIds.length} {t("selected contacts")}
+            {selectedRecipientIds.length} {t(selectedRecipientIds.length === 1 ? "selected contact" : "selected contacts")}
           </span>
           <button type="submit" className="events-button events-primary">
             <Check size={14} />
@@ -295,7 +295,7 @@ export default function EventRecipientPickerDialog({ context }) {
 
       {!broadcastFormOpen && (
         <div className="events-contact-list-footer-action">
-          <span>{selectedRecipientIds.length} {t("contacts selected")}</span>
+          <span>{selectedRecipientIds.length} {t(selectedRecipientIds.length === 1 ? "contact selected" : "contacts selected")}</span>
           <button
             type="button"
             className="events-button events-outline"
@@ -308,7 +308,7 @@ export default function EventRecipientPickerDialog({ context }) {
       )}
 
       <footer className="events-picker-footer">
-        <span>{selectedRecipientIds.length} {t("contacts selected")}</span>
+        <span>{selectedRecipientIds.length} {t(selectedRecipientIds.length === 1 ? "contact selected" : "contacts selected")}</span>
         <button
           type="button"
           className="events-button events-outline"

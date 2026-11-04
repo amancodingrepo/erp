@@ -212,7 +212,7 @@ export default function EventEditorDialog({ context }) {
               </strong>
               <small>
                 {selectedRecipientsCount
-                  ? selectedRecipientsCount + " " + t("contacts selected")
+                  ? selectedRecipientsCount + " " + t(selectedRecipientsCount === 1 ? "contact selected" : "contacts selected")
                   : t("No recipients selected yet")}
               </small>
             </span>
