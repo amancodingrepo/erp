@@ -278,8 +278,10 @@ export default function EventsCalendar({ students = [], onNotify }) {
   async function removeBroadcastList(list) {
     if (!list || !window.confirm("Delete broadcast list “" + list.name + "”?")) return;
     const nextLists = contactLists.filter(item => item.id !== list.id);
-    await persist(events, nextLists);
-    if (selectedListId === list.id) setSelectedListId("");
+    if (await persist(events, nextLists)) {
+      if (selectedListId === list.id) setSelectedListId("");
+      setContactFeedback("Broadcast list “" + list.name + "” deleted.");
+    }
   }
   function setDraftField(key, value) {
     setDraft(current => current ? { ...current, [key]: value } : current);
@@ -388,7 +390,7 @@ export default function EventsCalendar({ students = [], onNotify }) {
         {saving && <span className="events-saving-state"><LoaderCircle size={14} className="events-spin"/>{t("Saving…")}</span>}
       </div>
 
-      <EventsDialogs context={{ formOpen, draft, classPickerOpen, recipientPickerOpen, setFormOpen, saving, saveEvent, t, EVENT_TYPES, eventIcon, changeEventType, setDraftField, EVENT_LABELS, selectedClassNames, setClassPickerOpen, classOptions, students, recipientPickerType, setRecipientPickerType, staffPeople, loadStaffPeople, selectedRecipientsCount, filterOpen, setFilterOpen, contactsSearch, setContactsSearch, contactTypeFilter, setContactTypeFilter, contactLists, selectedListId, setSelectedListId, applyBroadcastList, removeBroadcastList, contactFeedback, peopleLoading, peopleError, visibleRecipients, toggleAllVisibleRecipients, downloadRecipients, changeRecipient, broadcastFormOpen, setBroadcastFormOpen, broadcastName, setBroadcastName, saveBroadcastList, selectedEvent, setDetailEventId, eventCssType, dateLabel, deleteEvent, openEditEvent }} />
+      <EventsDialogs context={{ formOpen, draft, classPickerOpen, recipientPickerOpen, setRecipientPickerOpen, setFormOpen, saving, saveEvent, t, EVENT_TYPES, eventIcon, changeEventType, setDraftField, EVENT_LABELS, selectedClassNames, setClassPickerOpen, classOptions, students, recipientPickerType, setRecipientPickerType, staffPeople, loadStaffPeople, selectedRecipientsCount, filterOpen, setFilterOpen, contactsSearch, setContactsSearch, contactTypeFilter, setContactTypeFilter, contactLists, selectedListId, setSelectedListId, applyBroadcastList, removeBroadcastList, contactFeedback, peopleLoading, peopleError, visibleRecipients, toggleAllVisibleRecipients, downloadRecipients, changeRecipient, broadcastFormOpen, setBroadcastFormOpen, broadcastName, setBroadcastName, saveBroadcastList, selectedEvent, setDetailEventId, eventCssType, dateLabel, deleteEvent, openEditEvent }} />
     </section>
   );
 }
