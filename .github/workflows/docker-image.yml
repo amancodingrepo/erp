@@ -69,12 +69,19 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
           IMAGE: ${{ needs.build.outputs.image }}
+          # Repository variable (Settings > Secrets and variables > Actions > Variables), for
+          # example erp.schoolworld.online. Set it to serve the site over HTTPS; empty means HTTP.
+          PUBLIC_DOMAIN: ${{ vars.PUBLIC_DOMAIN }}
         run: |
           set -euo pipefail
+          # It goes into a remote shell command below, so only a plain hostname is allowed.
+          if [ -n "$PUBLIC_DOMAIN" ] && ! printf '%s' "$PUBLIC_DOMAIN" | grep -Eq '^[a-z0-9.-]+$'; then
+            echo "PUBLIC_DOMAIN must be a plain lowercase hostname"; exit 1
+          fi
           install -m 600 /dev/null /tmp/ls.pem
           printf '%s\n' "$SSH_KEY" > /tmp/ls.pem
           ssh -i /tmp/ls.pem -o StrictHostKeyChecking=accept-new "ec2-user@${HOST}" \
-            "IMAGE='$IMAGE' GHCR_TOKEN='$GHCR_TOKEN' GHCR_USER='$GHCR_USER' bash -s" \
+            "IMAGE='$IMAGE' GHCR_TOKEN='$GHCR_TOKEN' GHCR_USER='$GHCR_USER' PUBLIC_DOMAIN='$PUBLIC_DOMAIN' bash -s" \
             < deploy/lightsail/promote.sh
           rm -f /tmp/ls.pem
 

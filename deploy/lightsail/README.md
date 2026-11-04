@@ -9,15 +9,16 @@
 - The Docker Compose steps further down are the original single-box setup. They're not what the live server uses.
 
 ### Turning on HTTPS (one time)
-1. **DNS:** create an A record for your domain (for example `erp.yourschool.in`) pointing at the static IP `15.134.63.44`. Wait until `nslookup erp.yourschool.in` returns that IP.
-2. **Server settings:** in `/opt/campus-erp/app.env`, set `AUTH_URL=https://erp.yourschool.in` and `NEXTAUTH_URL=https://erp.yourschool.in`.
+1. **DNS:** add an A record for the domain pointing at the static IP `15.134.63.44`, with no AAAA record. Wait until `nslookup <domain>` returns that IP. (Live: `erp.schoolworld.online`.)
+2. **Name the domain:** GitHub → repository Settings → Secrets and variables → Actions → **Variables**: set `PUBLIC_DOMAIN` to the domain. Setting `AUTH_URL=https://<domain>` in `/opt/campus-erp/app.env` also works; `PUBLIC_DOMAIN` takes priority.
 3. **Redeploy:** re-run the latest `docker-image` workflow, or merge any change to `main`.
-   - `promote.sh` sees the https domain and starts Caddy on ports 80/443. Caddy gets a free Let's Encrypt certificate and proxies to the app; the app is no longer published on port 80 itself.
-   - Sign-in cookies become HTTPS-only.
-   - HTTPS turns on only if the domain already resolves to this server. Otherwise the script stays on plain HTTP and says why in the deploy log.
+   - `promote.sh` starts Caddy on 80/443. Caddy gets a free Let's Encrypt certificate and proxies to the app, which leaves the host ports.
+   - The app gets `AUTH_URL=https://<domain>`, so sign-in cookies are HTTPS-only.
+   - `http://` and the bare IP both redirect to `https://<domain>`.
+   - HTTPS turns on only if the domain resolves to this server. Otherwise the script stays on plain HTTP and says why in the deploy log.
    - If a real HTTPS request through Caddy doesn't succeed within about 2 minutes, the script goes back to plain HTTP on port 80, so the site stays reachable, and the deploy is marked failed.
-4. **Check:** open `https://erp.yourschool.in`. `http://` now redirects to `https://`.
-5. **Turning it off:** set `AUTH_URL` back to `http://...` and redeploy.
+4. **Check:** open `https://<domain>`.
+5. **Turning it off:** clear `PUBLIC_DOMAIN` (and any https `AUTH_URL`) and redeploy.
 
 Certificates are kept in `/opt/campus-erp/caddy` and renew automatically.
 
