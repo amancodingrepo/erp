@@ -90,7 +90,8 @@ export async function changeOwnPassword(userId: string, input: unknown) {
   if (!matches) throw validationError({ current: "incorrect password" });
   await prisma.user.update({
     where: { id: user.id },
-    data: { passwordHash: await hashPassword(body.next) },
+    // A password the user chose themselves ends any "must change password" requirement.
+    data: { passwordHash: await hashPassword(body.next), mustChangePassword: false },
   });
   return { ok: true };
 }
