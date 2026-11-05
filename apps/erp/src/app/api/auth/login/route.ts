@@ -6,6 +6,7 @@ import { fail, ok, readJson } from "@/lib/http";
 import { authenticateCredentials } from "@/lib/principal";
 import { prisma } from "@/lib/db";
 import { schoolWorldUser } from "@/lib/school-world-shape";
+import { schoolBranding } from "@/lib/school-branding";
 import { HttpError } from "@/lib/errors";
 
 const portals = ["staff", "student", "parent"] as const;
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     ]);
     const token = await signAuthToken(principal);
     const response = ok({
-      user: schoolWorldUser(principal, account, campus),
+      user: schoolWorldUser(principal, account, campus, await schoolBranding(principal.campusId)),
     });
     // Same options as the ERP sign-in: Secure once AUTH_URL is https, so the session never rides plain HTTP.
     response.cookies.set(AUTH_COOKIE, token, schoolWorldCookieOptions());

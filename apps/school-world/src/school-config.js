@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 
 export const SCHOOL_NAME_STORAGE_KEY = "schoolDiary.activeSchoolName";
 const SCHOOL_NAME_EVENT = "schooldiary:tenant-updated";
-const DEFAULT_SCHOOL_NAME = "Sanford School";
+// No built-in school: the name always comes from the signed-in school (tenant).
+const DEFAULT_SCHOOL_NAME = "";
 
 function nonEmpty(value) {
   return typeof value === "string" && value.trim() ? value.trim() : "";

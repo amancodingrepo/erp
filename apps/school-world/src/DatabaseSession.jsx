@@ -8,14 +8,14 @@ function installRuntimeConfig(user) {
   const existing = window.SCHOOL_DIARY_CONFIG && typeof window.SCHOOL_DIARY_CONFIG === 'object' ? window.SCHOOL_DIARY_CONFIG : {};
   window.SCHOOL_DIARY_CONFIG = {
     ...existing,
-    schoolName: school?.name || existing.schoolName || 'Sanford School',
+    schoolName: school?.name || existing.schoolName || '',
     schoolId: school?.id || null,
     schoolCode: school?.code || null,
     schoolAddress: school?.address || school?.config?.address || '',
     schoolPhone: school?.phone || school?.config?.phone || '',
     schoolEmail: school?.email || school?.config?.email || '',
     schoolTimezone: school?.timezone || school?.config?.timezone || 'Asia/Kolkata',
-    schoolLogoDataUrl: school?.config?.logoDataUrl || '',
+    schoolLogoUrl: school?.logoUrl || '',
     classes: existing.classes || [],
     currentUser: {
       id: user.id,

@@ -25,7 +25,6 @@ import NoticeRecipientPortal from "./pages/NoticeBoard/NoticeRecipientPortal.jsx
 import AppThemeControl from "./AppThemeControl.jsx";
 import { DialogProvider } from "./components/dialogs/DialogProvider.jsx";
 
-import initialStudents from "./student-data.js";
 import { parseCsvRows, downloadCsvFile } from "./shared/csvUtils.js";
 import { getNavigationHref, getModuleNavigationTarget, readUrlNavigation } from "./navigation.js";
 import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload } from "./pages/Students/bulkStudentImport.js";
@@ -117,9 +116,11 @@ function SchoolDiaryApp({ user, onLogout }) {
   const schoolName = useSchoolName();
   const { language } = useLanguage(); // Re-render all pages when the global language changes.
   const [design, setDesign] = useState("cards");
+  // Students come only from this school's database. An earlier version kept a copy (and a
+  // bundled set of fictional students) in browser storage; drop it so nothing stale shows.
   const [students, setStudents] = useState(() => {
-    const saved = readStoredValue(STUDENTS_STORAGE_KEY, initialStudents);
-    return Array.isArray(saved) ? saved : initialStudents;
+    try { window.localStorage.removeItem(STUDENTS_STORAGE_KEY); } catch { /* storage may be blocked */ }
+    return [];
   });
   const [dbReady, setDbReady] = useState(false);
   const [dbLoadError, setDbLoadError] = useState("");
@@ -701,7 +702,7 @@ function SchoolDiaryApp({ user, onLogout }) {
   if (currentView === "admission") return <AdmissionFormPage student={students.find(s => String(s.id) === String(editingStudent?.id)) || editingStudent || students[0] || {}} savedDetails={detailsById[editingStudent?.id || students[0]?.id]} onBack={returnFromAdmission} onNotify={notify} onOpenModule={openSidebarModule} classOptions={availableClasses} activeModule="Admission/Enquiry Form" />;
   if (currentView === "module") return <SidebarModulePage key={activeSidebarModule} moduleName={activeSidebarModule} userRole={user?.role} students={students} onOpenDuesTillDate={openOutstandingFeesDueThroughToday} initialDueThroughToday={feesDueThroughTodayOnOpen} onUpdateStudent={updateStudent} onRefreshStudents={async () => { const refreshed = await apiGet("/students"); setStudents(Array.isArray(refreshed.students) ? refreshed.students : []); }} onBack={returnFromModule} onSelectModule={openSidebarModule} onOpenBranchLinkedModule={openBranchLinkedModule} onOpenAdmission={openAdmissionForm} onNotify={notify} onOpenStudent={(student, initialTab) => { const returnModule = moduleParentView === "My Branch" ? "My Branch" : (activeSidebarModule || "My Branch"); setEditingStudent(initialTab ? { ...student, _initialTab: initialTab } : student); setEditReturnModule(returnModule); setCurrentView("edit"); syncNavigationUrl({ view: "edit", studentId: student.id, parent: returnModule }); }} backLabel={moduleParentView === "My Branch" ? "Back to My Branch" : moduleReturnView === "manage" ? "Back to Manage Students" : moduleReturnView === "notice-landing" ? "Back to Notice Board" : moduleReturnView === "admission" ? "Back to Admission Form" : "Back to Edit Student"} />;
 
-  const manageStudentsContext = {
+  const manageStudentsContext = { notify,
     schoolName,
     user,
     onLogout,

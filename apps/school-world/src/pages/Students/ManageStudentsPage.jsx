@@ -18,12 +18,12 @@ export default function ManageStudentsPage({ context }) {
     setYearFilter, availableYears, query, setQuery, showFilters, setShowFilters, sortBy,
     setSortBy, activeTab, design, setDesign, visible, filtered, safePage, pageSize,
     setPageSize, totalPages, actions, openAction, actionLabel, toast, clearToast, modal, setModal,
-    form, setForm, feeDetailsLoading, feeDetailRecords, submitModal
+    form, setForm, feeDetailsLoading, feeDetailRecords, submitModal, notify
   } = context;
 
   return (
     <div className="app-shell">
-      <ManageStudentsHeader context={{ schoolName, user, onLogout, navItems, currentView, activeSidebarModule, openSidebarModule }} />
+      <ManageStudentsHeader context={{ schoolName, navItems, currentView, activeSidebarModule, openSidebarModule, notify }} />
       <main className="main">
         <div className="page-top">
           <div>

@@ -1,0 +1,95 @@
+/* Top bar actions: language, theme, notifications, settings, profile. The bar itself is dark. */
+.tb-actions-bar{display:flex;align-items:center;gap:10px;font-size:12px;white-space:nowrap}
+.tb-actions-bar .app-theme-control{align-self:center}
+.tb-menu{position:relative;display:flex}
+.tb-trigger{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:36px;min-width:36px;justify-content:center;padding:0 8px;border:1px solid transparent;border-radius:9px;background:transparent;color:inherit;font-weight:600}
+.tb-trigger:hover,.tb-trigger.open{background:#ffffff1a;border-color:#ffffff2e}
+.tb-trigger:focus-visible,.tb-item:focus-visible,.tb-notification:focus-visible,.tb-link:focus-visible,.tb-btn:focus-visible,.tb-icon-btn:focus-visible{outline:2px solid #7fb2ff;outline-offset:2px}
+.tb-badge{position:absolute;top:2px;right:1px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#e5484d;color:#fff;font-size:10px;font-weight:800;line-height:17px;text-align:center;box-shadow:0 0 0 2px #102d52}
+.tb-avatar{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#2f6bd6;color:#fff;font-size:11px;font-weight:800;letter-spacing:.3px;flex:0 0 auto}
+.tb-avatar-lg{width:40px;height:40px;font-size:14px}
+.tb-user-name{max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.tb-chevron{opacity:.75}
+
+.tb-panel{position:absolute;top:calc(100% + 8px);z-index:12000;min-width:240px;max-width:min(92vw,360px);background:#fff;color:#1d3350;border:1px solid #dfe7f1;border-radius:12px;box-shadow:0 18px 40px #0f22401f,0 2px 6px #0f22400f;padding:6px;text-align:left;white-space:normal;font-size:13px}
+.tb-panel-right{right:0}.tb-panel-left{left:0}
+.tb-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 10px 10px;border-bottom:1px solid #edf1f7;margin-bottom:4px}
+.tb-panel-head strong{font-size:14px;color:#14294a}.tb-panel-head small{color:#71839b;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-panel-foot{display:flex;justify-content:space-between;gap:10px;padding:8px 10px 4px;border-top:1px solid #edf1f7;margin-top:4px}
+.tb-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font-size:13px}
+.tb-item:hover{background:#f2f6fc}
+.tb-item.danger{color:#b42318}.tb-item.danger:hover{background:#fef1f0}
+.tb-item-icon{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#f0f5fd;color:#2f6bd6;flex:0 0 auto}
+.tb-item.danger .tb-item-icon{background:#fdeceb;color:#b42318}
+.tb-item-text{display:grid;gap:1px;min-width:0}.tb-item-text small{color:#7a8ba2;font-size:11px}
+.tb-sep{height:1px;background:#edf1f7;margin:4px 6px}
+.tb-hint{color:#6d7f97;font-size:12px;line-height:1.5;margin:0}.tb-hint.pad{padding:6px 10px 8px}
+.tb-link{border:0;background:none;padding:2px 0;color:#1767df;font-weight:700;font-size:12px;border-radius:4px}
+.tb-link:hover{text-decoration:underline}
+
+.tb-profile{min-width:280px}
+.tb-profile-head{display:flex;gap:12px;align-items:center;padding:10px 10px 12px;border-bottom:1px solid #edf1f7;margin-bottom:4px}
+.tb-profile-head div{display:grid;gap:2px;min-width:0}
+.tb-profile-head strong{font-size:14px;color:#14294a;overflow:hidden;text-overflow:ellipsis}
+.tb-profile-head small{color:#6d7f97;font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.tb-role{display:inline-block;margin-top:3px;color:#2f6bd6;font-size:11px;font-weight:700}
+
+.tb-notifications{width:min(92vw,380px)}
+.tb-notification-list{list-style:none;margin:0;padding:0;max-height:min(60vh,420px);overflow:auto}
+.tb-notification{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;width:100%;padding:10px;border:0;border-radius:8px;background:transparent;text-align:left;color:inherit}
+.tb-notification:hover{background:#f2f6fc}
+.tb-notification-text{display:grid;gap:2px;min-width:0}
+.tb-notification-text strong{font-size:13px;color:#14294a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-notification-text small{color:#6d7f97;font-size:12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tb-notification time{color:#8a9ab0;font-size:11px;white-space:nowrap;padding-top:2px}
+.tb-kind{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%}
+.tb-kind-message{background:#e8f1ff;color:#1767df}.tb-kind-notice{background:#fff4e0;color:#b25e00}
+.tb-kind-leave{background:#eaf7ef;color:#16794a}.tb-kind-admission{background:#f2ecff;color:#6b3fd1}
+.tb-empty{display:grid;justify-items:center;gap:6px;padding:22px 16px;text-align:center;color:#6d7f97}
+.tb-empty span{font-weight:700;color:#334b69}.tb-empty small{font-size:12px;line-height:1.5}
+.tb-more{margin:4px 10px;color:#7a8ba2;font-size:11px}
+.tb-alert{margin:8px 10px;padding:9px 11px;border-radius:8px;font-size:12px;line-height:1.5}
+.tb-alert.error{background:#fff4f4;border:1px solid #f2c7c7;color:#a52a2a}.tb-alert.ok{background:#f1fff5;border:1px solid #b8e3c6;color:#19683a}
+
+/* Account and school profile dialogs */
+.tb-dialog{width:min(94vw,520px);padding:0;border-radius:14px;color:#1d3350}
+.tb-dialog-head{display:flex;gap:12px;align-items:center;padding:18px 18px 14px;border-bottom:1px solid #edf1f7}
+.tb-dialog-head div{flex:1;min-width:0}.tb-dialog-head h2{margin:0;font-size:18px;color:#14294a}.tb-dialog-head p{margin:2px 0 0;color:#6d7f97;font-size:12px}
+.tb-icon-btn{display:grid;place-items:center;width:34px;height:34px;border:1px solid #dae2ed;border-radius:8px;background:#fff;color:#526174}
+.tb-tabs{display:flex;gap:4px;padding:10px 18px 0;border-bottom:1px solid #edf1f7}
+.tb-tabs button{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:0;border-bottom:2px solid transparent;background:none;color:#5d6f87;font-weight:700;font-size:13px}
+.tb-tabs button.active{color:#1767df;border-bottom-color:#1767df}
+.tb-form{display:grid;gap:14px;padding:16px 18px 18px}
+.tb-form label{display:grid;gap:6px;color:#334b69;font-size:12px;font-weight:700}
+.tb-form input:not([type=file]){height:42px;padding:0 12px;border:1px solid #d7e1ed;border-radius:9px;background:#fbfcfe;color:#243b5b;font-size:13px;font-weight:400}
+.tb-form input:focus{outline:0;border-color:#4a8af2;box-shadow:0 0 0 3px #2675e512;background:#fff}
+.tb-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tb-facts{display:grid;gap:8px;margin:0;padding:12px;border:1px solid #edf1f7;border-radius:10px;background:#fbfcfe}
+.tb-facts div{display:grid;grid-template-columns:90px 1fr;gap:10px;font-size:13px}.tb-facts dt{color:#6d7f97}.tb-facts dd{margin:0;color:#14294a;font-weight:600}
+.tb-actions{display:flex;justify-content:flex-end;gap:8px}.tb-actions.left{justify-content:flex-start}
+.tb-btn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border:1px solid #d7e1ed;border-radius:9px;background:#fff;color:#1d3b63;font-size:13px;font-weight:700;cursor:pointer}
+.tb-btn:hover{background:#f4f7fb}.tb-btn.primary{background:#1767df;border-color:#1767df;color:#fff}.tb-btn.primary:hover{background:#0f55bd}.tb-btn:disabled{opacity:.6;cursor:wait}
+.tb-logo-row{display:flex;gap:14px;align-items:center;padding:12px;border:1px dashed #cfdbea;border-radius:10px}
+.tb-logo-preview{display:grid;place-items:center;width:84px;height:84px;border-radius:10px;background:#f2f6fc;color:#7a8ba2;overflow:hidden;flex:0 0 auto}
+.tb-logo-preview img{width:100%;height:100%;object-fit:contain}
+.tb-logo-actions{display:grid;gap:6px}.tb-logo-actions small{color:#6d7f97;font-size:12px}
+
+/* Sidebar school logo, from the school's own settings */
+.sw-school-logo{display:grid;justify-items:center;gap:8px;text-align:center}
+.sw-school-logo img{display:block;width:100%;max-width:150px;max-height:150px;height:auto;object-fit:contain;margin:0 auto}
+.sw-school-logo-fallback{display:grid;place-items:center;width:72px;height:72px;border-radius:16px;background:#eaf2ff;color:#1767df;font-size:24px;font-weight:800}
+.sw-school-logo strong{font-size:13px;color:#14294a;line-height:1.3}
+
+@media(max-width:900px){.tb-user-name,.tb-chevron{display:none}.tb-actions-bar{gap:6px}}
+@media(max-width:560px){.tb-two{grid-template-columns:1fr}.tb-trigger{padding:0 6px;min-width:34px}}
+
+html[data-sd-theme] .tb-panel,html[data-sd-theme] .tb-dialog{background:var(--sd-surface)!important;color:var(--sd-text)!important;border-color:var(--sd-border)!important}
+html[data-sd-theme] .tb-panel-head strong,html[data-sd-theme] .tb-profile-head strong,html[data-sd-theme] .tb-notification-text strong,html[data-sd-theme] .tb-dialog-head h2,html[data-sd-theme] .tb-facts dd,html[data-sd-theme] .sw-school-logo strong{color:var(--sd-text)!important}
+html[data-sd-theme] .tb-item:hover,html[data-sd-theme] .tb-notification:hover{background:var(--sd-surface-soft)!important}
+html[data-sd-theme] .tb-item-icon,html[data-sd-theme] .sw-school-logo-fallback{background:var(--sd-primary-soft)!important;color:var(--sd-primary)!important}
+html[data-sd-theme] .tb-avatar,html[data-sd-theme] .tb-btn.primary{background:var(--sd-primary)!important;border-color:var(--sd-primary)!important}
+html[data-sd-theme] .tb-link,html[data-sd-theme] .tb-role,html[data-sd-theme] .tb-tabs button.active{color:var(--sd-primary)!important;border-bottom-color:var(--sd-primary)!important}
+html[data-sd-theme] .tb-panel-head,html[data-sd-theme] .tb-panel-foot,html[data-sd-theme] .tb-profile-head,html[data-sd-theme] .tb-sep,html[data-sd-theme] .tb-dialog-head,html[data-sd-theme] .tb-tabs{border-color:var(--sd-border)!important}
+html[data-sd-theme] .tb-sep{background:var(--sd-border)!important}
+html[data-sd-theme] .tb-badge{box-shadow:0 0 0 2px var(--sd-topbar)!important}
+html[data-sd-theme] .tb-form input:not([type=file]){background:var(--sd-input-bg)!important;color:var(--sd-text)!important;border-color:var(--sd-border)!important}
