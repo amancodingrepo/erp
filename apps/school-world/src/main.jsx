@@ -27,6 +27,7 @@ import { DialogProvider } from "./components/dialogs/DialogProvider.jsx";
 
 import { parseCsvRows, downloadCsvFile } from "./shared/csvUtils.js";
 import { getNavigationHref, getModuleNavigationTarget, readUrlNavigation } from "./navigation.js";
+import { clearLegacyStorage, readStoredNavigation, saveStoredNavigation } from "./browser-storage.js";
 import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload } from "./pages/Students/bulkStudentImport.js";
 
 
@@ -56,18 +57,10 @@ function downloadStudentCsvTemplate() {
   downloadCsvFile("school-diary-student-import-template.csv", [headers, example]);
 }
 
-const STUDENTS_STORAGE_KEY = "schoolDiaryCorrectedV4.students.uploadedData20261014";
-const DETAILS_STORAGE_KEY = "schoolDiaryCorrectedV4.detailsByStudentId.uploadedData20261014";
-const NAVIGATION_STORAGE_KEY = "schoolWorld.lastVisitedPage.v1";
-function readSavedNavigation() {
+function readSavedNavigation(user) {
   // A copied URL or Ctrl/Cmd-click destination should take precedence over
-  // the last page stored by another tab in localStorage.
-  const urlNavigation = readUrlNavigation();
-  if (urlNavigation) return urlNavigation;
-  try {
-    const raw = window.localStorage.getItem(NAVIGATION_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  // the last page this person visited (browser-storage.js).
+  return readUrlNavigation() || readStoredNavigation(user);
 }
 
 function syncNavigationUrl(target) {
@@ -79,23 +72,6 @@ function syncNavigationUrl(target) {
     window.history.pushState({ schoolWorldNavigation: target }, "", nextUrl);
   } catch (error) {
     console.warn("Could not update the current navigation URL.", error);
-  }
-}
-
-function readStoredValue(key, fallback) {
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveStoredValue(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.warn(`Could not persist ${key} in this browser.`, error);
   }
 }
 
@@ -116,10 +92,9 @@ function SchoolDiaryApp({ user, onLogout }) {
   const schoolName = useSchoolName();
   const { language } = useLanguage(); // Re-render all pages when the global language changes.
   const [design, setDesign] = useState("cards");
-  // Students come only from this school's database. An earlier version kept a copy (and a
-  // bundled set of fictional students) in browser storage; drop it so nothing stale shows.
+  // Students and their details come only from this school's database (see clearLegacyStorage).
   const [students, setStudents] = useState(() => {
-    try { window.localStorage.removeItem(STUDENTS_STORAGE_KEY); } catch { /* storage may be blocked */ }
+    clearLegacyStorage();
     return [];
   });
   const [dbReady, setDbReady] = useState(false);
@@ -148,18 +123,18 @@ function SchoolDiaryApp({ user, onLogout }) {
   const [form, setForm] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [currentView, setCurrentView] = useState(() => {
-    const saved = readSavedNavigation();
+    const saved = readSavedNavigation(user);
     return ["module", "manage", "edit", "admission"].includes(saved?.currentView) ? saved.currentView : "module";
   });
   const [editingStudent, setEditingStudent] = useState(null);
-  const [activeSidebarModule, setActiveSidebarModule] = useState(() => readSavedNavigation()?.activeSidebarModule || "Dashboard");
+  const [activeSidebarModule, setActiveSidebarModule] = useState(() => readSavedNavigation(user)?.activeSidebarModule || "Dashboard");
   const [navigationRestored, setNavigationRestored] = useState(false);
-  const [feesDueThroughTodayOnOpen, setFeesDueThroughTodayOnOpen] = useState(() => Boolean(readSavedNavigation()?.dueThroughToday));
+  const [feesDueThroughTodayOnOpen, setFeesDueThroughTodayOnOpen] = useState(() => Boolean(readSavedNavigation(user)?.dueThroughToday));
   const [moduleReturnView, setModuleReturnView] = useState("notice-landing");
-  const [moduleParentView, setModuleParentView] = useState(() => readSavedNavigation()?.moduleParentView || null);
+  const [moduleParentView, setModuleParentView] = useState(() => readSavedNavigation(user)?.moduleParentView || null);
   const [admissionReturnView, setAdmissionReturnView] = useState("edit");
   const [admissionReturnModule, setAdmissionReturnModule] = useState("My Branch");
-  const [editReturnModule, setEditReturnModule] = useState(() => readSavedNavigation()?.activeSidebarModule || "My Branch");
+  const [editReturnModule, setEditReturnModule] = useState(() => readSavedNavigation(user)?.activeSidebarModule || "My Branch");
   const initialBrowserLocation = useRef(null);
   if (initialBrowserLocation.current === null) {
     initialBrowserLocation.current = {
@@ -169,10 +144,7 @@ function SchoolDiaryApp({ user, onLogout }) {
       dueThroughToday: feesDueThroughTodayOnOpen
     };
   }
-  const [detailsById, setDetailsById] = useState(() => {
-    const saved = readStoredValue(DETAILS_STORAGE_KEY, {});
-    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
-  });
+  const [detailsById, setDetailsById] = useState({});
 
   const availableClasses = useMemo(
     () => Array.from(new Set(students.map(s => s.className).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
@@ -232,7 +204,7 @@ function SchoolDiaryApp({ user, onLogout }) {
 
   useEffect(() => {
     if (!dbReady || navigationRestored) return;
-    const saved = readSavedNavigation();
+    const saved = readSavedNavigation(user);
     if (saved?.fromUrl) {
       if (saved.currentView === "edit" && saved.editingStudentId != null) {
         const targetStudent = students.find(student => String(student.id) === String(saved.editingStudentId));
@@ -262,14 +234,15 @@ function SchoolDiaryApp({ user, onLogout }) {
   useEffect(() => {
     if (!dbReady || !navigationRestored) return;
     const saved = { currentView, activeSidebarModule, editingStudentId: editingStudent?.id ?? null, activeTab, classFilter, yearFilter, query };
-    try { window.localStorage.setItem(NAVIGATION_STORAGE_KEY, JSON.stringify(saved)); }
-    catch (error) { console.warn("Could not save the last visited page.", error); }
-  }, [dbReady, navigationRestored, currentView, activeSidebarModule, editingStudent?.id, activeTab, classFilter, yearFilter, query]);
+    saveStoredNavigation(user, saved);
+  }, [dbReady, navigationRestored, currentView, activeSidebarModule, editingStudent?.id, activeTab, classFilter, yearFilter, query, user?.id, user?.school?.id]);
 
   useEffect(() => {
     let cancelled = false;
     async function hydrateFromDatabase() {
       setDbReady(false); setDbLoadError("");
+      // Switching campus must not keep showing the previous campus's students while the new ones load.
+      setStudents([]); setDetailsById({});
       try {
         const studentResult = await apiGet("/students");
         if (cancelled) return;
@@ -280,6 +253,7 @@ function SchoolDiaryApp({ user, onLogout }) {
         ]);
         if (cancelled) return;
         if (detailResult?.detailsById && typeof detailResult.detailsById === "object") setDetailsById(detailResult.detailsById);
+        else setToast(t("Student details (parents, transport, fees and more) could not be loaded. Reload the page to try again."));
         if (bootstrap?.school) {
           window.SCHOOL_DIARY_CONFIG = { ...(window.SCHOOL_DIARY_CONFIG || {}), ...bootstrap.school.config, schoolId: bootstrap.school.id, schoolCode: bootstrap.school.code, schoolName: bootstrap.school.name, classes: (bootstrap.classes || []).map(item => item.class_name) };
           window.dispatchEvent(new Event("schooldiary:tenant-updated"));

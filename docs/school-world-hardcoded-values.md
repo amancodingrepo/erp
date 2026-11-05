@@ -33,7 +33,9 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 | Value | Where | Should come from | Status |
 |---|---|---|---|
 | ~3,000 lines of fictional students (`STG-STU-…`) used as the Manage Students starting list until the real list loaded, and still shown if loading failed | `student-data.js`, imported by `main.jsx` | `GET /api/students` | **Fixed**: file deleted; the list starts empty; the old browser copy is cleared |
-| Student details read from an old browser cache (`schoolDiaryCorrectedV4.detailsByStudentId…`) before the database answers | `main.jsx` (`DETAILS_STORAGE_KEY`) | `GET /api/student-details` | To do: stop reading it and clear it. It's stale, and isn't scoped per school on a shared computer |
+| Student details read from an old browser cache (`schoolDiaryCorrectedV4.detailsByStudentId…`) before the database answers | `main.jsx` (`DETAILS_STORAGE_KEY`) | `GET /api/student-details` | **Fixed**. Details start empty and are removed from the browser. If loading fails, a message says so instead of showing old data. On a campus switch, the previous campus's records are cleared first. Rules are in `browser-storage.js` |
+| Last page, filters and search remembered for whoever used the browser last | `main.jsx` (`schoolWorld.lastVisitedPage.v1`) | Kept separately per person and school | **Fixed**: the next person on a shared computer doesn't open the previous person's student or search |
+| School name read from browser storage or a build setting (`schoolDiary.activeSchoolName`, `VITE_SCHOOL_NAME`) | `school-config.js` | `Campus.name` from the signed-in session | **Fixed**: removed; the old keys are cleared |
 | Demo notices with made-up names (JYOTI SHASTRI, PRIYANKA JAIN) | `pages/NoticeBoard/noticeBoardUtils.js` (`seedNotices`, imported but unused) | `GET /api/notices` | To do: delete the dead code |
 | Vehicle numbers `MP09AF3494`… as the default notice route | `noticeBoardUtils.js` (`DEFAULT_NOTICE_ROUTES`) | `GET /api/routes` (already fetched on that screen) | To do: start with the first real route, or none |
 

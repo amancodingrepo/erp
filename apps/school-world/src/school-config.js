@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-export const SCHOOL_NAME_STORAGE_KEY = "schoolDiary.activeSchoolName";
 const SCHOOL_NAME_EVENT = "schooldiary:tenant-updated";
 // No built-in school: the name always comes from the signed-in school (tenant).
 const DEFAULT_SCHOOL_NAME = "";
@@ -27,25 +26,11 @@ function extractSchoolName(value) {
     || nonEmpty(value.account?.school?.name);
 }
 
-function readStoredName(key) {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return "";
-    try {
-      return extractSchoolName(JSON.parse(raw)) || nonEmpty(raw);
-    } catch {
-      return nonEmpty(raw);
-    }
-  } catch {
-    return "";
-  }
-}
-
 /**
- * Resolve the active tenant's display name.
- * Production integrations should populate window.SCHOOL_DIARY_CONFIG from the
- * authenticated account/tenant response. Local storage and Vite env are useful
- * fallbacks for this standalone prototype.
+ * The signed-in school's display name, from the session (DatabaseSession sets
+ * window.SCHOOL_DIARY_CONFIG from the school's own record). There is deliberately no
+ * browser-storage or build-time fallback: on a multi-tenant platform those could show
+ * another school's name.
  */
 export function getSchoolName() {
   if (typeof window !== "undefined") {
@@ -53,16 +38,8 @@ export function getSchoolName() {
       || extractSchoolName(window.__SCHOOL_DIARY_CONFIG__)
       || extractSchoolName(window.SCHOOL_DIARY_TENANT);
     if (runtimeName) return runtimeName;
-
-    const storedName = readStoredName(SCHOOL_NAME_STORAGE_KEY)
-      || readStoredName("schoolDiary.activeSchool")
-      || readStoredName("schoolDiary.activeAccount")
-      || readStoredName("schoolDiary.tenantConfig");
-    if (storedName) return storedName;
   }
-
-  const configuredBuildName = nonEmpty(import.meta.env?.VITE_SCHOOL_NAME);
-  return configuredBuildName || DEFAULT_SCHOOL_NAME;
+  return DEFAULT_SCHOOL_NAME;
 }
 
 export function useSchoolName() {
@@ -70,10 +47,8 @@ export function useSchoolName() {
 
   useEffect(() => {
     const refresh = () => setSchoolName(getSchoolName());
-    window.addEventListener("storage", refresh);
     window.addEventListener(SCHOOL_NAME_EVENT, refresh);
     return () => {
-      window.removeEventListener("storage", refresh);
       window.removeEventListener(SCHOOL_NAME_EVENT, refresh);
     };
   }, []);
