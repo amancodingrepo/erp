@@ -128,7 +128,7 @@ export function SidebarModulePage({ moduleName, userRole = "staff", students = [
       content = <StoreVendorPage notify={notify} t={t} />;
       break;
     case "Admission/Enquiry Form":
-      content = <AdmissionFormsManagerPage />;
+      content = <AdmissionFormsManagerPage userRole={userRole} onOpenAdmission={onOpenAdmission} onNotify={notify} />;
       break;
     case "Departments":
       content = <DepartmentsScreen />;
