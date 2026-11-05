@@ -118,14 +118,56 @@ function NotificationsMenu({ onNotify }) {
   );
 }
 
+/** The avatar menu: who is signed in, My account, Change password, Switch campus and Sign out. */
+function ProfileMenu({ onNotify }) {
+  const session = useDatabaseSession();
+  const user = session.user;
+  const [dialog, setDialog] = useState(null); // null | "profile" | "password"
+  if (!user) return null;
+  const name = displayName(user);
+  const role = t(ROLE_LABELS[user.role] || "Staff");
+  return (
+    <>
+      <TopbarMenu label={t("Account menu for") + " " + name} panelClassName="tb-profile" icon={<><span className="tb-avatar" aria-hidden="true">{initials(name)}</span><span className="tb-user-name">{name}</span><ChevronDown size={15} className="tb-chevron" /></>}>
+        {(close) => (
+          <>
+            <div className="tb-profile-head">
+              <span className="tb-avatar tb-avatar-lg" aria-hidden="true">{initials(name)}</span>
+              <div><strong>{name}</strong>{user.email && user.email !== name ? <small>{user.email}</small> : null}<span className="tb-role">{role} · {user.school?.name}</span></div>
+            </div>
+            <MenuItem close={close} icon={<UserRound size={16} />} onSelect={() => setDialog("profile")}>{t("My account")}</MenuItem>
+            <MenuItem close={close} icon={<KeyRound size={16} />} onSelect={() => setDialog("password")}>{t("Change password")}</MenuItem>
+            {user.canSwitchCampus && <MenuItem close={close} icon={<Repeat size={16} />} hint={t("Work in another campus")} onSelect={() => goTo({ module: "Campus desk", screen: "/staff/multibranch/branch/overview" })}>{t("Switch campus")}</MenuItem>}
+            <div className="tb-sep" />
+            <MenuItem close={close} icon={<LogOut size={16} />} danger onSelect={session.logout}>{t("Sign out")}</MenuItem>
+          </>
+        )}
+      </TopbarMenu>
+      {dialog && <AccountDialog open initialTab={dialog} onClose={() => setDialog(null)} onNotify={onNotify} />}
+    </>
+  );
+}
+
+/**
+ * Top bar for the parent, student and teacher portal. That portal is itself the notices and
+ * messages feed and has no staff screens, so it gets the language, theme and profile menu only.
+ */
+export function PortalTopbarActions({ onNotify }) {
+  return (
+    <div className="tb-actions-bar">
+      <LanguageToggle />
+      <AppThemeControl />
+      <ProfileMenu onNotify={onNotify} />
+    </div>
+  );
+}
+
 export default function TopbarActions({ onNotify }) {
   const session = useDatabaseSession();
   const user = session.user;
-  const [dialog, setDialog] = useState(null); // null | "profile" | "password" | "school"
+  const [dialog, setDialog] = useState(null); // null | "profile" | "school"
   if (!user) return null;
-  const name = displayName(user);
   const manager = isManager(user);
-  const role = t(ROLE_LABELS[user.role] || "Staff");
   const notify = (text) => (onNotify ? onNotify(text) : undefined);
 
   return (
@@ -153,22 +195,8 @@ export default function TopbarActions({ onNotify }) {
           </>
         )}
       </TopbarMenu>
-      <TopbarMenu label={t("Account menu for") + " " + name} panelClassName="tb-profile" icon={<><span className="tb-avatar" aria-hidden="true">{initials(name)}</span><span className="tb-user-name">{name}</span><ChevronDown size={15} className="tb-chevron" /></>}>
-        {(close) => (
-          <>
-            <div className="tb-profile-head">
-              <span className="tb-avatar tb-avatar-lg" aria-hidden="true">{initials(name)}</span>
-              <div><strong>{name}</strong>{user.email && user.email !== name ? <small>{user.email}</small> : null}<span className="tb-role">{role} · {user.school?.name}</span></div>
-            </div>
-            <MenuItem close={close} icon={<UserRound size={16} />} onSelect={() => setDialog("profile")}>{t("My account")}</MenuItem>
-            <MenuItem close={close} icon={<KeyRound size={16} />} onSelect={() => setDialog("password")}>{t("Change password")}</MenuItem>
-            {user.canSwitchCampus && <MenuItem close={close} icon={<Repeat size={16} />} hint={t("Work in another campus")} onSelect={() => goTo({ module: "Campus desk", screen: "/staff/multibranch/branch/overview" })}>{t("Switch campus")}</MenuItem>}
-            <div className="tb-sep" />
-            <MenuItem close={close} icon={<LogOut size={16} />} danger onSelect={session.logout}>{t("Sign out")}</MenuItem>
-          </>
-        )}
-      </TopbarMenu>
-      {(dialog === "profile" || dialog === "password") && <AccountDialog open initialTab={dialog} onClose={() => setDialog(null)} onNotify={notify} />}
+      <ProfileMenu onNotify={notify} />
+      {dialog === "profile" && <AccountDialog open initialTab="profile" onClose={() => setDialog(null)} onNotify={notify} />}
       {dialog === "school" && <SchoolProfileDialog open onClose={() => setDialog(null)} onNotify={notify} />}
     </div>
   );

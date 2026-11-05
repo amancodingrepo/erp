@@ -10,10 +10,11 @@ import ParentStaffMessageComposer from "./ParentStaffMessageComposer.jsx";
 import RecipientNoticeDialog from "./RecipientNoticeDialog.jsx";
 
 export default function NoticeRecipientPortal() {
-  const { user, logout } = useDatabaseSession();
+  const { user } = useDatabaseSession();
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [portalView, setPortalView] = useState("notices");
@@ -91,11 +92,9 @@ export default function NoticeRecipientPortal() {
     }
   }
 
-  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email;
-
   return (
     <div className="recipient-portal">
-      <RecipientPortalHeader schoolName={user?.school?.name || "School"} displayName={displayName} onLogout={logout}/>
+      <RecipientPortalHeader schoolName={user?.school?.name || ""} onNotify={setStatus}/>
       <main className="recipient-portal-main">
         <div className="recipient-portal-title">
           <div>
@@ -105,6 +104,7 @@ export default function NoticeRecipientPortal() {
           </div>
           <div className="recipient-portal-shield"><ShieldCheck size={18}/> Recipient access</div>
         </div>
+        {status && <div className="recipient-portal-status" role="status">{status}<button type="button" onClick={() => setStatus("")} aria-label="Dismiss"><X size={14}/></button></div>}
         {error && <div className="db-auth-error"><AlertCircle size={16}/>{error}<button type="button" onClick={() => setError("")}><X size={14}/></button></div>}
         <div className="recipient-portal-view-tabs" role="tablist" aria-label="School communication">
           <button type="button" role="tab" aria-selected={portalView === "notices"} className={portalView === "notices" ? "selected" : ""} onClick={() => setPortalView("notices")}><Newspaper size={15}/> Notice Board</button>

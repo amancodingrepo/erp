@@ -1466,6 +1466,8 @@ html[data-sd-theme] .notice-board-dashboard { color: var(--sd-text) !important; 
 .legacy-user .app-theme-control,
 .top-actions .app-theme-control,
 .recipient-portal-user .app-theme-control { align-self: center; }
+.recipient-portal-status { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #b7e1c6; background: #effaf3; color: #17603a; font-size: 13px; }
+.recipient-portal-status button { margin-left: auto; border: 0; background: transparent; color: inherit; cursor: pointer; display: inline-flex; }
 @media (max-width: 620px) {
   .app-theme-control { right: auto; bottom: auto; }
   .app-theme-trigger { width: 35px; height: 35px; min-height: 35px; flex-basis: 35px; padding: 0; }

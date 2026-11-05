@@ -295,7 +295,7 @@ async function createIdCardJpeg(person, schoolName, logoSrc) {
     const logoHeight = logo.naturalHeight * logoScale;
     ctx.drawImage(logo, 100 - logoWidth / 2, 92 - logoHeight / 2, logoWidth, logoHeight);
   } catch {}
-  const headerName = String(schoolName || "School World").trim();
+  const headerName = String(schoolName || "").trim();
   let headerFontSize = 34;
   ctx.font = "800 " + headerFontSize + "px Arial";
   while (headerFontSize > 22 && ctx.measureText(headerName).width > 940) {
@@ -395,7 +395,10 @@ export default function ManageStaffPage({ onBack, notify, t }) {
   const [accountsByPersonId, setAccountsByPersonId] = useState({});
   const [school, setSchool] = useState({ name: "" });
   // ID cards carry this school's own logo (or none), never a built-in one.
-  const schoolLogo = useDatabaseSession().user?.school?.logoUrl || "";
+  const sessionSchool = useDatabaseSession().user?.school;
+  const schoolLogo = sessionSchool?.logoUrl || "";
+  // The card always carries the school's own name: the loaded settings, else the signed-in school.
+  const cardSchoolName = school.name || sessionSchool?.name || "";
   const [activeTab, setActiveTab] = useState("Active");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -719,7 +722,7 @@ export default function ManageStaffPage({ onBack, notify, t }) {
   }
   async function downloadIdCard(person) {
     try {
-      const blob = await createIdCardJpeg(person, school.name || "School World", schoolLogo);
+      const blob = await createIdCardJpeg(person, cardSchoolName, schoolLogo);
       const name = String(person.fullName || "staff").trim().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "staff";
       saveBlob(name + "-id-card.jpg", blob);
       setFeedback("ID card downloaded as a JPEG image.");
@@ -1064,7 +1067,7 @@ export default function ManageStaffPage({ onBack, notify, t }) {
             <div className="manage-staff-id-card">
               <header className="manage-staff-id-card-header">
                 {schoolLogo ? <img src={schoolLogo} alt="" /> : null}
-                <div><strong>{school.name || "School World"}</strong><span>{text("STAFF IDENTITY CARD")}</span></div>
+                <div><strong>{cardSchoolName}</strong><span>{text("STAFF IDENTITY CARD")}</span></div>
               </header>
               <div className="manage-staff-id-card-body">
                 <div className="manage-staff-id-card-photo">{staffDetailsOf(selectedCard).photoDataUrl ? <img src={staffDetailsOf(selectedCard).photoDataUrl} alt="" /> : <UserRound size={58} />}</div>

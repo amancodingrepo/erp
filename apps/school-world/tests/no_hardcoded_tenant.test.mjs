@@ -30,3 +30,31 @@ test("no built-in school name or bundled student fixtures", () => {
   }
   assert.deepEqual(offenders, []);
 });
+
+const read = (rel) => readFileSync(join(SRC, rel), "utf8");
+
+test("staff ID cards carry the school's own name, never the product name", () => {
+  assert.doesNotMatch(read("pages/MyBranch/subpages/ManageStaffPage.jsx"), /\|\|\s*["']School World["']/);
+});
+
+test("the dashboard greets the signed-in person, not a fixed role title", () => {
+  const hero = read("pages/Dashboard/DashboardHero.jsx");
+  assert.doesNotMatch(hero, /t\(["']School Admin["']\)|t\(["']School Team["']\)/);
+  assert.match(hero, /useDatabaseSession/);
+});
+
+test("the Notice Board has no demo notices, people or vehicle numbers", () => {
+  const utils = read("pages/NoticeBoard/noticeBoardUtils.js");
+  const board = read("pages/NoticeBoard/NoticeBoardModule.jsx");
+  for (const text of [utils, board]) {
+    assert.doesNotMatch(text, /seedNotices|DEFAULT_NOTICE_ROUTES|MP09[A-Z]{2}\d{4}|JYOTI SHASTRI|PRIYANKA JAIN/);
+    assert.doesNotMatch(text, /localStorage|readStore\(/);
+  }
+  assert.doesNotMatch(board, /"School Office"/, "the author is the signed-in person");
+});
+
+test("the parent and teacher portal signs out from the profile menu", () => {
+  const header = read("pages/NoticeBoard/RecipientPortalHeader.jsx");
+  assert.match(header, /PortalTopbarActions/);
+  assert.doesNotMatch(header, /LogOut|onLogout|>School World</);
+});

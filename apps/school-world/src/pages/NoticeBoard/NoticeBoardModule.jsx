@@ -5,6 +5,8 @@ import {
   CalendarDays, Bell, AlertCircle, LayoutGrid, List, Newspaper,
 } from "lucide-react";
 import { useSchoolName } from "../../school-config.js";
+import { useDatabaseSession } from "../../DatabaseSession.jsx";
+import { displayName } from "../../components/topbar/topbarNavigation.js";
 import { t } from "../../i18n.jsx";
 import { apiGet, apiPost, apiPatch, apiDelete, downloadApiFile } from "../../api.js";
 
@@ -13,10 +15,11 @@ import NoticeBoardSummaryCards from "./NoticeBoardSummaryCards.jsx";
 import NoticeComposer from "./NoticeComposer.jsx";
 import NoticeFeed from "./NoticeFeed.jsx";
 import NoticeOpenDialog from "./NoticeOpenDialog.jsx";
-import { NOTICE_BOARD_STORAGE_KEY, NOTICE_ROUTE_STORAGE_KEY, DEFAULT_NOTICE_ROUTES, readStore, currentAcademicYear, defaultClassTargets, normalizeClassName, seedNotices, fileToDataUrl, normalizeRecipient, recipientKey, sameRecipient, isActiveRecipient, enabledFlag, viewRowsFromRecords, downloadCsv, formatNoticeDate } from "./noticeBoardUtils.js";
+import { currentAcademicYear, defaultClassTargets, normalizeClassName, fileToDataUrl, normalizeRecipient, recipientKey, sameRecipient, isActiveRecipient, enabledFlag, viewRowsFromRecords, downloadCsv, formatNoticeDate } from "./noticeBoardUtils.js";
 
 export default function NoticeBoardModule({ students = [], onNotify }) {
   const schoolName = useSchoolName();
+  const sessionUser = useDatabaseSession().user;
   const [notices, setNotices] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [noticeDataLoaded, setNoticeDataLoaded] = useState(false);
@@ -24,11 +27,9 @@ export default function NoticeBoardModule({ students = [], onNotify }) {
   const [board, setBoard] = useState("school");
   const [expanded, setExpanded] = useState({ school: true, class: false, route: false });
   const [schoolAudience, setSchoolAudience] = useState("__SCHOOL__");
-  const [classAudience, setClassAudience] = useState("PRE NURSERY (A)");
-  const [routeAudience, setRouteAudience] = useState(() => {
-    const saved = readStore(NOTICE_ROUTE_STORAGE_KEY, null);
-    return Array.isArray(saved) && saved.length ? saved[0] : DEFAULT_NOTICE_ROUTES[0];
-  });
+  // No class or route is picked until the school's own lists load (or the user picks one).
+  const [classAudience, setClassAudience] = useState("");
+  const [routeAudience, setRouteAudience] = useState("");
   const [listSearchDraft, setListSearchDraft] = useState("");
   const [listSearch, setListSearch] = useState("");
   const [draft, setDraft] = useState("");
@@ -62,7 +63,7 @@ export default function NoticeBoardModule({ students = [], onNotify }) {
         setNotices(loadedNotices);
         const loadedRoutes = Array.isArray(routeResult.routes) ? routeResult.routes : [];
         setRoutes(loadedRoutes);
-        if (loadedRoutes.length) setRouteAudience(current => loadedRoutes.includes(current) ? current : loadedRoutes[0]);
+        setRouteAudience(current => loadedRoutes.includes(current) ? current : loadedRoutes[0] || "");
       } catch (error) {
         if (!cancelled) notify(`Database connection error: ${error.message}`);
       } finally { if (!cancelled) setNoticeDataLoaded(true); }
@@ -244,9 +245,11 @@ export default function NoticeBoardModule({ students = [], onNotify }) {
   async function publishNotice() {
     if (!draft.trim() && attachments.length === 0) { notify("Enter notice text or attach a file first."); return; }
     if (board === "route" && !routeAudience) { notify("Add or choose a route before publishing."); return; }
+    if (board === "class" && !classAudience) { notify("Choose a class before publishing."); return; }
     const entry = {
       year: academicYear, board, audience: target, type: postType, message: draft.trim(),
-      author: `${window.SCHOOL_DIARY_CONFIG?.currentUser?.name || window.SCHOOL_DIARY_CONFIG?.currentUser?.email || "School Office"} (from ${schoolName} Notice Board)`,
+      // Empty lets the server use the signed-in account's name.
+      author: displayName(sessionUser) ? `${displayName(sessionUser)} (from ${schoolName} Notice Board)` : "",
       attachments, allowReply: enableReply
     };
     try {
