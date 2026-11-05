@@ -70,7 +70,11 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 
 ## 6. Related issues found while auditing (not hard-coding)
 
-- **`GET /api/notices` doesn't filter by audience.** Any signed-in account in the school gets every published notice, including staff-only ones. It should filter by the notice audience (board, class, route or role).
+- **Fixed: notices are now filtered by audience** (`apps/erp/src/lib/notice-audience.ts`). Before, any signed-in parent or student got every published notice, including staff-only ones.
+  - **Staff:** still see every notice in their school.
+  - **Parents and students:** see whole-school notices, plus notices for their (or their child's) class, bus route or day care. Teacher-only, scheduled, unpublished and unknown-audience notices are hidden.
+  - **Also covered:** the older `/api/v1` notice lists, the student portal, opening or marking a notice, and its attachments and replies (a family sees only staff replies and its own).
+  - **Staff only:** the who-read, receipts and not-viewed reports, which name other families. The parent and student notice list returns the view count, not the list of viewers.
 - **Unused `/api/v1/auth/forgot-password` and `set-password` endpoints.** The reset token is never delivered to anyone (see the sign-in fix). Wire them to email once email is configured, or remove them.
 - **The old `/staff/...` screens and the ERP `/login` are still live** alongside School World.
 

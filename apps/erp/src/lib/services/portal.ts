@@ -1,4 +1,5 @@
 import { ActorType } from "@prisma/client";
+import { canSeeNotice, noticeViewer } from "@/lib/notice-audience";
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import type { AuthPrincipal } from "@/lib/permissions";
@@ -45,16 +46,18 @@ export async function portalDashboard(user: AuthPrincipal, childId?: string) {
       })
     : { data: [] };
   const selfAttendance = attendance.data.find((r) => r.studentId === student.id);
-  const notices = await prisma.notice.findMany({
-    where: {
-      campusId: user.campusId,
-      isPublished: true,
-      audience: { in: ["all", "students"] },
-    },
-    include: { reads: { where: { userId: user.id } } },
-    orderBy: { publishAt: "desc" },
-    take: 8,
-  });
+  const viewer = await noticeViewer(user);
+  const now = new Date();
+  const notices = (
+    await prisma.notice.findMany({
+      where: { campusId: user.campusId, isPublished: true, publishAt: { lte: now } },
+      include: { reads: { where: { userId: user.id } } },
+      orderBy: { publishAt: "desc" },
+      take: 100,
+    })
+  )
+    .filter((row) => canSeeNotice(row, viewer, now))
+    .slice(0, 8);
   const exams = await studentMarksheet({
     campusId: user.campusId,
     studentId: student.id,
