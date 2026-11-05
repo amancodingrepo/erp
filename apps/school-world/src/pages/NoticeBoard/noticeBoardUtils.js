@@ -1,18 +1,3 @@
-export const NOTICE_BOARD_STORAGE_KEY = "schoolDiary.noticeBoard.posts.v1";
-export const NOTICE_ROUTE_STORAGE_KEY = "schoolDiary.noticeBoard.routes.v1";
-export const DEFAULT_NOTICE_ROUTES = ["MP09AF3494", "MP09AF6341", "MP09AF6342", "MP09AF6992"];
-
-export function readStore(key, fallback) {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export function currentAcademicYear(date = new Date()) {
   const year = date.getFullYear();
   const start = date.getMonth() >= 3 ? year : year - 1;
@@ -45,34 +30,6 @@ export function normalizeClassName(input) {
     return `${grade}${stream} (${regular[3].toUpperCase()})`;
   }
   return raw;
-}
-
-export function seedNotices(schoolName) {
-  const year = currentAcademicYear();
-  const start = Number(year.slice(0, 4));
-  const previous = `${start - 1}-${start}`;
-  return [
-    {
-      id: "notice-demo-current-news", year, board: "school", audience: "__SCHOOL__", type: "News",
-      message: "Welcome to the new academic year. Please review the updated school timetable and important dates.",
-      author: `JYOTI SHASTRI (from ${schoolName} Notice Board)`, createdAt: `${start}-10-11T10:20:00`, attachments: [], allowReply: false, views: 0, viewRecords: []
-    },
-    {
-      id: "notice-demo-current-alert", year, board: "school", audience: "ALL_TEACHERS", type: "Alert",
-      message: "Reminder: please submit your class activity updates before the end of the day.",
-      author: `Principal (from ${schoolName} Notice Board)`, createdAt: `${start}-10-10T09:15:00`, attachments: [], allowReply: true, views: 0, viewRecords: []
-    },
-    {
-      id: "notice-demo-previous-class", year: previous, board: "class", audience: "1 (A)", type: "News",
-      message: "Dear Parents, we are happy to share some fun-filled moments and exciting activities enjoyed by our students during the Grand Annual Day. Congratulations to all participants!",
-      author: `PRIYANKA JAIN (from ${schoolName} Notice Board)`, createdAt: `${start}-03-08T11:27:00`, attachments: [], allowReply: false, views: 0, viewRecords: []
-    },
-    {
-      id: "notice-demo-route-alert", year, board: "route", audience: DEFAULT_NOTICE_ROUTES[0], type: "Alert",
-      message: "Transport update: the bus on this route may be delayed. Please contact the school office if you need assistance.",
-      author: `Transport Office (from ${schoolName} Notice Board)`, createdAt: `${start}-10-09T08:30:00`, attachments: [], allowReply: true, views: 0, viewRecords: []
-    }
-  ];
 }
 
 export function fileToDataUrl(file) {

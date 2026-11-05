@@ -93,3 +93,6 @@ html[data-sd-theme] .tb-panel-head,html[data-sd-theme] .tb-panel-foot,html[data-
 html[data-sd-theme] .tb-sep{background:var(--sd-border)!important}
 html[data-sd-theme] .tb-badge{box-shadow:0 0 0 2px var(--sd-topbar)!important}
 html[data-sd-theme] .tb-form input:not([type=file]){background:var(--sd-input-bg)!important;color:var(--sd-text)!important;border-color:var(--sd-border)!important}
+html[data-sd-theme] .recipient-portal-status{background:var(--sd-surface-soft)!important;color:var(--sd-text)!important;border-color:var(--sd-border)!important}
+/* The portal header is dark: keep the profile trigger readable on it. */
+.recipient-portal-user .tb-trigger{color:#fff}

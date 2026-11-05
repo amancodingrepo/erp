@@ -24,7 +24,7 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 | Default school name "Sanford School" | `school-config.js` (`DEFAULT_SCHOOL_NAME`), `DatabaseSession.jsx` (`installRuntimeConfig`) | `Campus.name` from the signed-in user | **Fixed**: no built-in name |
 | No way for a school to set its own logo (only the unreachable Super Admin page) | — | `PATCH /api/school/settings` (admin or principal) | **Fixed**: Settings → **School profile** (name, address, phone, email, logo). Logos must be PNG, JPEG or WebP up to 1 MB; SVG is refused because it can carry script |
 | Logo not included in the sign-in or session data | `apps/erp/src/lib/school-world-shape.ts` | `schoolBranding(campusId)` | **Fixed**: `user.school.logoUrl` (versioned URL, cached; the image isn't inline) |
-| "School World" fallback on staff ID card headers | `ManageStaffPage.jsx` (lines ~298, 722, 1067) | `Campus.name` (always set) | To do: drop the product-name fallback |
+| "School World" fallback on staff ID card headers | `ManageStaffPage.jsx` (lines ~298, 722, 1067) | `Campus.name` (always set) | **Fixed**: the card uses the loaded school settings, else the signed-in school's name |
 | Product brand "School World", sign-in marketing copy, "PostgreSQL-backed edition" footer | `pages/Auth/LoginPage.jsx`, top bar | Platform level (`Organization`), only if white-labelling is wanted | Keep for now; decide whether schools get white-label branding |
 | "Standalone prototype" note under the sidebar | `ManageStudentsHeader.jsx` | — (untrue) | **Fixed**: removed |
 
@@ -34,8 +34,8 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 |---|---|---|---|
 | ~3,000 lines of fictional students (`STG-STU-…`) used as the Manage Students starting list until the real list loaded, and still shown if loading failed | `student-data.js`, imported by `main.jsx` | `GET /api/students` | **Fixed**: file deleted; the list starts empty; the old browser copy is cleared |
 | Student details read from an old browser cache (`schoolDiaryCorrectedV4.detailsByStudentId…`) before the database answers | `main.jsx` (`DETAILS_STORAGE_KEY`) | `GET /api/student-details` | To do: stop reading it and clear it. It's stale, and isn't scoped per school on a shared computer |
-| Demo notices with made-up names (JYOTI SHASTRI, PRIYANKA JAIN) | `pages/NoticeBoard/noticeBoardUtils.js` (`seedNotices`, imported but unused) | `GET /api/notices` | To do: delete the dead code |
-| Vehicle numbers `MP09AF3494`… as the default notice route | `noticeBoardUtils.js` (`DEFAULT_NOTICE_ROUTES`) | `GET /api/routes` (already fetched on that screen) | To do: start with the first real route, or none |
+| Demo notices with made-up names (JYOTI SHASTRI, PRIYANKA JAIN) | `pages/NoticeBoard/noticeBoardUtils.js` (`seedNotices`, imported but unused) | `GET /api/notices` | **Fixed**: deleted. The notice author is now the signed-in person, not a fixed "School Office" |
+| Vehicle numbers `MP09AF3494`… as the default notice route | `noticeBoardUtils.js` (`DEFAULT_NOTICE_ROUTES`) | `GET /api/routes` (already fetched on that screen) | **Fixed**: deleted, with the old saved route list in the browser. The composer starts with the school's first route and class, or none, and refuses to publish without one |
 
 ## 3. School lists hard-coded in forms
 
@@ -65,8 +65,8 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 | Bell icon | Decorative; did nothing | **Fixed**: notifications menu with an unread badge, from `GET /api/notifications` (staff only, scoped to the campus). It shows unread messages, notices you haven't opened in the last 30 days, leave requests waiting for approval (for those allowed to approve) and new online applications. It refreshes every 60s while the tab is visible. Clicking an item marks it read and opens it |
 | Settings icon | Decorative | **Fixed**: Settings menu. Admins and principals get School profile, Campus settings, Users, Roles & permissions and All system settings (Campus desk); others get a note and My account |
 | Profile icon and name, plus a separate Sign out button | Static icon, name, inline button | **Fixed**: one profile menu (as in School Diary's avatar menu: Profile, Password, Change School, Logout). It shows name, email, role and school, with My account, Change password, Switch campus (platform admins only) and **Sign out inside the menu** |
-| "School Admin" greeting fallback | `pages/Dashboard/DashboardHero.jsx`, `ContactsRecordEditPage.jsx` | To do: use the user's name and role label |
-| Parent / teacher portal header | `pages/NoticeBoard/RecipientPortalHeader.jsx` still has its own Sign out and no profile menu | To do: reuse the profile menu there (notifications would need a non-staff version) |
+| "School Admin" greeting fallback | `pages/Dashboard/DashboardHero.jsx`, `ContactsRecordEditPage.jsx` | **Fixed**: "Good morning, Priya", with the role label under it. The Contacts entry is a role option, not a greeting, and stays |
+| Parent / teacher portal header | `pages/NoticeBoard/RecipientPortalHeader.jsx` still has its own Sign out and no profile menu | **Fixed**: the portal header shows the school's name and the profile menu (My account, Change password, Sign out). The bell and Settings are left out, because the portal is the notices and messages feed and has no staff screens |
 
 ## 6. Related issues found while auditing (not hard-coding)
 

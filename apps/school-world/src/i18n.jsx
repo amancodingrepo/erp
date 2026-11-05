@@ -3,6 +3,10 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 export const LANGUAGE_STORAGE_KEY = "schoolDiary.uiLanguage";
 
 const HI = {
+  "School admin": "स्कूल एडमिन",
+  "Transport admin": "परिवहन एडमिन",
+  "Choose a class before publishing.": "प्रकाशित करने से पहले कक्षा चुनें।",
+  "Add or choose a route before publishing.": "प्रकाशित करने से पहले रूट जोड़ें या चुनें।",
   "Dashboard": "डैशबोर्ड",
   "School overview, daily priorities and smart assistance.": "स्कूल का सारांश, दैनिक प्राथमिकताएँ और स्मार्ट सहायता।",
   "SCHOOL WORKSPACE": "स्कूल कार्यक्षेत्र",
