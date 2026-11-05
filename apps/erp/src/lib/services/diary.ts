@@ -1,4 +1,5 @@
 import { ActorType, Prisma, StudentStatus } from "@prisma/client";
+import { canSeeNotice, noticeViewer } from "@/lib/notice-audience";
 import { parseDateOnly } from "@/lib/campus";
 import { prisma } from "@/lib/db";
 import { conflict, forbidden, notFound, validationError } from "@/lib/errors";
@@ -902,7 +903,7 @@ export async function markNoticeRead(
   const notice = await prisma.notice.findFirst({
     where: { id: noticeId, campusId: user.campusId, isPublished: true },
   });
-  if (!notice) throw notFound("notice");
+  if (!notice || !canSeeNotice(notice, await noticeViewer(user))) throw notFound("notice");
   const linked =
     studentId &&
     (user.studentId === studentId || user.childIds?.includes(studentId))

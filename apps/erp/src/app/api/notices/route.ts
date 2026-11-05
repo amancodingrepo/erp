@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { principalFromRequest } from "@/lib/principal";
+import { canSeeNotice, noticeViewer } from "@/lib/notice-audience";
 import { assertCampusStaff } from "@/lib/school-world-shape";
 
 const NOTICE_TYPES = new Set(["News", "Alert", "Homework - Worksheet", "Homework - Assignment"]);
@@ -63,12 +64,22 @@ export async function GET(request: Request) {
   try {
     const user = await principalFromRequest(request);
     const year = new URL(request.url).searchParams.get("year")?.trim() ?? "";
+    const viewer = await noticeViewer(user);
     const rows = await prisma.notice.findMany({
       where: { campusId: user.campusId, isPublished: true, ...(year ? { academicYear: year } : {}) },
-      include: { attachments: true, views: true },
+      include: { attachments: { select: { id: true, fileName: true, contentType: true, fileSize: true } }, views: true },
       orderBy: { publishAt: "desc" },
     });
-    return ok({ notices: rows.map(mapNotice) });
+    const now = new Date();
+    const notices = rows.filter((row) => canSeeNotice(row, viewer, now)).map(mapNotice);
+    if (viewer.staff) return ok({ notices });
+    // Parents and students get the view count, not the list of who viewed each notice.
+    return ok({
+      notices: notices.map(({ viewRecords, ...notice }) => ({
+        ...notice,
+        viewedByMe: viewRecords.some((view) => view.userId === user.id),
+      })),
+    });
   } catch (error) {
     return fail(error);
   }

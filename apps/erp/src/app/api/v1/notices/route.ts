@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { created, fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
+import { canSeeNotice, canSeeReply, noticeViewer } from "@/lib/notice-audience";
 import {
   NOTICE_CHANNELS,
   NOTICE_TYPES,
@@ -55,12 +56,19 @@ export async function GET(request: Request) {
       },
       orderBy: { publishAt: "desc" },
     });
+    // Parents and students hold notice-view too; they only get notices addressed to them.
+    const viewer = await noticeViewer(user);
+    const now = new Date();
+    const visible = data.filter((row) => canSeeNotice(row, viewer, now));
     const [attachments, replies] = await Promise.all([
       listNoticeAttachments(user.campusId),
       listNoticeReplies(user.campusId),
     ]);
     return ok({
-      data: attachNoticeReplies(attachNoticeMedia(data, attachments), replies),
+      data: attachNoticeReplies(
+        attachNoticeMedia(visible, attachments),
+        replies.filter((reply) => canSeeReply(reply, viewer)),
+      ),
     });
   } catch (error) {
     return fail(error);

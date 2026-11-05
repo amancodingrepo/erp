@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail } from "@/lib/http";
+import { canSeeNotice, noticeViewer } from "@/lib/notice-audience";
 import { principalFromRequest } from "@/lib/principal";
 
 export async function GET(
@@ -12,8 +13,9 @@ export async function GET(
     const { noticeId, attachmentId } = await context.params;
     const file = await prisma.noticeAttachment.findFirst({
       where: { id: attachmentId, noticeId, notice: { campusId: user.campusId, isPublished: true } },
+      include: { notice: { select: { board: true, audienceKey: true, publishAt: true } } },
     });
-    if (!file) throw notFound("Attachment");
+    if (!file || !canSeeNotice(file.notice, await noticeViewer(user))) throw notFound("Attachment");
     const filename = file.fileName.replace(/[^\x20-\x7E]/g, "_").replace(/["\r\n]/g, "_");
     return new Response(file.fileData, {
       headers: {

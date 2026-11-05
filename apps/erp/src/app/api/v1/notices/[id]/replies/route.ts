@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { created, fail, ok, readJson } from "@/lib/http";
+import { prisma } from "@/lib/db";
+import { notFound } from "@/lib/errors";
 import { requireApiPermission } from "@/lib/principal";
+import { canSeeNotice, canSeeReply, noticeViewer } from "@/lib/notice-audience";
 import { listNoticeReplies, saveNoticeReply } from "@/lib/services/diary";
 
 const bodySchema = z.object({
@@ -19,7 +22,13 @@ export async function GET(
       "view",
     );
     const { id } = await context.params;
-    return ok({ data: await listNoticeReplies(user.campusId, id) });
+    const viewer = await noticeViewer(user);
+    if (!viewer.staff) {
+      const notice = await prisma.notice.findFirst({ where: { id, campusId: user.campusId } });
+      if (!notice || !canSeeNotice(notice, viewer)) throw notFound("notice");
+    }
+    const replies = await listNoticeReplies(user.campusId, id);
+    return ok({ data: replies.filter((reply) => canSeeReply(reply, viewer)) });
   } catch (error) {
     return fail(error);
   }
