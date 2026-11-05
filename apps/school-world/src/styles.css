@@ -9185,3 +9185,27 @@ html body #root .student-edit-page .fee-tab-row-actions .fee-template-reversal-g
 
 .toast-close{flex-shrink:0;display:grid;place-items:center;width:27px;height:27px;border:0;border-radius:5px;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0}
 .toast-close:hover,.toast-close:focus-visible{background:#ffffff24;outline:2px solid #fff9;outline-offset:1px}
+
+/* Sign-in: password row with "Forgot password?", and the forgot-password view of the same card. */
+.db-auth-field{display:grid;gap:8px}
+.db-auth-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.db-auth-label-row label{color:#334b69;font-size:12px;font-weight:700}
+.db-auth-link{border:0;background:none;padding:2px 0;color:#1767df;font-size:12px;font-weight:700;cursor:pointer;border-radius:4px}
+.db-auth-link:hover{text-decoration:underline}
+.db-auth-link:focus-visible,.db-auth-secondary:focus-visible,.db-auth-submit:focus-visible{outline:2px solid #4a8af2;outline-offset:2px}
+.db-auth-help-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#eaf2ff;color:#1767df;margin-bottom:-6px}
+.db-auth-steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:db-step}
+.db-auth-steps li{counter-increment:db-step;display:grid;grid-template-columns:28px 1fr;column-gap:12px;row-gap:3px;padding:13px 14px;border:1px solid #e3eaf3;border-radius:10px;background:#fbfcfe}
+.db-auth-steps li::before{content:counter(db-step);grid-row:span 2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#1767df;color:#fff;font-size:12px;font-weight:800}
+.db-auth-steps strong{font-size:13px;color:#172e4e}
+.db-auth-steps span{font-size:12px;line-height:1.55;color:#65768e}
+.db-auth-secondary{min-height:46px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #d7e1ed;border-radius:9px;background:#fff;color:#1d3b63;font-size:13px;font-weight:800;cursor:pointer}
+.db-auth-secondary:hover{background:#f4f7fb;border-color:#c3d2e5}
+html[data-sd-theme] .db-auth-label-row label{color:var(--sd-muted)!important}
+html[data-sd-theme] .db-auth-link{color:var(--sd-primary)!important}
+html[data-sd-theme] .db-auth-help-icon{background:var(--sd-primary-soft)!important;color:var(--sd-primary)!important}
+html[data-sd-theme] .db-auth-steps li{background:var(--sd-surface-soft)!important;border-color:var(--sd-border)!important}
+html[data-sd-theme] .db-auth-steps li::before{background:var(--sd-primary)!important}
+html[data-sd-theme] .db-auth-steps strong{color:var(--sd-text)!important}
+html[data-sd-theme] .db-auth-steps span{color:var(--sd-muted)!important}
+html[data-sd-theme] .db-auth-secondary{background:var(--sd-surface)!important;color:var(--sd-text)!important;border-color:var(--sd-border)!important}
