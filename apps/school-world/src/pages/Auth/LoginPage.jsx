@@ -1,43 +1,65 @@
 import React, { useState } from 'react';
-import { BookOpen, LockKeyhole, Mail, AlertCircle, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, KeyRound, LockKeyhole, UserRound, AlertCircle, LoaderCircle } from 'lucide-react';
 import { useDatabaseSession } from '../../DatabaseSession.jsx';
-import { apiPost } from '../../api.js';
 
+// Sign-in matches the account username (not email or phone), so the field says "Username".
+// "Forgot password" is a second view of the same card. Passwords are reset by the school's
+// administrator, who issues a temporary password; the app then makes the user choose a new one
+// at sign-in. (The old self-service form asked for a reset token that is never delivered to
+// anyone, so it could not succeed.)
 export default function LoginPage() {
   const { login, error: sessionError } = useDatabaseSession();
-  const [email,setEmail]=useState('');
-  const [password,setPassword]=useState('');
-  const [error,setError]=useState('');
-  const [busy,setBusy]=useState(false);
-  const [resetOpen,setResetOpen]=useState(false);
-  const [username,setUsername]=useState('');
-  const [portal,setPortal]=useState('staff');
-  const [token,setToken]=useState('');
-  const [nextPassword,setNextPassword]=useState('');
-  const [resetMessage,setResetMessage]=useState('');
-  async function requestReset(event){event.preventDefault();setResetMessage('');try{await apiPost('/v1/auth/forgot-password',{username,portal});setResetMessage('If that username exists, a reset token was issued. Ask your campus administrator for the token, then set a new password below.');}catch(e){setResetMessage(e.message||'Reset could not be requested.');}}
-  async function applyReset(event){event.preventDefault();setResetMessage('');try{await apiPost('/v1/auth/set-password',{token,password:nextPassword});setResetMessage('Password updated. Sign in with the new password.');}catch(e){setResetMessage(e.message||'The new password could not be saved.');}}
-  async function submit(event){event.preventDefault();setError('');setBusy(true);try{await login(email,password);}catch(e){setError(e.message||'Sign in failed.');}finally{setBusy(false);}}
+  const [view, setView] = useState('signin');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event) {
+    event.preventDefault();
+    setError('');
+    setBusy(true);
+    try { await login(username.trim(), password); }
+    catch (e) { setError(e.message || 'Sign in failed.'); }
+    finally { setBusy(false); }
+  }
+
   return <div className="db-auth-shell">
     <div className="db-auth-brand-panel"><div className="db-auth-logo"><BookOpen size={26}/><span>School World</span></div><div className="db-auth-copy"><span className="db-auth-eyebrow">SCHOOL MANAGEMENT PLATFORM</span><h1>One school.<br/>One connected workspace.</h1><p>Manage students, notices, attendance, fees, communication and school operations from one secure place.</p><div className="db-auth-features"><span>Student management</span><span>Notice Board</span><span>Multi-school accounts</span></div></div><div className="db-auth-footer">School World · PostgreSQL-backed edition</div></div>
-    <div className="db-auth-form-panel"><form className="db-auth-form" onSubmit={submit}><div className="db-auth-mobile-brand"><BookOpen size={25}/><strong>School World</strong></div><span className="db-auth-eyebrow">WELCOME BACK</span><h2>Sign in to your account</h2><p>Use the school account provided by your administrator.</p>
-      {(error||sessionError)&&<div className="db-auth-error"><AlertCircle size={16}/><span>{error||sessionError}</span></div>}
-      <label>Email or phone number<span className="db-auth-input"><Mail size={17}/><input type="text" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@school.edu or phone number"/></span></label>
-      <label>Password<span className="db-auth-input"><LockKeyhole size={17}/><input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/></span></label>
-      <button type="submit" className="db-auth-submit" disabled={busy}>{busy?<><LoaderCircle size={17} className="db-auth-spin"/> Signing in…</>:'Sign in securely'}</button>
-      <div className="db-auth-security-note"><LockKeyhole size={14}/> Your session uses an HttpOnly, same-site cookie.</div>
-      <p className="db-auth-security-note">Use the username from your campus account.</p>
-    </form>
-      <button type="button" className="db-auth-security-note" onClick={()=>setResetOpen(open=>!open)}>Forgot password</button>
-      {resetOpen&&<div className="db-auth-security-note">
-        <form onSubmit={requestReset}><label>Username<input value={username} onChange={e=>setUsername(e.target.value)} required/></label>
-          <label>Portal<select value={portal} onChange={e=>setPortal(e.target.value)}><option value="staff">Staff</option><option value="student">Student</option><option value="parent">Parent</option></select></label>
-          <button type="submit">Request reset</button></form>
-        <form onSubmit={applyReset}><label>Reset token<input value={token} onChange={e=>setToken(e.target.value)} required/></label>
-          <label>New password<input type="password" minLength={8} value={nextPassword} onChange={e=>setNextPassword(e.target.value)} required/></label>
-          <button type="submit">Set new password</button></form>
-        {resetMessage&&<p>{resetMessage}</p>}
-      </div>}
+    <div className="db-auth-form-panel">
+      {view === 'signin' ? (
+        <form className="db-auth-form" onSubmit={submit}>
+          <div className="db-auth-mobile-brand"><BookOpen size={25}/><strong>School World</strong></div>
+          <span className="db-auth-eyebrow">WELCOME BACK</span>
+          <h2>Sign in to your account</h2>
+          <p>Use the username and password your school gave you.</p>
+          {(error || sessionError) && <div className="db-auth-error" role="alert"><AlertCircle size={16}/><span>{error || sessionError}</span></div>}
+          <label>Username<span className="db-auth-input"><UserRound size={17}/><input type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} required value={username} onChange={e => setUsername(e.target.value)} placeholder="Your school username"/></span></label>
+          <div className="db-auth-field">
+            <div className="db-auth-label-row">
+              <label htmlFor="db-auth-password">Password</label>
+              <button type="button" className="db-auth-link" onClick={() => { setError(''); setView('forgot'); }}>Forgot password?</button>
+            </div>
+            <span className="db-auth-input"><LockKeyhole size={17}/><input id="db-auth-password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password"/></span>
+          </div>
+          <button type="submit" className="db-auth-submit" disabled={busy}>{busy ? <><LoaderCircle size={17} className="db-auth-spin"/> Signing in…</> : 'Sign in securely'}</button>
+          <div className="db-auth-security-note"><LockKeyhole size={14}/> Your session uses an HttpOnly, same-site cookie.</div>
+        </form>
+      ) : (
+        <section className="db-auth-form" aria-labelledby="db-auth-forgot-title">
+          <div className="db-auth-mobile-brand"><BookOpen size={25}/><strong>School World</strong></div>
+          <span className="db-auth-eyebrow">ACCOUNT HELP</span>
+          <div className="db-auth-help-icon" aria-hidden="true"><KeyRound size={20}/></div>
+          <h2 id="db-auth-forgot-title">Forgot your password?</h2>
+          <p>For your security, passwords are reset by your school, not online.</p>
+          <ol className="db-auth-steps">
+            <li><strong>Contact your school office</strong><span>Tell them your username and that you need a password reset.</span></li>
+            <li><strong>Get a temporary password</strong><span>Your administrator issues one from the staff, student or parent record.</span></li>
+            <li><strong>Sign in and choose a new one</strong><span>You'll be asked to set your own password straight away.</span></li>
+          </ol>
+          <button type="button" className="db-auth-secondary" onClick={() => setView('signin')} autoFocus><ArrowLeft size={16}/> Back to sign in</button>
+        </section>
+      )}
     </div>
   </div>;
 }

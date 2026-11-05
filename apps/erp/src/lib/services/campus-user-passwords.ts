@@ -62,7 +62,8 @@ export async function resetCampusUserPassword(
   const temporaryPassword = newTemporaryPassword();
   await prisma.user.update({
     where: { id: target.id },
-    data: { passwordHash: await hashPassword(temporaryPassword) },
+    // A temporary password must be replaced at the next School World sign-in.
+    data: { passwordHash: await hashPassword(temporaryPassword), mustChangePassword: true },
   });
   return {
     id: target.id,

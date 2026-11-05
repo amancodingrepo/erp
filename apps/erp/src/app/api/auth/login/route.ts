@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const username = String(body.username || body.email || "").trim();
     const password = String(body.password || "");
     if (!username || !password) {
-      throw new HttpError(401, "unauthenticated", "Email or password is incorrect.");
+      throw new HttpError(401, "unauthenticated", "Username or password is incorrect.");
     }
     let principal = null;
     for (const portal of portals) {
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       }
     }
     if (!principal) {
-      throw new HttpError(401, "unauthenticated", "Email or password is incorrect.");
+      throw new HttpError(401, "unauthenticated", "Username or password is incorrect.");
     }
     const [account, campus] = await Promise.all([
       prisma.user.findUniqueOrThrow({ where: { id: principal.id } }),
