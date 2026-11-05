@@ -5,6 +5,7 @@ import { prisma } from "./db";
 import { HttpError, conflict, forbidden, notFound } from "./errors";
 import type { AuthPrincipal } from "./permissions";
 import { assertCampusStaff, schoolWorldRole, schoolWorldUser } from "./school-world-shape";
+import { SCHOOL_CONFIG_KEY, parseLogoDataUrl, schoolBranding } from "./school-branding";
 
 const CLASS_KEY = "school-class-catalog";
 const SUBJECT_KEY = "school-subject-catalog";
@@ -12,7 +13,7 @@ const PROFILE_KEY = "staff-profile";
 const OPTIONAL_KEY = "optional-subject-selections";
 const LINK_KEY = "external-links";
 const QUESTION_KEY = "questionnaire-doc";
-const CONFIG_KEY = "school-world-config";
+const CONFIG_KEY = SCHOOL_CONFIG_KEY;
 
 const SCHOOL_ROLES = ["school_admin", "principal", "teacher", "staff", "transport_admin"] as const;
 
@@ -986,7 +987,7 @@ export async function bootstrap(principal: AuthPrincipal) {
         grade_order: row.displayOrder,
         is_active: true,
       })),
-    user: schoolWorldUser(principal, account, campus),
+    user: schoolWorldUser(principal, account, campus, await schoolBranding(principal.campusId)),
   };
 }
 
@@ -994,6 +995,11 @@ export async function saveSchoolSettings(campusId: string, body: JsonRecord) {
   const campus = await prisma.campus.findUniqueOrThrow({ where: { id: campusId } });
   const current = await prisma.setting.findUnique({ where: { campusId_key: { campusId, key: CONFIG_KEY } } });
   const config = { ...asObject(current?.value), ...asObject(body.config) };
+  // A logo must be a real PNG, JPEG or WebP of at most 1 MB (no SVG); an empty value removes it.
+  if ("logoDataUrl" in asObject(body.config)) {
+    if (config.logoDataUrl) parseLogoDataUrl(config.logoDataUrl);
+    else { delete config.logoDataUrl; delete config.logoFileName; }
+  }
   const name = body.name === undefined ? undefined : clean(body.name);
   if (name !== undefined && name.length < 2) {
     throw new HttpError(400, "validation_error", "School name must contain at least 2 characters.");

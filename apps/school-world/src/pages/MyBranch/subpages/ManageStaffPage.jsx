@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useDatabaseSession } from "../../../DatabaseSession.jsx";
 import {
   AlertCircle, ArrowLeft, Camera, CheckCircle2, Copy, Download, FileImage,
   IdCard, KeyRound, Mail, Phone, Plus, Printer, RefreshCw, Save, Search, Upload,
   ShieldCheck, Trash2, UserCheck, UserPlus, UserRound, UserX, X
 } from "lucide-react";
 import { apiGet, apiPatch, apiPost } from "../../../api.js";
-import schoolLogo from "../../../assets/sanford-school-logo-5.png";
 import "./ManageStaffPage.css";
 import ManageStaffBulkUpload from "./ManageStaffBulkUpload.jsx";
 
@@ -393,7 +393,9 @@ export default function ManageStaffPage({ onBack, notify, t }) {
   const [staffCategories, setStaffCategories] = useState([]);
   const [staffCategoryByPersonId, setStaffCategoryByPersonId] = useState({});
   const [accountsByPersonId, setAccountsByPersonId] = useState({});
-  const [school, setSchool] = useState({ name: "School World" });
+  const [school, setSchool] = useState({ name: "" });
+  // ID cards carry this school's own logo (or none), never a built-in one.
+  const schoolLogo = useDatabaseSession().user?.school?.logoUrl || "";
   const [activeTab, setActiveTab] = useState("Active");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -1061,7 +1063,7 @@ export default function ManageStaffPage({ onBack, notify, t }) {
             <div className="manage-staff-modal-heading"><div><h3 id="staff-id-card-title">{text("Staff ID Card")}</h3><p>{text("Print this card or download it as a JPEG image.")}</p></div><button type="button" className="manage-staff-icon-button" onClick={() => setSelectedCard(null)} aria-label={text("Close")}><X size={17} /></button></div>
             <div className="manage-staff-id-card">
               <header className="manage-staff-id-card-header">
-                <img src={schoolLogo} alt="" />
+                {schoolLogo ? <img src={schoolLogo} alt="" /> : null}
                 <div><strong>{school.name || "School World"}</strong><span>{text("STAFF IDENTITY CARD")}</span></div>
               </header>
               <div className="manage-staff-id-card-body">

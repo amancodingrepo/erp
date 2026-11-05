@@ -1,8 +1,9 @@
 import React from "react";
 import { useSchoolName } from "./school-config.js";
-import { LanguageToggle, t } from "./i18n.jsx";
+import { t } from "./i18n.jsx";
 import { useDatabaseSession } from "./DatabaseSession.jsx";
-import AppThemeControl from "./AppThemeControl.jsx";
+import TopbarActions from "./components/topbar/TopbarActions.jsx";
+import SchoolLogo from "./components/topbar/SchoolLogo.jsx";
 import { getNavigationHref, getModuleNavigationTarget, handleNavigationClick } from "./navigation.js";
 import {
   ArrowLeft, BookOpen, Bell, UserCircle, ChevronDown, Home, MessageCircle, CalendarDays,
@@ -22,21 +23,18 @@ const sideLinks = [
   [Star, "Roles"], [Users, "Promotion"], [Building2, "Campus Settings"]
 ];
 
-export function LegacyHeader({ onBack, isAdmission = false }) {
+export function LegacyHeader({ onBack, isAdmission = false, onNotify }) {
   const schoolName = useSchoolName();
-  const session = useDatabaseSession();
-  const displayName = [session.user?.firstName, session.user?.lastName].filter(Boolean).join(" ") || session.user?.email || t("School Admin");
   return <header className="legacy-topbar">
     <div className="legacy-brand"><BookOpen size={20}/><span>School World</span></div>
     <div className="legacy-school-name">{schoolName}</div>
-    <div className="legacy-user"><LanguageToggle/><AppThemeControl/><UserCircle size={22}/><span>{displayName}</span><button type="button" className="legacy-signout" onClick={session.logout}>{t("Sign out")}</button></div>
+    <TopbarActions onNotify={onNotify} />
   </header>;
 }
 export function LegacySidebar({ onBack, onNotify, admission = false, onModuleSelect, onOpenAdmission, activeModule = "", backLabel }) {
   const links = sideLinks;
   const schoolName = useSchoolName();
   const session = useDatabaseSession();
-  const schoolLogo = session.user?.school?.config?.logoDataUrl || window.SCHOOL_DIARY_CONFIG?.schoolLogoDataUrl || "";
   const handleLinkClick = (label) => {
     if (label === "Admission/Enquiry Form" && onModuleSelect) {
       onModuleSelect(label);
@@ -50,9 +48,7 @@ export function LegacySidebar({ onBack, onNotify, admission = false, onModuleSel
   };
   return <aside className="legacy-sidebar app-sidebar-parity">
     <div className="school-logo sanford-school-logo">
-      {schoolLogo
-        ? <img src={schoolLogo} alt={schoolName + " logo"} className="school-sidebar-logo-image" />
-        : <div className="school-logo-empty-state"><Building2 size={32}/><span>{schoolName}</span></div>}
+      <SchoolLogo />
     </div>
     <nav className="app-sidebar-nav" aria-label={t("School modules")}>{links.map(([Icon, label]) => <a key={label} href={getNavigationHref(getModuleNavigationTarget(label))} className={`nav-item ${activeModule === label ? "selected" : ""}`} aria-current={activeModule === label ? "page" : undefined} onClick={event => handleNavigationClick(event, () => handleLinkClick(label))}><Icon size={18}/><span>{t(label)}</span></a>)}</nav>
     {backLabel !== "Back to Notice Board" && (backLabel || (admission ? "Back to edit details" : "Back to Manage Students")) !== "Back to Manage Students" && <button type="button" className="app-sidebar-back" onClick={onBack}><ArrowLeft size={18}/><span>{t(backLabel || (admission ? "Back to edit details" : "Back to Manage Students"))}</span></button>}

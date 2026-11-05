@@ -21,6 +21,7 @@ export function schoolWorldUser(
   principal: AuthPrincipal,
   account: { email: string | null; username: string; firstName: string; lastName: string; mustChangePassword: boolean; phone: string | null },
   campus: { id: string; name: string; code: string | null; address?: string | null; phone?: string | null; email?: string | null; timezone?: string | null },
+  branding: { logoUrl?: string } = {},
 ) {
   const role = schoolWorldRole(principal);
   return {
@@ -32,6 +33,8 @@ export function schoolWorldUser(
     role,
     personType: role,
     mustChangePassword: account.mustChangePassword,
+    // Platform admins can work in other campuses of the organisation (profile menu > Switch campus).
+    canSwitchCampus: principal.roles.includes("PlatformAdmin"),
     school: {
       id: campus.id,
       name: campus.name,
@@ -40,6 +43,7 @@ export function schoolWorldUser(
       phone: campus.phone ?? "",
       email: campus.email ?? "",
       timezone: campus.timezone ?? "Asia/Kolkata",
+      logoUrl: branding.logoUrl ?? "",
     },
   };
 }

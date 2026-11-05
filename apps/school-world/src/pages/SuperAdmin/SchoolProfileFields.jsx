@@ -13,8 +13,8 @@ export default function SchoolProfileFields({ record, onChange, showCode = false
   const update = (field, value) => onChange?.(field, field === "code" ? value.toUpperCase() : value);
   return (
     <>
-      <label>School name<input required minLength={2} maxLength={160} value={record.name || ""} onChange={event => update("name", event.target.value)} placeholder="e.g. Sanford School"/></label>
-      {showCode && <label>School code<input required minLength={3} maxLength={24} pattern="[A-Za-z0-9_-]+" value={record.code || ""} onChange={event => update("code", event.target.value)} placeholder="SANFORD-02"/></label>}
+      <label>School name<input required minLength={2} maxLength={160} value={record.name || ""} onChange={event => update("name", event.target.value)} placeholder="e.g. Green Valley School"/></label>
+      {showCode && <label>School code<input required minLength={3} maxLength={24} pattern="[A-Za-z0-9_-]+" value={record.code || ""} onChange={event => update("code", event.target.value)} placeholder="GREENVALLEY-02"/></label>}
       {codeReadOnly && <label>School code<input value={record.code || ""} readOnly/><small>School code is fixed to preserve existing tenant/account references.</small></label>}
       <label>School address<textarea rows={showCode ? 2 : 3} maxLength={800} value={record.address || ""} onChange={event => update("address", event.target.value)} placeholder={showCode ? "Full school address" : "Full postal address"}/></label>
       <div className="db-superadmin-form-row">

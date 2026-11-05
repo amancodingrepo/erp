@@ -517,3 +517,8 @@ Status: all 323 Campus desk entries now open a native School World screen, and n
   - A forced re-seed no longer resets passwords or re-enables accounts.
   - Why this approach: it closes the hole without anyone having to remember a manual step, and it can't lock the owner out.
 - **Still to do:** the old ERP `/login` doesn't enforce "must change password", so change the admin password yourself as well. Set a strong `SEED_ADMIN_PASSWORD` on the server, so any future fresh install doesn't start on a known password.
+
+### Multi-tenant branding and the top bar
+- **Hard-coded values:** every one found in School World, with its database source and status, is in [docs/school-world-hardcoded-values.md](docs/school-world-hardcoded-values.md). `tests/no_hardcoded_tenant.test.mjs` fails if a school logo image, a built-in school name or the old fictional-student fixture comes back.
+- **Logo:** stored per school in the `school-world-config` setting and served by `GET /api/school/logo`. Its versioned URL travels as `user.school.logoUrl`. Schools set it under Settings → School profile, as PNG, JPEG or WebP up to 1 MB; SVG is refused.
+- **Top bar:** `components/topbar/` (shared by both top bars) has the notifications bell (`GET /api/notifications`), the settings menu and the profile menu. Sign out is inside the profile menu.
