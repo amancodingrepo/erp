@@ -47,8 +47,8 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 | Student categories (GENERAL, OBC, SC, ST, EWS) | `pages/MyBranch/subpages/AdmitStudentIdentityForm.jsx` (`CATEGORY_OPTIONS`) | `GET /v1/categories` | To do |
 | Staff role categories (Fees, Transport, Uniforms, …) | `ManageStaffPage.jsx` (`ROLE_CATEGORIES`) | `GET /api/staff-categories` | To do |
 | Bank names | `ManageStaffPage.jsx` (`BANKS`) | A per-school option list, or free text | To do (low) |
-| Default class "PRE NURSERY A" for a new or edited student | `student-form-utils.js`, `pages/Students/StudentActionDialog.jsx`, `StudentDetailsTab.jsx` | The school's first class from `GET /v1/classes` (or no default) | To do |
-| Default academic year "2026-2027" | `student-form-utils.js` | The current session (`Campus.currentSessionId`; `/bootstrap` `academicYears[].isCurrent`) | To do |
+| Default class "PRE NURSERY A" for a new or edited student | `student-form-utils.js`, `pages/Students/StudentActionDialog.jsx`, `StudentDetailsTab.jsx` | The school's first class from `GET /v1/classes` (or no default) | **Fixed**: no default class. The class lists everywhere (student details, quick edit, admission form, Notice Board) come from the school's classes via `school-options.js`. The quick-edit dialog used to offer only three classes, and a missing roll number became "1" |
+| Default academic year "2026-2027" | `student-form-utils.js` | The current session (`Campus.currentSessionId`; `/bootstrap` `academicYears[].isCurrent`) | **Fixed**: new records start in the school's current session, or none. Year lists show the school's own sessions (some schools write "2025-26"). Screens that must show a year fall back to the calendar year only when no session is marked current. A bulk fee upload without a year is now refused |
 | Default nationality "Indian" | `student-form-utils.js` | A campus setting (country), or no default | To do (low) |
 | Religion, blood group, disability, vaccine and relation options | Admission and staff forms | Fine as built-in options; make them configurable only if schools ask | Keep |
 

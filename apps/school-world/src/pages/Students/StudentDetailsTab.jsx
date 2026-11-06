@@ -1,6 +1,7 @@
 import React from "react";
 import { Camera, CloudDownload, ExternalLink, FileText, Save, UserCircle, Users } from "lucide-react";
 import { Field, YesNo } from "./StudentFormFields.jsx";
+import { academicYearOptions, classOptions as schoolClassOptions } from "../../school-options.js";
 
 export default function StudentDetailsTab({ context }) {
   const { t, data, update, classOptions, photo, photoSaving, handleStudentPhotoUpload, onSave, onOpenAdmission, shortName, notify, saving, save } = context;
@@ -19,8 +20,8 @@ export default function StudentDetailsTab({ context }) {
           </div></div>
           <Field label="Date of Birth" type="date" required value={data.dob} onChange={v => update("dob", v)}/>
           <Field label="Gender" required value={data.gender} onChange={v => update("gender", v)} options={["Male", "Female", "Other", "Not specified"]}/>
-          <Field label="Academic Year" className="academic-year-field" required value={data.academicYear} onChange={v => update("academicYear", v)} options={["2026-2027", "2025-2026", "2024-2025", "2023-2024"]}/>
-          <Field label="Class" required value={data.className} onChange={v => update("className", v)} options={Array.from(new Set(["PRE NURSERY A", "PRE NURSERY B", "NURSERY A", "NURSERY B", "LKG A", "UKG A", "CLASS 1", "CLASS 2", "CLASS 3", "CLASS 4", "CLASS 5", ...classOptions]))}/>
+          <Field label="Academic Year" className="academic-year-field" required value={data.academicYear} onChange={v => update("academicYear", v)} options={academicYearOptions(data.academicYear)}/>
+          <Field label="Class" required value={data.className} onChange={v => update("className", v)} options={schoolClassOptions(data.className, classOptions || [])}/>
           <Field label="Enrollment Date" type="date" value={data.enrollmentDate} onChange={v => update("enrollmentDate", v)}/>
           <Field label="Enrollment No." value={data.enrollmentNo} onChange={v => update("enrollmentNo", v)} placeholder={t("Enrollment Number")}/>
           <Field label="Houses" value={data.house} onChange={v => update("house", v)} options={["--Select House--", "Red House", "Blue House", "Green House", "Yellow House"]}/>

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { academicYearNow } from "../../school-options.js";
 import {
   Plus, X, Download, Save, Search, ChevronDown, FileText, Pencil,
   Trash2, ExternalLink, Settings2, CheckCircle2, AlertCircle, ArrowLeft,
@@ -8,11 +9,7 @@ import { apiGet, apiPatch } from "../../api.js";
 import { ADMISSION_FIELD_GROUPS, FIELD_REQUIREMENT_OPTIONS, createDefaultAdmissionForm, createGroupSelection } from "./admissionFormCatalog.js";
 import { downloadPrintableAdmissionFormPdf } from "./printableAdmissionFormPdf.js";
 
-function currentAcademicYear() {
-  const date = new Date();
-  const start = date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
-  return `${start}-${start + 1}`;
-}
+const currentAcademicYear = () => academicYearNow();
 
 function csvCell(value) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;

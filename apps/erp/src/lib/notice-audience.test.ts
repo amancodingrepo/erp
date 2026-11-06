@@ -62,6 +62,11 @@ describe("canSeeNotice: School World notices", () => {
     expect(canSeeNotice(sw("class", "2 (A)"), parent, now)).toBe(false);
   });
 
+  it("a notice to the whole class reaches every section of it, and no other class", () => {
+    expect(canSeeNotice(sw("class", "1"), parent, now)).toBe(true);
+    expect(canSeeNotice(sw("class", "2"), parent, now)).toBe(false);
+  });
+
   it("route notices only reach riders of that route", () => {
     expect(canSeeNotice(sw("route", "Route 7"), parent, now)).toBe(true);
     expect(canSeeNotice(sw("route", "Route 9"), parent, now)).toBe(false);

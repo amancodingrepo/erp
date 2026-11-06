@@ -69,10 +69,10 @@ const key = (value: unknown) => String(value ?? "").trim().toLowerCase();
 const classKey = (value: unknown) => key(normalizeClassName(value));
 const yes = (value: unknown) => value === true || key(value) === "yes" || key(value) === "true";
 
-/** Every label a class and section might be addressed by: "1 (A)", plus the class alone when there is no section. */
+/** Every label a class and section might be addressed by: "1 (A)", and the whole class ("1"), which reaches all its sections. */
 export function classLabels(className: string, sectionName: string) {
   const section = sectionName && sectionName !== "—" ? sectionName : "";
-  const labels = section ? [`${className} (${section})`, `${className} ${section}`] : [className];
+  const labels = section ? [`${className} (${section})`, `${className} ${section}`, className] : [className];
   return labels.map(classKey).filter(Boolean);
 }
 

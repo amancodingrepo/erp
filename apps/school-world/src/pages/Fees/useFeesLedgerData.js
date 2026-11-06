@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { academicYearOptions } from "../../school-options.js";
 import { money, plainDate, normalized, groupFeeInstallments } from "./feeReportUtils.js";
 
 export default function useFeesLedgerData({ students, feeRecords, query, manageYear, manageClass, ledgerFilterMode, todayKey }) {
@@ -11,11 +12,10 @@ export default function useFeesLedgerData({ students, feeRecords, query, manageY
     return map;
   }, [students]);
 
-  const academicYears = useMemo(() => [...new Set([
-    ...students.map(student => student.academicYear),
-    ...feeRecords.map(fee => fee.academicYear),
-    "2026-2027"
-  ].filter(Boolean))].sort((a, b) => b.localeCompare(a)), [students, feeRecords]);
+  const academicYears = useMemo(() => academicYearOptions(
+    students.map(student => student.academicYear),
+    feeRecords.map(fee => fee.academicYear)
+  ), [students, feeRecords]);
   const classOptions = useMemo(() => [...new Set([
     ...students.map(student => student.className || student.class),
     ...feeRecords.map(fee => fee.className)

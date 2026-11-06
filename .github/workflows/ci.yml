@@ -101,7 +101,7 @@ jobs:
           cache: npm
           cache-dependency-path: apps/school-world/package-lock.json
       - run: npm ci
-      - run: node --test tests/performance_report_subject_classification.test.mjs tests/student_optional_subject_selection.test.mjs tests/campus_native_registry.test.mjs tests/events_dialog_context.test.mjs tests/sidebar_module_role.test.mjs tests/no_hardcoded_tenant.test.mjs tests/browser_storage.test.mjs
+      - run: node --test tests/performance_report_subject_classification.test.mjs tests/student_optional_subject_selection.test.mjs tests/campus_native_registry.test.mjs tests/events_dialog_context.test.mjs tests/sidebar_module_role.test.mjs tests/no_hardcoded_tenant.test.mjs tests/browser_storage.test.mjs tests/school_options.test.mjs
       - name: Production build
         env:
           SCHOOL_WORLD_BASE: /school-world/

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { academicYearNow, academicYearOptions } from "../../school-options.js";
 import { createPortal } from "react-dom";
 import {
   AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, Ban, Check, CheckCircle2,
@@ -21,7 +22,7 @@ export default function ContactsModule({
   onRefreshStudents, onNotify
 }) {
   const [mode, setMode] = useState("all-contacts");
-  const [year, setYear] = useState("2026-2027");
+  const [year, setYear] = useState(() => academicYearNow());
   const [selectedClass, setSelectedClass] = useState("");
   const [classSearch, setClassSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -167,9 +168,7 @@ export default function ContactsModule({
   }, [students]);
 
   const years = useMemo(() => {
-    const found = new Set(students.map(s => s.academicYear).filter(Boolean));
-    found.add("2026-2027");
-    return [...found].sort((a,b) => b.localeCompare(a));
+    return academicYearOptions(students.map(s => s.academicYear), year);
   }, [students]);
 
   const contactRows = useMemo(() => {

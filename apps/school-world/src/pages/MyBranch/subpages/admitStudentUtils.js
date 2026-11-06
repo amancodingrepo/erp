@@ -1,6 +1,7 @@
+import { academicYearNow } from "../../../school-options.js";
+/** The school's current year (from its sessions), else the year containing `date`. */
 export function currentAcademicYear(date = new Date()) {
-  const start = date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
-  return start + "-" + (start + 1);
+  return academicYearNow(date);
 }
 
 export function localDateString(date = new Date()) {

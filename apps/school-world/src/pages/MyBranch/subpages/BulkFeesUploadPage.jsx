@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { currentAcademicYear, defaultAcademicYear } from "../../../school-options.js";
 import { ArrowLeft, Download, FileSpreadsheet, UploadCloud } from "lucide-react";
 import BulkFeesUploadDropzone from "./BulkFeesUploadDropzone.jsx";
 import BulkFeesUploadErrors from "./BulkFeesUploadErrors.jsx";
@@ -36,6 +37,7 @@ export default function BulkFeesUploadPage({ onBack, notify, t, students = [] })
       const student = studentLookup.get(lookupKey);
       if (!student) row.errors.push("Student ID not found in the current school records");
       else row.resolvedStudentCode = student.studentCode;
+      if (!defaultAcademicYear(raw.academicYear)) row.errors.push("Academic year is required (no current year is set for this school)");
       if (!String(raw.feeName || "").trim()) row.errors.push("Fee name is required");
       if (!String(raw.installmentName || "").trim()) row.errors.push("Installment is required (for example, First Installment or Second Installment)");
       const amount = Number(raw.amount);
@@ -47,7 +49,7 @@ export default function BulkFeesUploadPage({ onBack, notify, t, students = [] })
         const parsed = new Date(String(raw.dueDate) + "T00:00:00Z");
         if (Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== String(raw.dueDate)) row.errors.push("Due date is not a valid calendar date");
       }
-      const duplicateKey = [lookupKey, String(raw.academicYear || "2026-2027").trim(), String(raw.feeName || "").trim().toLowerCase(), String(raw.installmentName || "").trim().toLowerCase(), String(raw.dueDate || "").trim()].join("|");
+      const duplicateKey = [lookupKey, defaultAcademicYear(raw.academicYear), String(raw.feeName || "").trim().toLowerCase(), String(raw.installmentName || "").trim().toLowerCase(), String(raw.dueDate || "").trim()].join("|");
       if (seen.has(duplicateKey)) row.errors.push("Duplicate student, fee name, academic year and due date in this file");
       seen.add(duplicateKey);
       return row;
@@ -118,7 +120,7 @@ export default function BulkFeesUploadPage({ onBack, notify, t, students = [] })
       try {
         await apiPost("/fees", {
           studentCode: row.resolvedStudentCode,
-          academicYear: String(row.academicYear || "").trim() || "2026-2027",
+          academicYear: defaultAcademicYear(row.academicYear),
           feeName: String(row.feeName).trim(),
           installmentName: String(row.installmentName).trim(),
           amount: Number(row.amount),
@@ -148,7 +150,7 @@ export default function BulkFeesUploadPage({ onBack, notify, t, students = [] })
 
   const templateRows = [
     ["StudentID", "AcademicYear", "FeeName", "Installment", "Amount", "AmountPaid", "DueDate", "Reference"],
-    ["REPLACE_WITH_STUDENT_ID", "2026-2027", "Tuition Fee", "First Installment", "25000", "0", "2026-10-31", ""]
+    ["REPLACE_WITH_STUDENT_ID", currentAcademicYear() || "2026-2027", "Tuition Fee", "First Installment", "25000", "0", "2026-10-31", ""]
   ];
 
   return <section className="my-branch-feature-view fees-setup-page fee-bulk-upload-page">

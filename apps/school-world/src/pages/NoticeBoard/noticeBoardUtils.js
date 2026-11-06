@@ -1,15 +1,7 @@
+import { academicYearNow } from "../../school-options.js";
+/** The school's current year (from its sessions), else the year containing `date`. */
 export function currentAcademicYear(date = new Date()) {
-  const year = date.getFullYear();
-  const start = date.getMonth() >= 3 ? year : year - 1;
-  return `${start}-${start + 1}`;
-}
-
-export function defaultClassTargets() {
-  const sections = ["A", "B", "C", "D", "E", "F", "G"];
-  const levels = ["PRE NURSERY", "NURSERY", "KG I", "KG II"];
-  for (let grade = 1; grade <= 10; grade += 1) levels.push(String(grade));
-  for (const grade of [11, 12]) levels.push(`${grade} SCIENCE`, `${grade} COMMERCE`, `${grade} HUMANITIES`);
-  return levels.flatMap(level => sections.map(section => `${level} (${section})`));
+  return academicYearNow(date);
 }
 
 export function normalizeClassName(input) {

@@ -5,6 +5,7 @@ import {
   CalendarDays, Bell, AlertCircle, LayoutGrid, List, Newspaper,
 } from "lucide-react";
 import { useSchoolName } from "../../school-config.js";
+import { classOptions as schoolClassOptions } from "../../school-options.js";
 import { useDatabaseSession } from "../../DatabaseSession.jsx";
 import { displayName } from "../../components/topbar/topbarNavigation.js";
 import { t } from "../../i18n.jsx";
@@ -15,7 +16,7 @@ import NoticeBoardSummaryCards from "./NoticeBoardSummaryCards.jsx";
 import NoticeComposer from "./NoticeComposer.jsx";
 import NoticeFeed from "./NoticeFeed.jsx";
 import NoticeOpenDialog from "./NoticeOpenDialog.jsx";
-import { currentAcademicYear, defaultClassTargets, normalizeClassName, fileToDataUrl, normalizeRecipient, recipientKey, sameRecipient, isActiveRecipient, enabledFlag, viewRowsFromRecords, downloadCsv, formatNoticeDate } from "./noticeBoardUtils.js";
+import { currentAcademicYear, normalizeClassName, fileToDataUrl, normalizeRecipient, recipientKey, sameRecipient, isActiveRecipient, enabledFlag, viewRowsFromRecords, downloadCsv, formatNoticeDate } from "./noticeBoardUtils.js";
 
 export default function NoticeBoardModule({ students = [], onNotify }) {
   const schoolName = useSchoolName();
@@ -72,15 +73,13 @@ export default function NoticeBoardModule({ students = [], onNotify }) {
     return () => { cancelled = true; };
   }, [schoolName]);
 
+  // Class notice targets: the school's own classes, plus each class-and-section its students are in.
   const classes = useMemo(() => {
-    const generated = defaultClassTargets();
-    let configured = [];
-    try {
-      const configuredRaw = window.SCHOOL_DIARY_CONFIG?.classes ?? window.SCHOOL_DIARY_CONFIG?.classOptions ?? window.__SCHOOL_DIARY_CONFIG__?.classes;
-      if (Array.isArray(configuredRaw)) configured = configuredRaw.map(item => typeof item === "string" ? item : item?.className || item?.name || item?.label || "").filter(Boolean).map(normalizeClassName);
-    } catch { /* Use generic pre-nursery-to-senior class options. */ }
-    const currentStudentClasses = students.map(student => normalizeClassName(student.className)).filter(Boolean);
-    return Array.from(new Set([...generated, ...configured, ...currentStudentClasses]));
+    const sections = students
+      .filter(student => student.className && student.section)
+      .map(student => normalizeClassName(`${student.className} (${student.section})`));
+    const whole = schoolClassOptions(students.map(student => student.className)).map(normalizeClassName);
+    return Array.from(new Set([...whole, ...sections].filter(Boolean))).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   }, [students, schoolName]);
 
   const appConfig = typeof window !== "undefined" ? (window.SCHOOL_DIARY_CONFIG || window.__SCHOOL_DIARY_CONFIG__ || {}) : {};

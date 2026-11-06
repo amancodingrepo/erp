@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Save } from "lucide-react";
+import { academicYearOptions } from "../../school-options.js";
 import { getFeeInstallmentName } from "./studentEditUtils.js";
 
 export default function StudentFeeSummaryTab({ context }) {
@@ -47,7 +48,7 @@ export default function StudentFeeSummaryTab({ context }) {
   return (
     <>
       <div className="fee-totals compact">
-        <div><span>{t("Academic Year")}</span><select value={data.academicYear} onChange={e => update("academicYear", e.target.value)}><option value="2026-2027">2026-2027</option><option value="2025-2026">2025-2026</option><option value="2024-2025">2024-2025</option></select></div>
+        <div><span>{t("Academic Year")}</span><select value={data.academicYear} onChange={e => update("academicYear", e.target.value)}>{academicYearOptions(data.academicYear).map(year => <option key={year} value={year}>{year}</option>)}</select></div>
         <div><span>{t("Total Fees")}</span><strong>{formatFeeMoney(studentFeeTotals.total)}</strong></div>
         <div><span>{t("Total Paid Fees")}</span><strong>{formatFeeMoney(studentFeeTotals.paid)}</strong></div>
         <div><span>{t("Total Unpaid Fees")}</span><strong>{formatFeeMoney(studentFeeTotals.unpaid)}</strong></div>

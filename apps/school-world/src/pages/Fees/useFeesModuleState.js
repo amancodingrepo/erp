@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { defaultAcademicYear } from "../../school-options.js";
 import { apiGet, apiPut } from "../../api.js";
 import { useSchoolName } from "../../school-config.js";
 import { localDateKey } from "./feeReportUtils.js";
@@ -6,13 +7,13 @@ import { localDateKey } from "./feeReportUtils.js";
 export default function useFeesModuleState({ students, notify, initialDueThroughToday }) {
   const schoolName = useSchoolName();
   const [feeRecords, setFeeRecords] = useState([]);
-  const [feeDraft, setFeeDraft] = useState({ studentCode: students[0]?.id || "", feeName: "Tuition Fee", amount: "", amountPaid: "0", dueDate: "", academicYear: students[0]?.academicYear || "2026-2027", reference: "" });
+  const [feeDraft, setFeeDraft] = useState({ studentCode: students[0]?.id || "", feeName: "Tuition Fee", amount: "", amountPaid: "0", dueDate: "", academicYear: defaultAcademicYear(students[0]?.academicYear), reference: "" });
   const [feeBusy, setFeeBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [view, setView] = useState("manage");
   const [query, setQuery] = useState("");
-  const [manageYear, setManageYear] = useState(students[0]?.academicYear || "2026-2027");
+  const [manageYear, setManageYear] = useState(() => defaultAcademicYear(students[0]?.academicYear));
   const [manageClass, setManageClass] = useState(students[0]?.className || students[0]?.class || "");
   const [ledgerFilterMode, setLedgerFilterMode] = useState(initialDueThroughToday ? "due-through-today" : "all");
   const [expandedStudentRows, setExpandedStudentRows] = useState({});
@@ -98,7 +99,7 @@ export default function useFeesModuleState({ students, notify, initialDueThrough
 
   useEffect(() => {
     if (!feeDraft.studentCode && students[0]) {
-      setFeeDraft(previous => ({ ...previous, studentCode: students[0].id, academicYear: previous.academicYear || students[0].academicYear || "2026-2027" }));
+      setFeeDraft(previous => ({ ...previous, studentCode: students[0].id, academicYear: defaultAcademicYear(previous.academicYear, students[0].academicYear) }));
     }
   }, [students, feeDraft.studentCode]);
   return {

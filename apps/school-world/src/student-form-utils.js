@@ -1,3 +1,5 @@
+import { defaultAcademicYear } from "./school-options.js";
+
 export const editTabs = ["Student Details", "Parent", "Fees", "Installmentwise Fee Summary", "Day Care", "Transport", "Immunization Schedule"];
 
 export const defaultEditData = (student, saved = {}) => {
@@ -6,10 +8,10 @@ export const defaultEditData = (student, saved = {}) => {
   const motherParts = (student.parent || "").split(/\s+/);
   return {
     firstName: nameParts[0] || "", middleName: "", lastName: nameParts.slice(1).join(" ") || "",
-    dob: student.dob || "", academicYear: student.academicYear || "2026-2027",
-    gender: student.gender || "Not specified", className: student.className || "PRE NURSERY A",
+    dob: student.dob || "", academicYear: defaultAcademicYear(student.academicYear),
+    gender: student.gender || "Not specified", className: student.className || "",
     enrollmentDate: student.enrollmentDate || "", enrollmentNo: student.enrollmentNumber || "",
-    rollNumber: student.rollNumber || "1", house: student.house || "", lunchFromSchool: "No",
+    rollNumber: student.rollNumber || "", house: student.house || "", lunchFromSchool: "No",
     aadhar: "", janAadhar: "", scholarNumber: "", sssmId: "",
     religion: "", category: student.category || "OTHER", caste: "", bloodGroup: student.bloodGroup || "",
     disability: "None selected", rteStudent: "No", nationality: student.nationality || "Indian",
