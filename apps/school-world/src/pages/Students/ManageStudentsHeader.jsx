@@ -15,7 +15,7 @@ export default function ManageStudentsHeader({ context }) {
           <TopbarActions onNotify={notify} />
         </header>
         <aside className="sidebar">
-          <div className="school-logo sanford-school-logo"><SchoolLogo /></div>
+          <div className="school-logo school-logo-tenant"><SchoolLogo /></div>
           <nav className="app-sidebar-nav" aria-label={t("School modules")}>{navItems.map(([Icon, label]) => <a key={label} href={getNavigationHref(getModuleNavigationTarget(label))} className={`nav-item ${label === (currentView === "manage" ? "My Branch" : activeSidebarModule) ? "selected" : ""}`} aria-current={label === (currentView === "manage" ? "My Branch" : activeSidebarModule) ? "page" : undefined} onClick={event => handleNavigationClick(event, () => openSidebarModule(label))}><Icon size={18}/><span>{t(label)}</span></a>)}</nav>
         </aside>
     </>

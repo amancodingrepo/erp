@@ -28,6 +28,7 @@ import { DialogProvider } from "./components/dialogs/DialogProvider.jsx";
 import { parseCsvRows, downloadCsvFile } from "./shared/csvUtils.js";
 import { getNavigationHref, getModuleNavigationTarget, readUrlNavigation } from "./navigation.js";
 import { currentAcademicYear, optionsFromBootstrap } from "./school-options.js";
+import SchoolTabIcon from "./components/topbar/SchoolTabIcon.jsx";
 import { clearLegacyStorage, readStoredNavigation, saveStoredNavigation } from "./browser-storage.js";
 import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload } from "./pages/Students/bulkStudentImport.js";
 
@@ -748,4 +749,4 @@ function ApplicationRoot() {
   return <SchoolDiaryApp user={user} onLogout={logout} />;
 }
 
-createRoot(document.getElementById("root")).render(<LanguageProvider><DatabaseSessionProvider><DialogProvider><ApplicationRoot /></DialogProvider></DatabaseSessionProvider></LanguageProvider>);
+createRoot(document.getElementById("root")).render(<LanguageProvider><DatabaseSessionProvider><SchoolTabIcon /><DialogProvider><ApplicationRoot /></DialogProvider></DatabaseSessionProvider></LanguageProvider>);

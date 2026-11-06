@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { schoolLogoDataUrl } from "@/lib/school-branding";
 import { conflict, notFound } from "@/lib/errors";
 import { fail, ok } from "@/lib/http";
 import { principalFromRequest } from "@/lib/principal";
@@ -108,7 +109,7 @@ export async function GET(
         phone: campus?.phone ?? "",
         email: campus?.email ?? "",
         timezone: campus?.timezone ?? "Asia/Kolkata",
-        logo: "",
+        logo: campus ? await schoolLogoDataUrl(campus.id) : "",
       },
       student: {
         id: student.admissionNo,
