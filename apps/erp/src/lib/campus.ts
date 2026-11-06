@@ -80,6 +80,16 @@ export async function campusSummary(campusId: string) {
     name: campus.name,
     code: campus.code,
     org: campus.org.name,
+    // Contact details and the school's own locale (shown and used by School World).
+    address: campus.address,
+    phone: campus.phone,
+    email: campus.email,
+    timezone: campus.timezone,
+    dateFormat: campus.dateFormat,
+    startMonth: campus.startMonth,
+    currencyCode: campus.currencyCode,
+    currencyFormat: campus.currencyFormat,
+    currencyPlace: campus.currencyPlace,
     session: session
       ? { id: session.id, name: session.name, isCurrent: session.isCurrent }
       : null,

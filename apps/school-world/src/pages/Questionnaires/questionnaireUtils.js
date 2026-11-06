@@ -1,3 +1,4 @@
+import { appLocale } from "../../school-locale.js";
 export const QUESTION_TYPES = ["Survey", "Approval", "Quiz", "Whizzard"];
 export const INPUT_TYPES = ["Text", "SingleChoice", "MultipleChoice", "Documents", "Canvas"];
 export const SPECIAL_SYMBOLS = ["α", "β", "θ", "π", "√", "∑", "≤", "≥", "±", "×", "÷", "°", "Ω", "→", "≠"];
@@ -55,7 +56,7 @@ export function selectedClassLabel(classes, selected, allClasses) {
 export function formatDate(value) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString("en-IN", {
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
   });
 }

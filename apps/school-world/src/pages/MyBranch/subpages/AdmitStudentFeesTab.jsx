@@ -1,6 +1,7 @@
 import React from "react";
 import { BadgeIndianRupee, ClipboardList } from "lucide-react";
 import { AdmitField, AdmitSectionHeading } from "./AdmitStudentFields.jsx";
+import { formatMoney } from "../../../school-locale.js";
 
 export default function AdmitStudentFeesTab({ fees, setFeeField, templates = [] }) {
   const selected = templates.find(item => String(item.id) === String(fees.templateId)) || null;
@@ -20,7 +21,7 @@ export default function AdmitStudentFeesTab({ fees, setFeeField, templates = [] 
         <span>{(selected.installments || []).length} installment(s) · {selected.academicYear || "Academic year not set"}</span>
         <small>Base amount before discounts and taxes</small>
       </div>
-      <strong className="admit-fee-summary-total">₹{amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</strong>
+      <strong className="admit-fee-summary-total">{formatMoney(amount, { maximumFractionDigits: 2 })}</strong>
     </div> : <div className="admit-tab-empty"><ClipboardList size={22} /><span>{templates.length ? "Select a fee template to review its installments." : "No fee templates are configured yet. You can continue and apply a template later from Manage Fee Templates."}</span></div>}
     <label className="admit-checkbox-row">
       <input type="checkbox" checked={Boolean(fees.applyTemplate)} disabled={!selected} onChange={event => setFeeField("applyTemplate", event.target.checked)} />

@@ -27,6 +27,8 @@ import { DialogProvider } from "./components/dialogs/DialogProvider.jsx";
 
 import { parseCsvRows, downloadCsvFile } from "./shared/csvUtils.js";
 import { getNavigationHref, getModuleNavigationTarget, readUrlNavigation } from "./navigation.js";
+import { currentAcademicYear, optionsFromBootstrap } from "./school-options.js";
+import SchoolTabIcon from "./components/topbar/SchoolTabIcon.jsx";
 import { clearLegacyStorage, readStoredNavigation, saveStoredNavigation } from "./browser-storage.js";
 import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload } from "./pages/Students/bulkStudentImport.js";
 
@@ -53,7 +55,7 @@ function parseCsvText(text) {
 }
 function downloadStudentCsvTemplate() {
   const headers=['StudentID','StudentName','Class','Section','AcademicYear','Status','FatherName','ParentName','MotherName','ParentPhone','AlternatePhone','Email','DateOfBirth','Gender','Address','City','State','PINCode','EnrollmentDate','EnrollmentNumber','RollNumber','OriginalClass','House','BloodGroup','Category','Nationality','RouteName','FeeDefaulter','ChildIDActive','ParentIDActive','RFIDMapped','RFIDNumber','SiblingIDs'];
-  const example=['STU1001','Aarav Sharma','CLASS 1 A','A','2026-2027','Active','Rajesh Sharma','Rajesh Sharma','Neha Sharma','9876500001','','parent@example.com','2018-04-21','Male','Sample Street','Indore','Madhya Pradesh','452001','2026-04-10','ADM1001','1','I','Red','O+','GENERAL','Indian','Route 01','No','Yes','Yes','No','',''];
+  const example=['STU1001','Aarav Sharma','CLASS 1 A','A',currentAcademicYear()||'2026-2027','Active','Rajesh Sharma','Rajesh Sharma','Neha Sharma','9876500001','','parent@example.com','2018-04-21','Male','Sample Street','Indore','Madhya Pradesh','452001','2026-04-10','ADM1001','1','I','Red','O+','GENERAL','Indian','Route 01','No','Yes','Yes','No','',''];
   downloadCsvFile("school-diary-student-import-template.csv", [headers, example]);
 }
 
@@ -255,7 +257,7 @@ function SchoolDiaryApp({ user, onLogout }) {
         if (detailResult?.detailsById && typeof detailResult.detailsById === "object") setDetailsById(detailResult.detailsById);
         else setToast(t("Student details (parents, transport, fees and more) could not be loaded. Reload the page to try again."));
         if (bootstrap?.school) {
-          window.SCHOOL_DIARY_CONFIG = { ...(window.SCHOOL_DIARY_CONFIG || {}), ...bootstrap.school.config, schoolId: bootstrap.school.id, schoolCode: bootstrap.school.code, schoolName: bootstrap.school.name, classes: (bootstrap.classes || []).map(item => item.class_name) };
+          window.SCHOOL_DIARY_CONFIG = { ...(window.SCHOOL_DIARY_CONFIG || {}), ...bootstrap.school.config, schoolId: bootstrap.school.id, schoolCode: bootstrap.school.code, schoolName: bootstrap.school.name, ...optionsFromBootstrap(bootstrap) };
           window.dispatchEvent(new Event("schooldiary:tenant-updated"));
         }
       } catch (error) {
@@ -532,8 +534,8 @@ function SchoolDiaryApp({ user, onLogout }) {
       rollNumber: data.rollNumber ?? editingStudent.rollNumber ?? "",
       house: data.house ?? editingStudent.house ?? "",
       bloodGroup: data.bloodGroup ?? editingStudent.bloodGroup ?? "",
-      category: data.category ?? editingStudent.category ?? "OTHER",
-      nationality: data.nationality ?? editingStudent.nationality ?? "Indian"
+      category: data.category ?? editingStudent.category ?? "",
+      nationality: data.nationality ?? editingStudent.nationality ?? ""
     };
     if (scope === "all" && photoDataUrl) allChanges.photoDataUrl = photoDataUrl;
 
@@ -747,4 +749,4 @@ function ApplicationRoot() {
   return <SchoolDiaryApp user={user} onLogout={logout} />;
 }
 
-createRoot(document.getElementById("root")).render(<LanguageProvider><DatabaseSessionProvider><DialogProvider><ApplicationRoot /></DialogProvider></DatabaseSessionProvider></LanguageProvider>);
+createRoot(document.getElementById("root")).render(<LanguageProvider><DatabaseSessionProvider><SchoolTabIcon /><DialogProvider><ApplicationRoot /></DialogProvider></DatabaseSessionProvider></LanguageProvider>);

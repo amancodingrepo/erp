@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { academicYearNow, academicYearOptions, currentAcademicYear } from "../../school-options.js";
 import { t } from "../../i18n.jsx";
 import { apiGet, apiPost } from "../../api.js";
 import { LegacyHeader, LegacySidebar } from "../../LegacyShell.jsx";
@@ -9,12 +10,9 @@ import SavedAdmissionEnquiries from "./SavedAdmissionEnquiries.jsx";
 import { Field } from "../Students/StudentFormFields.jsx";
 import { ADMISSION_FIELD_GROUPS, createDefaultAdmissionForm, getFieldSetting } from "./admissionFormCatalog.js";
 import { CheckCircle2 } from "lucide-react";
+import { schoolToday } from "../../school-locale.js";
 
-function currentYear() {
-  const date = new Date();
-  const start = date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
-  return `${start}-${start + 1}`;
-}
+const currentYear = () => academicYearNow();
 
 function readActiveAdmissionForm() {
   const config = window.SCHOOL_DIARY_CONFIG?.admissionFormBuilder || {};
@@ -23,7 +21,7 @@ function readActiveAdmissionForm() {
   try { desiredId = window.localStorage.getItem("schoolWorld.activeAdmissionFormId") || ""; } catch {}
   return forms.find(form => form.id === desiredId && form.status !== "Closed")
     || forms.find(form => form.status !== "Closed")
-    || createDefaultAdmissionForm(config.academicYear || currentYear());
+    || createDefaultAdmissionForm(config.academicYear || currentAcademicYear() || currentYear());
 }
 
 function selectedVisibleSections(form, formType) {
@@ -45,7 +43,7 @@ export function AdmissionFormPage({ student, onBack, onNotify, onOpenModule, act
   const [vals, setVals] = useState(() => ({
     academicYear: formDefinition.academicYear || savedDetails?.academicYear || student.academicYear || currentYear(),
     formNumber: "",
-    enquiryDate: new Date().toISOString().slice(0, 10),
+    enquiryDate: schoolToday(),
     enquiryStatus: "Cold Enquiry",
     firstName: savedDetails?.firstName || (student.name || "").split(" ")[0] || "",
     middleName: savedDetails?.middleName || "",
@@ -62,7 +60,7 @@ export function AdmissionFormPage({ student, onBack, onNotify, onOpenModule, act
     previousSchool: "",
     aadhar: "",
     sssmId: "",
-    nationality: savedDetails?.nationality || student.nationality || "Indian",
+    nationality: savedDetails?.nationality || student.nationality || "",
     religion: savedDetails?.religion || "",
     caste: savedDetails?.caste || "",
     bloodGroup: savedDetails?.bloodGroup || student.bloodGroup || "",
@@ -215,7 +213,7 @@ export function AdmissionFormPage({ student, onBack, onNotify, onOpenModule, act
     <LegacySidebar onBack={onBack} onNotify={notify} onModuleSelect={onOpenModule} onOpenAdmission={onOpenModule ? () => onOpenModule("Admission/Enquiry Form") : undefined} activeModule={activeModule} admission />
     <main className="admission-main">
       <div className="admission-top-fields">
-        <Field label="Academic Year" value={vals.academicYear} onChange={value => change("academicYear", value)} options={Array.from(new Set([vals.academicYear, formDefinition.academicYear, currentYear(), "2025-2026", "2024-2025"].filter(Boolean)))} required />
+        <Field label="Academic Year" value={vals.academicYear} onChange={value => change("academicYear", value)} options={academicYearOptions(vals.academicYear, formDefinition.academicYear, currentYear())} required />
         <Field label="Form Number" value={vals.formNumber} onChange={value => change("formNumber", value)} />
         <Field label="Enquiry Date" value={vals.enquiryDate} onChange={value => change("enquiryDate", value)} type="date" />
         <Field label="Enquiry Status" value={vals.enquiryStatus} onChange={value => change("enquiryStatus", value)} options={["Cold Enquiry", "Warm Enquiry", "Hot Enquiry", "Admitted", "Not Interested"]} />

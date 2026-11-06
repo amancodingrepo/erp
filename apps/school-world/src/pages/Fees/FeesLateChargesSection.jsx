@@ -1,5 +1,6 @@
 import React from "react";
 import { money, plainDate } from "./feeReportUtils.js";
+import { moneyLabel } from "../../school-locale.js";
 
 export default function FeesLateChargesSection({ context }) {
   const { t, feeSettingsReady, feeSettingsLoaded, editingLateFeeId, lateFeeDraft, setLateFeeDraft, feeTypes, saveLateFeeRule, resetLateFeeDraft, lateFeeCharges, editLateFeeRule, removeLateFeeRule } = context;
@@ -12,7 +13,7 @@ export default function FeesLateChargesSection({ context }) {
           <label>{t("Fee Type")}<input list="fees-fee-type-options" value={lateFeeDraft.feeType} onChange={event => setLateFeeDraft(previous => ({ ...previous, feeType: event.target.value }))} placeholder={t("Tuition Fee")} /><datalist id="fees-fee-type-options">{feeTypes.map(type => <option key={type} value={type} />)}</datalist></label>
           <label>{t("Period")}<select value={lateFeeDraft.period} onChange={event => setLateFeeDraft(previous => ({ ...previous, period: event.target.value }))}><option>One Time</option><option>Per Day</option><option>Per Month</option></select></label>
           <label>{t("Charge Type")}<select value={lateFeeDraft.chargeType} onChange={event => setLateFeeDraft(previous => ({ ...previous, chargeType: event.target.value }))}><option>Flat</option><option>Percentage</option></select></label>
-          {lateFeeDraft.chargeType === "Flat" ? <label>{t("Amount (₹)")}<input type="number" min="0.01" step="0.01" value={lateFeeDraft.amount} onChange={event => setLateFeeDraft(previous => ({ ...previous, amount: event.target.value }))} /></label> : <label>{t("Percentage (%)")}<input type="number" min="0.01" max="100" step="0.01" value={lateFeeDraft.percentage} onChange={event => setLateFeeDraft(previous => ({ ...previous, percentage: event.target.value }))} /></label>}
+          {lateFeeDraft.chargeType === "Flat" ? <label>{moneyLabel(t("Amount"))}<input type="number" min="0.01" step="0.01" value={lateFeeDraft.amount} onChange={event => setLateFeeDraft(previous => ({ ...previous, amount: event.target.value }))} /></label> : <label>{t("Percentage (%)")}<input type="number" min="0.01" max="100" step="0.01" value={lateFeeDraft.percentage} onChange={event => setLateFeeDraft(previous => ({ ...previous, percentage: event.target.value }))} /></label>}
           <label>{t("From Date")}<input type="date" value={lateFeeDraft.fromDate} onChange={event => setLateFeeDraft(previous => ({ ...previous, fromDate: event.target.value }))} /></label>
           <label>{t("To Date")}<input type="date" min={lateFeeDraft.fromDate || undefined} value={lateFeeDraft.toDate} onChange={event => setLateFeeDraft(previous => ({ ...previous, toDate: event.target.value }))} /></label>
         </div>

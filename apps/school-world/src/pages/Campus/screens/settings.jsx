@@ -3,6 +3,7 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, RemoveButton, Row, Screen,
   apiCall, formObject, plural, rowsOf, useLoad, useStatus
 } from "../kit.jsx";
+import { currencySymbol } from "../../../school-locale.js";
 
 // Ported from apps/erp/src/components/modules/campus-ops.tsx (settings, SMTP, letterhead, modules,
 // custom fields), payment-ops.tsx, and app/(staff)/staff/roles + users pages, with the same endpoints.
@@ -120,7 +121,7 @@ export function CurrencySettings() {
   const { settings, error, status, save } = useCampusSettings();
   const [symbol, setSymbol] = useState(null);
   const [place, setPlace] = useState(null);
-  const shownSymbol = symbol ?? settings?.currencyFormat ?? "₹";
+  const shownSymbol = symbol ?? settings?.currencyFormat ?? currencySymbol();
   const shownPlace = place ?? settings?.currencyPlace ?? "before";
   const sample = shownPlace === "after" ? "12,500.00 " + shownSymbol : shownSymbol + "12,500.00";
   return (

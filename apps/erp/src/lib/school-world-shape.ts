@@ -20,7 +20,10 @@ export function schoolWorldRole(principal: AuthPrincipal) {
 export function schoolWorldUser(
   principal: AuthPrincipal,
   account: { email: string | null; username: string; firstName: string; lastName: string; mustChangePassword: boolean; phone: string | null },
-  campus: { id: string; name: string; code: string | null; address?: string | null; phone?: string | null; email?: string | null; timezone?: string | null },
+  campus: {
+    id: string; name: string; code: string | null; address?: string | null; phone?: string | null; email?: string | null; timezone?: string | null;
+    dateFormat?: string | null; startMonth?: number | null; currencyCode?: string | null; currencyFormat?: string | null; currencyPlace?: string | null;
+  },
   branding: { logoUrl?: string } = {},
 ) {
   const role = schoolWorldRole(principal);
@@ -43,6 +46,14 @@ export function schoolWorldUser(
       phone: campus.phone ?? "",
       email: campus.email ?? "",
       timezone: campus.timezone ?? "Asia/Kolkata",
+      // How this school writes money and dates (Campus settings). School World formats with these.
+      locale: {
+        currencyCode: campus.currencyCode || "INR",
+        currencySymbol: campus.currencyFormat || "",
+        currencyPlace: campus.currencyPlace === "after" ? "after" : "before",
+        dateFormat: campus.dateFormat || "DD/MM/YYYY",
+        startMonth: campus.startMonth ?? null,
+      },
       logoUrl: branding.logoUrl ?? "",
     },
   };

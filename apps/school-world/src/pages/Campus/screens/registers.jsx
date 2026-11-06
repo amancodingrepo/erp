@@ -3,6 +3,7 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, RemoveButton, Row, Screen, StudentPicker,
   apiCall, money, plural, rowsOf, staffName, useLoad, useStatus, useStudentNames
 } from "../kit.jsx";
+import { formatDate } from "../../../school-locale.js";
 
 // Screens on top of /v1/registers/{kind} (apps/erp/src/lib/services/registers.ts). The server owns the
 // field rules; these screens read them from GET /v1/registers and build their forms from them, so a
@@ -284,7 +285,7 @@ export function StaffGenerateCertificate() {
   const template = templates.find((t) => t.id === pick.templateId);
   const vars = person && {
     name: [person.firstName, person.lastName].filter(Boolean).join(" "), employeeId: person.employeeId || "",
-    designation: person.designation?.name || "", department: person.department?.name || "", campus: campusName, date: new Date().toLocaleDateString("en-IN"),
+    designation: person.designation?.name || "", department: person.department?.name || "", campus: campusName, date: formatDate(new Date()),
   };
   const text = template && vars ? String(template.body).replace(/\{\{\s*(\w+)\s*\}\}/g, (m, key) => (key in vars ? vars[key] : m)) : "";
   async function issue() {

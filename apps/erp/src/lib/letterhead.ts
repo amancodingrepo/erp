@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { schoolLogoDataUrl } from "@/lib/school-branding";
 
 export async function campusLetterhead(campusId: string) {
   const campus = await prisma.campus.findUnique({ where: { id: campusId } });
@@ -16,6 +17,7 @@ export async function campusLetterhead(campusId: string) {
     campusName: campus?.name ?? "Campus",
     header: extra.printHeader || campus?.name || "Campus",
     footer: extra.printFooter || campus?.address || "",
-    logo: extra.logo || "",
+    // An older print-only logo wins if a school set one; otherwise the school's own logo.
+    logo: extra.logo || (await schoolLogoDataUrl(campusId)),
   };
 }

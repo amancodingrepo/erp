@@ -1,12 +1,14 @@
+import { defaultAcademicYear } from "../../../school-options.js";
+import { formatMoney } from "../../../school-locale.js";
 export const makeId = prefix => prefix + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 export const blankLine = () => ({ id: makeId("fee-line"), feeTypeId: "", feeTypeName: "", amount: "", discountType: "Default Discount", discountValue: "0", taxes: { cgst: false, sgst: false, igst: false }, notes: "" });
 export const blankInstallment = () => ({ id: "", installment: "First", dueDate: "", notes: "", fees: [blankLine()] });
 export function emptyTemplate(year) {
-  return { id: "", name: "", academicYear: year || "2026-2027", studentType: "All Students", hasOptionalFees: false, isMonthlyTemplate: false, installments: [], createdAt: "", updatedAt: "" };
+  return { id: "", name: "", academicYear: defaultAcademicYear(year), studentType: "All Students", hasOptionalFees: false, isMonthlyTemplate: false, installments: [], createdAt: "", updatedAt: "" };
 }
 export const labelForStudentType = value => value === "new" ? "New Students" : value === "existing" ? "Existing Students" : "All Students";
 export function money(value) {
-  return "₹" + Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  return formatMoney(Number(value || 0), { maximumFractionDigits: 2 });
 }
 export function taxLabels(taxes) {
   const config = taxes || {};

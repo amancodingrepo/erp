@@ -3,6 +3,7 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, Row, Screen, StudentPicker,
   apiCall, dateOnly, money, plural, rowsOf, staffName, titleCase, useLoad, useStatus, useStudentNames
 } from "../kit.jsx";
+import { moneyLabel } from "../../../school-locale.js";
 
 // Native versions of the screens the old app built from one generic record panel
 // (apps/erp/src/components/modules/remaining-screens.tsx -> /api/v1/ops/{collection}).
@@ -122,7 +123,7 @@ export function CanteenMenuTypes() {
 }
 export function CanteenItems() {
   return <RecordScreen title="Food item master" hint="Dishes and their prices." collection="canteen-items"
-    fields={[{ name: "name", label: "Item", required: true }, { name: "price", label: "Price (₹)", type: "number", min: 0, step: "0.01", required: true }]}
+    fields={[{ name: "name", label: "Item", required: true }, { name: "price", label: moneyLabel("Price"), type: "number", min: 0, step: "0.01", required: true }]}
     done="Item saved" columns={() => [{ key: "name", label: "Item" }, { key: "price", label: "Price", render: (r) => money(r.price) }]} />;
 }
 export function CanteenMenus() {
@@ -149,7 +150,7 @@ export function CanteenMenus() {
 }
 export function CanteenCoupons() {
   return <RecordScreen title="Create coupon" hint="Prepaid meal coupons. Each code can be used once." collection="canteen-coupons" formTitle="Create coupon"
-    fields={[{ name: "code", label: "Coupon code", required: true, placeholder: "LUNCH-001" }, { name: "amount", label: "Value (₹)", type: "number", min: 0, step: "0.01", required: true }, { name: "studentId", label: "Student", type: "student" }]}
+    fields={[{ name: "code", label: "Coupon code", required: true, placeholder: "LUNCH-001" }, { name: "amount", label: moneyLabel("Value"), type: "number", min: 0, step: "0.01", required: true }, { name: "studentId", label: "Student", type: "student" }]}
     // The API redeems an existing code instead of creating it, so a duplicate would silently spend a coupon.
     check={(b, { rows }) => (rows.some((r) => r.code === b.code.toUpperCase()) ? "Coupon " + b.code.toUpperCase() + " already exists. Use a new code." : null)}
     done="Coupon created"
@@ -227,7 +228,7 @@ export function CourseCategories() {
 }
 export function OnlineCourses() {
   return <RecordScreen title="Online course" hint="Courses students can enrol in." collection="lms-courses" paths={["/v1/ops/lms-categories"]}
-    fields={[{ name: "title", label: "Course title", required: true, wide: true }, { name: "categoryId", label: "Category", type: "select", options: opts("/v1/ops/lms-categories") }, { name: "price", label: "Price (₹)", type: "number", min: 0, step: "0.01" }]}
+    fields={[{ name: "title", label: "Course title", required: true, wide: true }, { name: "categoryId", label: "Category", type: "select", options: opts("/v1/ops/lms-categories") }, { name: "price", label: moneyLabel("Price"), type: "number", min: 0, step: "0.01" }]}
     done="Course saved"
     columns={() => [{ key: "title", label: "Course" }, { key: "category", label: "Category", render: (r) => r.category?.name || "-" }, { key: "price", label: "Price", render: (r) => (Number(r.price) ? money(r.price) : "Free") }, { key: "n", label: "Enrolled", render: (r) => r._count?.enrollments ?? 0 }]} />;
 }
@@ -404,7 +405,7 @@ function FinanceEntries({ kind, searchOnly }) {
         rowFilter={(r) => r.head?.kind === kind && (!searchOnly || inRange(r))}
         fields={[
           { name: "headId", label: label + " head", type: "select", required: true, options: (data) => rowsOf(data["/v1/ops/finance-heads"]).filter((h) => h.kind === kind).map((h) => ({ value: h.id, label: h.name })), emptyText: "Add a " + label.toLowerCase() + " head first" },
-          { name: "amount", label: "Amount (₹)", type: "number", min: 0.01, step: "0.01", required: true },
+          { name: "amount", label: moneyLabel("Amount"), type: "number", min: 0.01, step: "0.01", required: true },
           { name: "entryOn", label: "Date", type: "date", required: true },
           { name: "description", label: "Description", wide: true },
         ]}

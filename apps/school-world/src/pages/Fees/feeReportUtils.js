@@ -1,3 +1,4 @@
+import { appLocale, currencyCode, currencySymbol, formatMoney } from "../../school-locale.js";
 export const FEE_REPORT_TYPES = [
   { key: "cheques", label: "Cheque Submitted Report", description: "Payments with a saved payment reference. A reference is not assumed to be a verified cheque number." },
   { key: "fee-reports", label: "Fee Reports", description: "Paid fee records within the selected settlement-date range." },
@@ -66,7 +67,7 @@ export const CONSOLIDATED_COLUMNS = [
 ];
 
 export function money(value) {
-  return "₹" + Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  return formatMoney(Number(value || 0), { maximumFractionDigits: 2 });
 }
 export function plainDate(value) {
   return value ? String(value).slice(0, 10) : "";
@@ -186,6 +187,8 @@ export function spreadsheetXml(title, columns, rows, subtitle) {
 }
 export function pdfSafeText(value) {
   return String(value ?? "")
+    // PDF text can't draw every currency symbol: write the school's currency code instead.
+    .split(currencySymbol()).join(currencyCode() + " ")
     .replace(/₹/g, "Rs ")
     .replace(/[–—]/g, "-")
     .replace(/·/g, " ")
@@ -238,7 +241,7 @@ export function buildFeePdf(title, rows, summaryText, templateSettings = null) {
     pageNumber += 1;
     commands = [];
     drawText(left, pageHeight - 33, title, 17, true, "0.10 0.27 0.47");
-    drawText(left, pageHeight - 50, "Generated " + new Date().toLocaleString("en-IN"), 8, false, "0.37 0.44 0.53");
+    drawText(left, pageHeight - 50, "Generated " + new Date().toLocaleString(appLocale()), 8, false, "0.37 0.44 0.53");
     drawText(left, pageHeight - 65, summaryText, 8, true, "0.20 0.30 0.41");
     fillRect(startX, headerRectY, totalWidth, 22, "0.14 0.34 0.54");
     let x = startX;
@@ -269,7 +272,7 @@ export function buildFeePdf(title, rows, summaryText, templateSettings = null) {
     let x = startX;
     columns.forEach(column => {
       let value = row[column.key];
-      if (["amount", "amountPaid", "balance"].includes(column.key)) value = Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+      if (["amount", "amountPaid", "balance"].includes(column.key)) value = Number(value || 0).toLocaleString(appLocale(), { maximumFractionDigits: 0 });
       const text = pdfSafeText(value);
       drawText(x + 3, rowY, text.length > textMax(column.width, 6.7) ? text.slice(0, textMax(column.width, 6.7) - 1) + "~" : text, 6.7, false, "0.20 0.25 0.31");
       x += column.width;

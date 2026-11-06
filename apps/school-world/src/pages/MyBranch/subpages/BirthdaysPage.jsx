@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { apiGet } from "../../../api.js";
 import "./BirthdaysPage.css";
+import { appLocale } from "../../../school-locale.js";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -59,11 +60,11 @@ function birthdayInfo(record, today) {
 }
 function formatDate(date, options = { day: "numeric", month: "short", year: "numeric" }) {
   if (!date || Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-IN", options);
+  return date.toLocaleDateString(appLocale(), options);
 }
 function formatDateOfBirth(birth) {
   if (!birth) return "Date of birth not recorded";
-  return new Date(2000, birth.month, birth.day).toLocaleDateString("en-IN", { day: "numeric", month: "long" }) +
+  return new Date(2000, birth.month, birth.day).toLocaleDateString(appLocale(), { day: "numeric", month: "long" }) +
     (birth.year ? " " + birth.year : "");
 }
 function initials(name) {

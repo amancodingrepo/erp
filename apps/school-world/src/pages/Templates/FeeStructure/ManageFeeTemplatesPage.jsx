@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { academicYearOptions, currentAcademicYear, defaultAcademicYear } from "../../../school-options.js";
 import { ArrowLeft, CalendarDays, Check, ClipboardList, Copy, Download, Eye, Pencil, Plus, Search, Trash2, X, Users } from "lucide-react";
 import { apiGet, apiPost, apiPut } from "../../../api.js";
 
@@ -18,7 +19,7 @@ export default function ManageFeeTemplatesPage({ onBack, notify, t, students = [
   const [filterYear, setFilterYear] = useState("");
   const [filterStudentType, setFilterStudentType] = useState("");
   const [screen, setScreen] = useState("list");
-  const [draft, setDraft] = useState(emptyTemplate("2026-2027"));
+  const [draft, setDraft] = useState(() => emptyTemplate());
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [installmentModal, setInstallmentModal] = useState(false);
@@ -49,7 +50,7 @@ export default function ManageFeeTemplatesPage({ onBack, notify, t, students = [
         ...item,
         id: String(item.id || makeId("fee-template")),
         name: String(item.name || ""),
-        academicYear: String(item.academicYear || "2026-2027"),
+        academicYear: defaultAcademicYear(item.academicYear),
         studentType: ["New Students", "Existing Students"].includes(item.studentType) ? item.studentType : "All Students",
         hasOptionalFees: Boolean(item.hasOptionalFees),
         isMonthlyTemplate: Boolean(item.isMonthlyTemplate),
@@ -107,7 +108,7 @@ export default function ManageFeeTemplatesPage({ onBack, notify, t, students = [
     return () => { cancelled = true; };
   }, []);
 
-  const academicYears = useMemo(() => [...new Set(["2026-2027", ...students.map(student => student.academicYear), ...templates.map(item => item.academicYear)].filter(Boolean))].sort((a, b) => b.localeCompare(a)), [students, templates]);
+  const academicYears = useMemo(() => academicYearOptions(students.map(student => student.academicYear), templates.map(item => item.academicYear)), [students, templates]);
   const classOptions = useMemo(() => {
     const rows = new Map();
     students.forEach(student => {
@@ -238,7 +239,7 @@ export default function ManageFeeTemplatesPage({ onBack, notify, t, students = [
   }
   function createTemplate() {
     if (loadError) { notify?.("Saved fee templates could not be loaded. Refresh before editing."); return; }
-    setDraft(emptyTemplate(academicYears[0] || "2026-2027"));
+    setDraft(emptyTemplate(currentAcademicYear() || academicYears[0]));
     setDirty(false);
     setScreen("editor");
   }
@@ -264,7 +265,7 @@ export default function ManageFeeTemplatesPage({ onBack, notify, t, students = [
       ...deepCopy(draft),
       id: draft.id || makeId("fee-template"),
       name,
-      academicYear: draft.academicYear || "2026-2027",
+      academicYear: defaultAcademicYear(draft.academicYear),
       studentType: draft.studentType || "All Students",
       hasOptionalFees: Boolean(draft.hasOptionalFees),
       isMonthlyTemplate: Boolean(draft.isMonthlyTemplate),

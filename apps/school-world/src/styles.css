@@ -4596,11 +4596,11 @@ html[data-sd-theme] .contacts-module-app .contacts-member-add-label{color:var(--
 }
 
 /* School sidebar branding (logo from the school settings) */
-.app-shell .sidebar .school-logo.sanford-school-logo{padding:6px 6px 8px;margin-bottom:12px;overflow:hidden}
+.app-shell .sidebar .school-logo.school-logo-tenant{padding:6px 6px 8px;margin-bottom:12px;overflow:hidden}
 .app-shell .sidebar .school-sidebar-logo-image{display:block;width:100%;max-width:150px;max-height:178px;height:auto;object-fit:contain;margin:0 auto}
 
 /* Module sidebar branding (logo from the school settings) */
-.legacy-sidebar.app-sidebar-parity .school-logo.sanford-school-logo{flex:0 0 auto;padding:6px 6px 8px;margin-bottom:12px;overflow:hidden;text-align:center}
+.legacy-sidebar.app-sidebar-parity .school-logo.school-logo-tenant{flex:0 0 auto;padding:6px 6px 8px;margin-bottom:12px;overflow:hidden;text-align:center}
 .legacy-sidebar.app-sidebar-parity .school-sidebar-logo-image{display:block;width:100%;max-width:150px;max-height:178px;height:auto;object-fit:contain;margin:0 auto}
 /* Events > Upcoming Events: match title styling from Birthdays This Month. */
 .events-detail-grid #events-detail-upcoming .events-upcoming-copy > strong {

@@ -1,4 +1,5 @@
 import { BriefcaseBusiness, School, UserRound, Users } from "lucide-react";
+import { appLocale } from "../../school-locale.js";
 
 export const EVENT_TYPES = ["School Event", "Class Event", "Parent Event", "Staff Event"];
 export const EVENT_LABELS = [
@@ -54,11 +55,11 @@ export function normalizeEvent(raw, index) {
 }
 export function dateLabel(value, options) {
   const parsed = parseDateKey(value);
-  return parsed ? parsed.toLocaleDateString("en-IN", options || { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  return parsed ? parsed.toLocaleDateString(appLocale(), options || { day: "2-digit", month: "short", year: "numeric" }) : "—";
 }
 export function monthHeading(value) {
   const parsed = parseDateKey(value) || new Date();
-  return parsed.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  return parsed.toLocaleDateString(appLocale(), { month: "long", year: "numeric" });
 }
 export function includesDate(event, key) {
   return String(event.startDate) <= key && String(event.endDate) >= key;

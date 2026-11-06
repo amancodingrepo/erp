@@ -22,3 +22,6 @@ erp-crawl/crawl.log
 .prisma/
 .skillgod/
 .agents/
+
+# graphify knowledge-graph output (local map, rebuilt with /graphify)
+graphify-out/

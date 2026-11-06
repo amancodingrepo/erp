@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Download, Eye, Pencil, Save, X } from "lucide-react";
 import { Field } from "./StudentFormFields.jsx";
+import { academicYearOptions } from "../../school-options.js";
 import { getFeeInstallmentName } from "./studentEditUtils.js";
 
 export default function StudentFeesTab({ context }) {
@@ -20,7 +21,7 @@ export default function StudentFeesTab({ context }) {
     <>
 
           <div className="fee-actions-bar">
-            <Field label="Academic Year" className="fee-academic-year-field" value={data.academicYear} onChange={v => update("academicYear", v)} options={["2026-2027", "2025-2026", "2024-2025"]}/>
+            <Field label="Academic Year" className="fee-academic-year-field" value={data.academicYear} onChange={v => update("academicYear", v)} options={academicYearOptions(data.academicYear)}/>
             <button type="button" onClick={sendFeeReminder} disabled={feeReminderBusy}>{t(feeReminderBusy ? "Sending reminder…" : "Fee Reminder")}</button>
             <button type="button" onClick={() => exportFeeCsv("paid")}>{t("Export Paid Fee Report")}</button>
             <button type="button" onClick={() => exportFeeCsv("due")}>{t("Export Due Fee Report")}</button>

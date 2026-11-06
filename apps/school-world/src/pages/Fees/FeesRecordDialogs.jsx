@@ -1,4 +1,5 @@
 import React from "react";
+import { moneyLabel } from "../../school-locale.js";
 
 export default function FeesRecordDialogs({ context }) {
   const { editingFee, setEditingFee, feeBusy, t, editDraft, setEditDraft, saveEditedFee, markFeePaid, reverseTarget, setReverseTarget, money, reverseReason, setReverseReason, feeSettingsReady, reversePayment } = context;
@@ -8,8 +9,8 @@ export default function FeesRecordDialogs({ context }) {
       <section className="fees-modal" role="dialog" aria-modal="true" aria-labelledby="fees-edit-title">
         <header><div><span className="fees-eyebrow">{t("FEE LEDGER ENTRY")}</span><h3 id="fees-edit-title">{t("Pay / Edit Fee")}</h3><p>{editingFee.studentName} · {editingFee.feeName}</p></div><button type="button" className="fees-modal-close" onClick={() => setEditingFee(null)} aria-label={t("Close")}>×</button></header>
         <div className="fees-form-grid">
-          <label>{t("Total Amount (₹)")}<input type="number" min="0" step="0.01" value={editDraft.amount} onChange={event => setEditDraft(previous => ({ ...previous, amount: event.target.value }))} /></label>
-          <label>{t("Amount Paid (₹)")}<input type="number" min="0" step="0.01" value={editDraft.amountPaid} onChange={event => setEditDraft(previous => ({ ...previous, amountPaid: event.target.value }))} /></label>
+          <label>{moneyLabel(t("Total Amount"))}<input type="number" min="0" step="0.01" value={editDraft.amount} onChange={event => setEditDraft(previous => ({ ...previous, amount: event.target.value }))} /></label>
+          <label>{moneyLabel(t("Amount Paid"))}<input type="number" min="0" step="0.01" value={editDraft.amountPaid} onChange={event => setEditDraft(previous => ({ ...previous, amountPaid: event.target.value }))} /></label>
           <label>{t("Due Date")}<input type="date" value={editDraft.dueDate} onChange={event => setEditDraft(previous => ({ ...previous, dueDate: event.target.value }))} /></label>
           <label className="fees-wide-field">{t("Payment Reference")}<input value={editDraft.reference} onChange={event => setEditDraft(previous => ({ ...previous, reference: event.target.value }))} /></label>
         </div>

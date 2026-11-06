@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { WEEKDAYS, dateKey, formatDate } from "./attendanceUtils.js";
+import { schoolToday } from "../../school-locale.js";
 
 export default function AttendanceCalendar({
   t, currentMonthLabel, changeMonth, chooseDate, viewMode, setViewMode,
@@ -15,7 +16,7 @@ export default function AttendanceCalendar({
           </div>
           <div className="attendance-date-actions">
             <button type="button" className="attendance-action-button is-prev" title={t("Previous month")} onClick={() => changeMonth(-1)}><ChevronLeft size={15}/><span>{t("Prev")}</span></button>
-            <button type="button" className="attendance-action-button is-today" onClick={() => chooseDate(dateKey(new Date()))}>{t("Today")}</button>
+            <button type="button" className="attendance-action-button is-today" onClick={() => chooseDate(schoolToday())}>{t("Today")}</button>
             <button type="button" className="attendance-action-button is-next" title={t("Next month")} onClick={() => changeMonth(1)}><span>{t("Next")}</span><ChevronRight size={15}/></button>
             <div className="attendance-view-toggle" aria-label={t("Calendar view")}>
               <button type="button" className={"attendance-view-choice month" + (viewMode === "month" ? " is-active" : "")} aria-pressed={viewMode === "month"} onClick={() => setViewMode("month")}>{t("Month")}</button>
@@ -35,7 +36,7 @@ export default function AttendanceCalendar({
               {WEEKDAYS.map(day => <div className="attendance-weekday" key={day}>{t(day)}</div>)}
               {cells.map(cell => {
                 const summary = summaryForDate(cell.key);
-                const today = cell.key === dateKey(new Date());
+                const today = cell.key === schoolToday();
                 const selected = cell.key === attendanceDate;
                 return (
                   <button type="button" key={cell.key} className={"attendance-day-cell" + (!cell.inMonth ? " is-outside" : "") + (selected ? " is-selected" : "") + (today ? " is-today" : "")}

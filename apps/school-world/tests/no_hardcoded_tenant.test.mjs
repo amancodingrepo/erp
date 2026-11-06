@@ -25,7 +25,7 @@ test("no built-in school name or bundled student fixtures", () => {
   const offenders = [];
   for (const file of files.filter((f) => /\.(jsx?|mjs|css)$/.test(f) && !/i18n\.jsx$/.test(f))) {
     const text = readFileSync(file, "utf8");
-    if (/sanford/i.test(text.replace(/sanford-school-logo\b/g, ""))) offenders.push(file.slice(SRC.length) + ": Sanford");
+    if (/sanford/i.test(text)) offenders.push(file.slice(SRC.length) + ": Sanford");
     if (/from\s+["'][^"']*student-data(\.js)?["']/.test(text)) offenders.push(file.slice(SRC.length) + ": imports student-data");
   }
   assert.deepEqual(offenders, []);
@@ -57,4 +57,14 @@ test("the parent and teacher portal signs out from the profile menu", () => {
   const header = read("pages/NoticeBoard/RecipientPortalHeader.jsx");
   assert.match(header, /PortalTopbarActions/);
   assert.doesNotMatch(header, /LogOut|onLogout|>School World</);
+});
+
+test("no framework or sample icons stand in for a school's logo", () => {
+  const erpPublic = fileURLToPath(new URL("../../erp/public/", import.meta.url));
+  const appDir = fileURLToPath(new URL("../../erp/src/app/", import.meta.url));
+  for (const name of ["next.svg", "vercel.svg", "file.svg", "globe.svg", "window.svg"]) {
+    assert.throws(() => statSync(join(erpPublic, name)), undefined, name + " is Next.js sample art");
+  }
+  assert.throws(() => statSync(join(appDir, "favicon.ico")), undefined, "favicon.ico was the Next.js default icon");
+  assert.match(read("components/topbar/SchoolTabIcon.jsx"), /logoUrl/, "the tab shows the school's own logo");
 });

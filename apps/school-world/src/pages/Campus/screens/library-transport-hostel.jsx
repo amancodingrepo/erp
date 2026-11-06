@@ -3,11 +3,12 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, RemoveButton, Row, Screen, StudentPicker,
   apiCall, dateOnly, formObject, money, plural, rowsOf, staffName, useLoad, useStatus
 } from "../kit.jsx";
+import { currencySymbol, moneyLabel, schoolToday } from "../../../school-locale.js";
 
 // Ported from apps/erp/src/components/modules/library-ops.tsx and housing-ops.tsx,
 // with the same endpoints.
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => schoolToday();
 
 /* ================================================================ Library */
 
@@ -55,7 +56,7 @@ export function BookList() {
           <Field label="ISBN"><input name="isbn" /></Field>
           <Field label="Copies"><input name="qty" type="number" min="1" defaultValue="1" required /></Field>
           <Field label="Rack"><input name="rack" /></Field>
-          <Field label="Price (₹)"><input name="price" type="number" min="0" step="0.01" /></Field>
+          <Field label={moneyLabel("Price")}><input name="price" type="number" min="0" step="0.01" /></Field>
           <Button type="submit">Add book</Button>
         </Form>
       </Panel>
@@ -258,7 +259,7 @@ export function TransportRoutes() {
     if (ok) { form.reset(); await reload(); if (result?.id) setOpenId(result.id); }
   }
   async function setFee(row) {
-    const next = window.prompt("Transport fee for " + row.name + " (₹)", String(row.feeAmount ?? ""));
+    const next = window.prompt("Transport fee for " + row.name + " (" + currencySymbol() + ")", String(row.feeAmount ?? ""));
     if (next == null || next.trim() === "") return;
     if (!(Number(next) >= 0)) { run(() => Promise.reject(new Error("Enter a fee of 0 or more."))); return; }
     const { ok } = await run(() => apiCall("PATCH", "/v1/routes/" + row.id, { feeAmount: next.trim() }), "Fee for " + row.name + " updated. New assignments are charged the new fee.");
@@ -275,7 +276,7 @@ export function TransportRoutes() {
       <Panel title="New route">
         <Form onSubmit={add}>
           <Field label="Route name"><input name="name" placeholder="Route 3" required /></Field>
-          <Field label="Transport fee (₹)"><input name="feeAmount" type="number" min="0" step="0.01" required /></Field>
+          <Field label={moneyLabel("Transport fee")}><input name="feeAmount" type="number" min="0" step="0.01" required /></Field>
           <Field label="Pickup points" wide><input name="pickups" placeholder="Depot, Market, Station (comma separated)" /></Field>
           <Button type="submit">Add route</Button>
         </Form>
@@ -471,7 +472,7 @@ export function Hostels() {
       <Panel title="Add hostel">
         <Form onSubmit={add}>
           <Field label="Name"><input name="name" placeholder="Boys hostel A" required /></Field>
-          <Field label="Hostel fee (₹)"><input name="feeAmount" type="number" min="0" step="0.01" required /></Field>
+          <Field label={moneyLabel("Hostel fee")}><input name="feeAmount" type="number" min="0" step="0.01" required /></Field>
           <Button type="submit">Add hostel</Button>
         </Form>
       </Panel>

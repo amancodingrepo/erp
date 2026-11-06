@@ -2,14 +2,16 @@ import React from "react";
 import { UserCircle, Upload } from "lucide-react";
 import { t } from "../../i18n.jsx";
 import { Field } from "../Students/StudentFormFields.jsx";
+import { academicYearOptions, classOptions as schoolClassOptions } from "../../school-options.js";
 import { ADMISSION_FIELD_GROUPS, getFieldSetting } from "./admissionFormCatalog.js";
+import { appLocale } from "../../school-locale.js";
 
 function formattedBirthDate(value) {
   if (!value) return "";
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime())
     ? ""
-    : date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+    : date.toLocaleDateString(appLocale(), { day: "numeric", month: "long", year: "numeric" });
 }
 
 function calculatedAge(value) {
@@ -61,11 +63,13 @@ export default function AdmissionFormSections({ context }) {
                 let type = field.type || "text";
                 let options = field.options || null;
                 if (field.id === "className") {
-                  options = Array.from(new Set([...(classOptions || []), ...(options || []), vals.className].filter(Boolean)));
+                  // The school's own classes; the generic catalog list only when the school has none yet.
+                  const ownClasses = schoolClassOptions(classOptions || []);
+                  options = Array.from(new Set([...(ownClasses.length ? ownClasses : options || []), vals.className].filter(Boolean)));
                   type = "text";
                 }
                 if (field.id === "academicYear") {
-                  options = Array.from(new Set([vals.academicYear || "", "2026-2027", "2027-2028", "2025-2026"].filter(Boolean)));
+                  options = academicYearOptions(vals.academicYear);
                   type = "text";
                 }
                 return <React.Fragment key={field.id}>

@@ -1,3 +1,4 @@
+import { formatMoney } from "../../school-locale.js";
 export function escapeReceiptHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -11,7 +12,7 @@ export function buildReceiptPrintHtml(data) {
   const school = data?.school || {};
   const student = data?.student || {};
   const records = Array.isArray(data?.records) ? data.records : [];
-  const currency = value => "₹" + Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const currency = value => formatMoney(Number(value || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const field = (label, value) => value ? '<div class="field"><span>' + escapeReceiptHtml(label) + '</span><strong>' + escapeReceiptHtml(value) + '</strong></div>' : "";
   const showLogo = enabled("showSchoolLogo") && /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(String(school.logo || ""));
   const schoolLogo = showLogo ? '<img class="school-logo" src="' + escapeReceiptHtml(school.logo) + '" alt="School logo">' : "";

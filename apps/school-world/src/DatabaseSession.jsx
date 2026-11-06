@@ -16,6 +16,7 @@ function installRuntimeConfig(user) {
     schoolEmail: school?.email || school?.config?.email || '',
     schoolTimezone: school?.timezone || school?.config?.timezone || 'Asia/Kolkata',
     schoolLogoUrl: school?.logoUrl || '',
+    schoolLocale: school?.locale || existing.schoolLocale || null,
     classes: existing.classes || [],
     currentUser: {
       id: user.id,

@@ -1,3 +1,4 @@
+import { appLocale } from "../../school-locale.js";
 export function groupStudentFeeInstallments(rows) {
   const groups = new Map();
   rows.forEach(fee => {
@@ -57,7 +58,7 @@ export function getFeeInstallmentName(fee) {
   const dueDate = records.find(record => record?.dueDate)?.dueDate;
   if (dueDate) {
     const date = new Date(String(dueDate).slice(0, 10) + "T00:00:00");
-    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString("en-IN", { month: "long" });
+    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString(appLocale(), { month: "long" });
   }
   return "Single Installment";
 }

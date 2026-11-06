@@ -43,22 +43,22 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 
 | List | Where | Should come from | Status |
 |---|---|---|---|
-| Leave types ("Medical Leave", "Tournament Leave", …) | `pages/MyBranch/AcademicOperationPage.jsx` (`LEAVE_TYPE_OPTIONS`) | `GET /v1/leave-types` | To do |
-| Student categories (GENERAL, OBC, SC, ST, EWS) | `pages/MyBranch/subpages/AdmitStudentIdentityForm.jsx` (`CATEGORY_OPTIONS`) | `GET /v1/categories` | To do |
-| Staff role categories (Fees, Transport, Uniforms, …) | `ManageStaffPage.jsx` (`ROLE_CATEGORIES`) | `GET /api/staff-categories` | To do |
-| Bank names | `ManageStaffPage.jsx` (`BANKS`) | A per-school option list, or free text | To do (low) |
-| Default class "PRE NURSERY A" for a new or edited student | `student-form-utils.js`, `pages/Students/StudentActionDialog.jsx`, `StudentDetailsTab.jsx` | The school's first class from `GET /v1/classes` (or no default) | To do |
-| Default academic year "2026-2027" | `student-form-utils.js` | The current session (`Campus.currentSessionId`; `/bootstrap` `academicYears[].isCurrent`) | To do |
-| Default nationality "Indian" | `student-form-utils.js` | A campus setting (country), or no default | To do (low) |
+| Leave types ("Medical Leave", "Tournament Leave", …) | `pages/MyBranch/AcademicOperationPage.jsx` (`LEAVE_TYPE_OPTIONS`) | `GET /v1/leave-types` | **Fixed**: the school's leave types from `GET /v1/leave-types`, the same list the ERP leave-marks screen uses. With none set up, the form links to Campus desk → Leave types |
+| Student categories (GENERAL, OBC, SC, ST, EWS) | `pages/MyBranch/subpages/AdmitStudentIdentityForm.jsx` (`CATEGORY_OPTIONS`) | `GET /v1/categories` | **Fixed**: the school's categories from `GET /v1/categories` (shared `useSchoolList.js`). With none set up, the field is free text with a hint. No more silent "OTHER" default |
+| Staff role categories (Fees, Transport, Uniforms, …) | `ManageStaffPage.jsx` (`ROLE_CATEGORIES`) | `GET /api/staff-categories` | **Fixed**: the role checkboxes are the school's active staff categories (`GET /api/staff-categories`), plus any already on the person |
+| Bank names | `ManageStaffPage.jsx` (`BANKS`) | A per-school option list, or free text | **Fixed**: free text with the common Indian banks as suggestions, so any bank can be entered |
+| Default class "PRE NURSERY A" for a new or edited student | `student-form-utils.js`, `pages/Students/StudentActionDialog.jsx`, `StudentDetailsTab.jsx` | The school's first class from `GET /v1/classes` (or no default) | **Fixed**: no default class. The class lists everywhere (student details, quick edit, admission form, Notice Board) come from the school's classes via `school-options.js`. The quick-edit dialog used to offer only three classes, and a missing roll number became "1" |
+| Default academic year "2026-2027" | `student-form-utils.js` | The current session (`Campus.currentSessionId`; `/bootstrap` `academicYears[].isCurrent`) | **Fixed**: new records start in the school's current session, or none. Year lists show the school's own sessions (some schools write "2025-26"). Screens that must show a year fall back to the calendar year only when no session is marked current. A bulk fee upload without a year is now refused |
+| Default nationality "Indian" | `student-form-utils.js` | A campus setting (country), or no default | **Fixed**: no default. A built-in "Indian" was being saved for every student, including in bulk imports |
 | Religion, blood group, disability, vaccine and relation options | Admission and staff forms | Fine as built-in options; make them configurable only if schools ask | Keep |
 
 ## 4. Locale, money and time
 
 | Value | Where | Should come from | Status |
 |---|---|---|---|
-| Rupee sign `₹` and `en-IN` number formatting | About 21 and 26 files respectively (fees, payroll, contacts, students, Campus desk screens) | `Campus.currencyCode` / `currencyFormat` / `currencyPlace`; add them to `user.school` and use one shared `money()` formatter | To do (medium; matters as soon as a non-INR school is added) |
-| Timezone `Asia/Kolkata` defaults | `DatabaseSession.jsx`, several date helpers | `Campus.timezone` (already in `user.school.timezone`) | To do: use the school's value everywhere dates are shown or "today" is worked out |
-| Date format | Various `toLocaleDateString()` calls | `Campus.dateFormat` | To do (low) |
+| Rupee sign `₹` and `en-IN` number formatting | About 21 and 26 files respectively (fees, payroll, contacts, students, Campus desk screens) | `Campus.currencyCode` / `currencyFormat` / `currencyPlace`; add them to `user.school` and use one shared `money()` formatter | **Fixed**: `school-locale.js` (`formatMoney`, `moneyLabel`, `formatNumber`, `currencyCode`) uses the campus currency code, symbol and position, and the number style of that currency. All ~70 uses now go through it. Receipts and PDFs write the currency code |
+| Timezone `Asia/Kolkata` defaults | `DatabaseSession.jsx`, several date helpers | `Campus.timezone` (already in `user.school.timezone`) | **Fixed**: sign-in and the session check now send the campus timezone (before, they sent none, so every school got India time). "Today" (attendance, dashboard, new records) is the school's today (`schoolToday`), not UTC. Asia/Kolkata stays only as the default when creating a new campus |
+| Date format | Various `toLocaleDateString()` calls | `Campus.dateFormat` | **Fixed**: plain dates follow the campus date format (DD/MM/YYYY, MM/DD/YYYY or YYYY-MM-DD) via `formatDate`. Long dates use the school's locale and timezone |
 
 ## 5. Top bar and account
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { academicYearNow } from "../../school-options.js";
 import {
   Plus, X, Download, Save, Search, ChevronDown, FileText, Pencil,
   Trash2, ExternalLink, Settings2, CheckCircle2, AlertCircle, ArrowLeft,
@@ -7,12 +8,9 @@ import {
 import { apiGet, apiPatch } from "../../api.js";
 import { ADMISSION_FIELD_GROUPS, FIELD_REQUIREMENT_OPTIONS, createDefaultAdmissionForm, createGroupSelection } from "./admissionFormCatalog.js";
 import { downloadPrintableAdmissionFormPdf } from "./printableAdmissionFormPdf.js";
+import { formatDate } from "../../school-locale.js";
 
-function currentAcademicYear() {
-  const date = new Date();
-  const start = date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
-  return `${start}-${start + 1}`;
-}
+const currentAcademicYear = () => academicYearNow();
 
 function csvCell(value) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
@@ -408,7 +406,7 @@ export default function AdmissionFormsManagerPage({ userRole = "staff", onOpenAd
             <tbody>
               {filteredForms.map(form => (
                 <tr key={form.id}>
-                  <td><strong>{form.name}</strong><small>Updated {form.updatedAt ? new Date(form.updatedAt).toLocaleDateString("en-IN") : "—"}</small></td>
+                  <td><strong>{form.name}</strong><small>Updated {form.updatedAt ? formatDate(form.updatedAt) : "—"}</small></td>
                   <td>{form.academicYear || settings.academicYear}</td>
                   <td>{(form.fields || []).length} groups</td>
                   <td><span className={`admission-manager-status ${form.status === "Closed" ? "closed" : "open"}`}>{form.status || "Open"}</span></td>

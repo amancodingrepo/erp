@@ -1,6 +1,7 @@
 import { apiGet } from "../../api.js";
 import { buildReceiptPrintHtml } from "./FeesReceiptPrint.js";
 import { FEE_REPORT_COLUMNS, money, saveBlob, spreadsheetXml, buildFeePdf } from "./feeReportUtils.js";
+import { appLocale } from "../../school-locale.js";
 
 export default function useFeesReportActions({ setReportFilters, setReportGenerated, setReportType, setReportSort, setView, setReportMenuOpen, notify, includeSchoolName, schoolName, reportType, feeReceiptTemplate, selectedReport, reportRows, filteredFeeLedgerRows }) {
   function updateReportFilter(key, value) {
@@ -20,7 +21,7 @@ export default function useFeesReportActions({ setReportFilters, setReportGenera
       notify("There are no matching fee records to export. Change the filters or generate another report.");
       return;
     }
-    const subtitle = "School: " + (includeSchoolName ? schoolName : "School World") + " | Generated: " + new Date().toLocaleString("en-IN") + " | Records: " + rows.length;
+    const subtitle = "School: " + (includeSchoolName ? schoolName : "School World") + " | Generated: " + new Date().toLocaleString(appLocale()) + " | Records: " + rows.length;
     saveBlob(title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".xls", spreadsheetXml(title, columns, rows, subtitle), "application/vnd.ms-excel;charset=utf-8");
     notify("Excel-compatible report downloaded.");
   }

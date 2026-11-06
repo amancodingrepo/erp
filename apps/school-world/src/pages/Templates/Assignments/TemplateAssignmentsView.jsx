@@ -1,6 +1,7 @@
 import React from "react";
 import TemplateReceiptNotesEditor from "./TemplateReceiptNotesEditor.jsx";
 import { CheckCircle2, FileText, GraduationCap, RefreshCw, AlertTriangle, Check } from "lucide-react";
+import { appLocale } from "../../../school-locale.js";
 
 const panelStyle = {
   marginTop: 22, padding: 22, border: "1px solid #dce5ef", borderRadius: 18,
@@ -17,7 +18,7 @@ function appliedLabel(assignment) {
   if (!assignment) return "Not applied yet";
   if (!assignment.appliedAt) return "Saved in database";
   const date = new Date(assignment.appliedAt);
-  return "Applied " + (Number.isNaN(date.getTime()) ? "" : date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }));
+  return "Applied " + (Number.isNaN(date.getTime()) ? "" : date.toLocaleString(appLocale(), { dateStyle: "medium", timeStyle: "short" }));
 }
 
 function AssignmentTemplateCard({ admin, type, options, selections, savingKey, changeSelection, apply }) {

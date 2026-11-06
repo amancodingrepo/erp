@@ -1,3 +1,4 @@
+import { defaultAcademicYear } from "../../school-options.js";
 export const FIELD_REQUIREMENT_OPTIONS = ["Required", "Optional", "Not Required"];
 
 const f = (id, label, type = "text", enquiry = "Optional", admission = "Optional", options = null, note = "") => ({
@@ -252,7 +253,7 @@ export function createGroupSelection(groupId) {
   return { groupId, settings };
 }
 
-export function createDefaultAdmissionForm(academicYear = "2026-2027", name = "Admission/Enquiry Form") {
+export function createDefaultAdmissionForm(academicYear = defaultAcademicYear(), name = "Admission/Enquiry Form") {
   return {
     id: `admission-form-${Date.now().toString(36)}`,
     name,

@@ -4,7 +4,7 @@ import { t } from "../../i18n.jsx";
 export function Field({ label, value, onChange, type = "text", options, placeholder = "", required = false, className = "", note = "" }) {
   return <label className={`legacy-field ${className}`}>
     <span>{required && <b className="required-star">*</b>}{t(label)}</span>
-    {options ? <select value={value ?? ""} onChange={e => onChange(e.target.value)}>{options.map(opt => <option key={opt} value={opt}>{t(opt)}</option>)}</select> :
+    {options ? <select value={value ?? ""} onChange={e => onChange(e.target.value)}>{!options.includes(value ?? "") && <option value={value ?? ""}>{value ? value : t("Choose…")}</option>}{options.map(opt => <option key={opt} value={opt}>{t(opt)}</option>)}</select> :
       <input type={type} value={value ?? ""} placeholder={t(placeholder || label)} onChange={e => onChange(e.target.value)} />}
     {note && <small>{t(note)}</small>}
   </label>;
