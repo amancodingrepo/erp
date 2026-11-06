@@ -43,6 +43,12 @@ export async function schoolLogo(campusId: string) {
   }
 }
 
+/** The school's logo as a checked data URL for printed pages (receipts, letterheads), or "". */
+export async function schoolLogoDataUrl(campusId: string) {
+  const logo = await schoolLogo(campusId);
+  return logo ? `data:${logo.mime};base64,${logo.bytes.toString("base64")}` : "";
+}
+
 /**
  * Branding sent with the signed-in user. The logo goes by URL (with a version so a new upload is
  * fetched) rather than inline, so every session check stays small.

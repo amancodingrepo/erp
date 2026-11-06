@@ -47,7 +47,7 @@ export function LegacySidebar({ onBack, onNotify, admission = false, onModuleSel
     }
   };
   return <aside className="legacy-sidebar app-sidebar-parity">
-    <div className="school-logo sanford-school-logo">
+    <div className="school-logo school-logo-tenant">
       <SchoolLogo />
     </div>
     <nav className="app-sidebar-nav" aria-label={t("School modules")}>{links.map(([Icon, label]) => <a key={label} href={getNavigationHref(getModuleNavigationTarget(label))} className={`nav-item ${activeModule === label ? "selected" : ""}`} aria-current={activeModule === label ? "page" : undefined} onClick={event => handleNavigationClick(event, () => handleLinkClick(label))}><Icon size={18}/><span>{t(label)}</span></a>)}</nav>
