@@ -3,6 +3,7 @@ import {
   Button, DataTable, Field, Form, Notice, Panel, RemoveButton, Screen,
   apiDelete, apiGet, apiPost, dateOnly, formObject, lineProblem, rowsOf, useList, useStatus
 } from "../kit.jsx";
+import { schoolToday } from "../../../school-locale.js";
 
 function SimpleMaster({ title, hint, path, singular, withCode }) {
   const { rows, error, reload } = useList(path);
@@ -252,7 +253,7 @@ export function ApproveLeave() {
 const STAFF_STATUSES = ["PRESENT", "ABSENT", "LATE", "HALFDAY", "LEAVE"];
 
 export function StaffAttendance() {
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => schoolToday());
   const [rows, setRows] = useState([]);
   const [status, run] = useStatus();
 

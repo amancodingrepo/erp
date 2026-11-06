@@ -26,6 +26,7 @@ import ImmunizationScheduleDialog from "./ImmunizationScheduleDialog.jsx";
 import { downloadCsvFile } from "../../shared/csvUtils.js";
 import { groupStudentFeeInstallments, calculateFeeTotalWithLateCharges, localDateInputValue, htmlEscape } from "./studentEditUtils.js";
 import { receiptLogoAsJpeg, buildFeeReceiptPdf } from "../Templates/FeeReceipt/feeReceiptPdf.js";
+import { appLocale, currencyCode, formatMoney } from "../../school-locale.js";
 
 export function StudentEditPage({ student, savedDetails, onSave, onPhotoChange, onBack, onOpenAdmission, onOpenModule, activeModule = "", onNotify, classOptions = [] }) {
   const [tab, setTab] = useState(() => student?._initialTab || "Student Details");
@@ -186,7 +187,7 @@ export function StudentEditPage({ student, savedDetails, onSave, onPhotoChange, 
     total.unpaid += Math.max(0, amount - paid);
     return total;
   }, { total: 0, paid: 0, unpaid: 0 }), [studentFeeRecordsForYear]);
-  const formatFeeMoney = value => Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatFeeMoney = value => Number(value || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const currentTemplateAssignment = feeRecords.find(fee => fee.metadata?.feeTemplateId) || null;
   const templateHasPaidAmount = fee => Boolean(fee.metadata?.feeTemplateId) && feeRecords.some(other =>
     String(other.metadata?.feeTemplateId || "") === String(fee.metadata.feeTemplateId) && Number(other.amountPaid || 0) > 0
@@ -259,7 +260,7 @@ export function StudentEditPage({ student, savedDetails, onSave, onPhotoChange, 
   const reverseFeePayment = async (fee) => {
     const paid = Number(fee.amountPaid || 0);
     if (paid <= 0) { notify("There is no recorded payment to reverse."); return; }
-    if (!window.confirm(`Reverse the recorded payment of ₹${formatFeeMoney(paid)} for this fee? This will be recorded in the audit log.`)) return;
+    if (!window.confirm(`Reverse the recorded payment of ${formatMoney(paid, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} for this fee? This will be recorded in the audit log.`)) return;
     setFeeMutationBusyId(String(fee.id));
     try {
       const reason = "Reversed from student fee record";
@@ -359,7 +360,7 @@ export function StudentEditPage({ student, savedDetails, onSave, onPhotoChange, 
       const updatedById = new Map((Array.isArray(paymentResult.fees) ? paymentResult.fees : []).map(item => [String(item.id), item]));
       setFeeRecords(previous => previous.map(item => updatedById.has(String(item.id)) ? { ...item, ...updatedById.get(String(item.id)) } : item));
       setPaymentTarget(null);
-      notifyPersistent("Payment recorded successfully. INR " + formatFeeMoney(paymentResult.totalPaidThisTransaction) + " recorded.");
+      notifyPersistent("Payment recorded successfully. " + currencyCode() + " " + formatFeeMoney(paymentResult.totalPaidThisTransaction) + " recorded.");
     } catch (error) {
       if (printWindow && !printWindow.closed) printWindow.close();
       notifyPersistent("Payment could not be recorded: " + (error?.message || "Please try again."));
@@ -562,7 +563,7 @@ export function StudentEditPage({ student, savedDetails, onSave, onPhotoChange, 
       setReplaceExistingTemplate(false);
       const installmentCount = new Set(items.map(item => item.originalInstallment).filter(Boolean)).size || 1;
       const rowsCreated = Number(result.feeRecordsCreated || items.length);
-      notifyPersistent(`Fee template applied: ${rowsCreated} fee row(s) created across ${installmentCount} original installment(s). Total amount: ₹${formatFeeMoney(totalAmount)}.`);
+      notifyPersistent(`Fee template applied: ${rowsCreated} fee row(s) created across ${installmentCount} original installment(s). Total amount: ${formatMoney(totalAmount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`);
     } catch (error) { setApplyFeeTemplateError(error.message || "Fee template could not be applied."); }
     finally { setApplyFeeTemplateBusy(false); }
   };

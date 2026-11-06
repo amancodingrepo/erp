@@ -11,11 +11,12 @@ import {
   ATTENDANCE_STATUSES, academicYearNow, dateKey, parseDateKey, monthCells,
   moveMonth, getName, getMetadataLabel, getStatusCounts, getSummaryCounts
 } from "./attendanceUtils.js";
+import { schoolToday } from "../../school-locale.js";
 
 export default function AttendanceModulePage({ students = [], t = value => value, notify = () => {}, onOpenStudent = () => {} }) {
   const [activeTab, setActiveTab] = useState("class");
   const [viewMode, setViewMode] = useState("month");
-  const [attendanceDate, setAttendanceDate] = useState(() => dateKey(new Date()));
+  const [attendanceDate, setAttendanceDate] = useState(() => schoolToday());
   const [academicYear, setAcademicYear] = useState(() => academicYearNow());
   const [classFilter, setClassFilter] = useState("All Classes");
   const [staffFilterMode, setStaffFilterMode] = useState("Role");

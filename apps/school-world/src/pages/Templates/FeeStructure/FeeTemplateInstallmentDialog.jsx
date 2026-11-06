@@ -16,6 +16,7 @@ function normalizeDateInput(value) {
 import React from "react";
 import { Check, Plus, Trash2, X } from "lucide-react";
 import { blankLine, money, subtotalForLine, taxLabels } from "./feeTemplateUtils.js";
+import { moneyLabel } from "../../../school-locale.js";
 
 export default function FeeTemplateInstallmentDialog({ context }) {
   const { installmentModal, setInstallmentModal, text, installmentDraft, setInstallmentDraft, saveInstallment, installmentOptions, blankLine, updateInstallmentLine, feeTypes, taxLabels, money, subtotalForLine } = context;
@@ -33,9 +34,9 @@ export default function FeeTemplateInstallmentDialog({ context }) {
           <div className="fees-installment-line-top"><strong>{text("Fee")} {index + 1}</strong><button type="button" className="fees-template-remove-line" disabled={(installmentDraft.fees || []).length === 1} onClick={() => setInstallmentDraft(previous => ({ ...previous, fees: previous.fees.filter(item => item.id !== line.id) }))}><Trash2 size={12}/>{text("Remove")}</button></div>
           <div className="fees-installment-line-grid">
             <label>{text("Fee Type")}<select required value={line.feeTypeId} onChange={event => updateInstallmentLine(line.id, "feeTypeId", event.target.value)}><option value="">{text("-- Select Fee Type --")}</option>{feeTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
-            <label>{text("Amount")} (₹)<input required type="number" min="0" step="0.01" value={line.amount} onChange={event => updateInstallmentLine(line.id, "amount", event.target.value)} placeholder="0.00"/></label>
+            <label>{moneyLabel(text("Amount"))}<input required type="number" min="0" step="0.01" value={line.amount} onChange={event => updateInstallmentLine(line.id, "amount", event.target.value)} placeholder="0.00"/></label>
             <label>{text("Discount Type")}<select value={line.discountType || "Default Discount"} onChange={event => updateInstallmentLine(line.id, "discountType", event.target.value)}><option>Default Discount</option><option>No Discount</option><option>Fixed Amount</option><option>Percentage</option></select></label>
-            <label>{text(line.discountType === "Percentage" ? "Discount (%)" : "Discount Amount (₹)")}<input type="number" min="0" max={line.discountType === "Percentage" ? "100" : undefined} step="0.01" value={line.discountValue ?? "0"} disabled={!["Fixed Amount", "Percentage"].includes(line.discountType)} onChange={event => updateInstallmentLine(line.id, "discountValue", event.target.value)}/></label>
+            <label>{line.discountType === "Percentage" ? text("Discount (%)") : moneyLabel(text("Discount Amount"))}<input type="number" min="0" max={line.discountType === "Percentage" ? "100" : undefined} step="0.01" value={line.discountValue ?? "0"} disabled={!["Fixed Amount", "Percentage"].includes(line.discountType)} onChange={event => updateInstallmentLine(line.id, "discountValue", event.target.value)}/></label>
           </div>
           <div className="fees-installment-line-foot"><span>{text("Applied taxes")}: {taxLabels(line.taxes).join(", ") || text("No GST configured")}</span><span>{text("Amount after discount and GST")}: <strong>{money(subtotalForLine(line))}</strong></span></div>
           <label className="fees-installment-line-notes">{text("Fee notes")}<input value={line.notes || ""} onChange={event => updateInstallmentLine(line.id, "notes", event.target.value)} placeholder={text("Optional note for this fee")}/></label>

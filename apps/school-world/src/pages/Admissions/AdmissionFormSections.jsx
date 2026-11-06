@@ -4,13 +4,14 @@ import { t } from "../../i18n.jsx";
 import { Field } from "../Students/StudentFormFields.jsx";
 import { academicYearOptions, classOptions as schoolClassOptions } from "../../school-options.js";
 import { ADMISSION_FIELD_GROUPS, getFieldSetting } from "./admissionFormCatalog.js";
+import { appLocale } from "../../school-locale.js";
 
 function formattedBirthDate(value) {
   if (!value) return "";
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime())
     ? ""
-    : date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+    : date.toLocaleDateString(appLocale(), { day: "numeric", month: "long", year: "numeric" });
 }
 
 function calculatedAge(value) {

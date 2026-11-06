@@ -1,3 +1,4 @@
+import { appLocale, formatDate } from "../../school-locale.js";
 export { downloadCsvFile as csvDownload } from "../../shared/csvUtils.js";
 export function classLabel(className, section) {
   const cls = String(className || "").trim();
@@ -13,7 +14,7 @@ export function relativeLastSeen(value) {
   if (seconds < 3600) return "Last seen " + Math.floor(seconds / 60) + " minute(s) ago";
   if (seconds < 86400) return "Last seen " + Math.floor(seconds / 3600) + " hour(s) ago";
   if (seconds < 86400 * 30) return "Last seen " + Math.floor(seconds / 86400) + " day(s) ago";
-  return "Last seen " + date.toLocaleDateString("en-IN") + " " + date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  return "Last seen " + formatDate(date) + " " + date.toLocaleTimeString(appLocale(), { hour: "numeric", minute: "2-digit" });
 }
 export const DEFAULT_CONTACT_COLUMN_ORDER = ["name","type","studentId","class","parent","email","phone","gender","status","lastSeen"];
 export const DEFAULT_CONTACT_COLUMN_WIDTHS = {name:250,type:110,studentId:130,class:135,parent:180,email:220,phone:135,gender:110,status:100,lastSeen:145,actions:86};

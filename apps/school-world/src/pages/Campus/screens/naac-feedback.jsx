@@ -3,12 +3,13 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, Row, Screen, StudentPicker,
   apiCall, dateOnly, formObject, plural, rowsOf, staffName, titleCase, useLoad, useStatus, useStudentNames
 } from "../kit.jsx";
+import { schoolToday } from "../../../school-locale.js";
 
 // Ported from apps/erp/src/components/modules/naac-ops.tsx and feedback-ops.tsx,
 // with the same endpoints.
 
 const when = (value) => (value ? new Date(value).toLocaleString() : "-");
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => schoolToday();
 
 function Bar({ percent }) {
   const value = Math.max(0, Math.min(100, Number(percent) || 0));

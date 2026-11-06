@@ -3,6 +3,7 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, RemoveButton, Screen, StudentPicker,
   apiCall, dateOnly, formObject, money, rowsOf, staffName, useStatus, useLoad, useStudentNames, Row, plural, titleCase
 } from "../kit.jsx";
+import { moneyLabel } from "../../../school-locale.js";
 
 // Ported from apps/erp/src/components/modules/campus-ops.tsx (StaffPanel, NamedMaster),
 // payroll-ops.tsx and the HR entries of remaining-screens.tsx, with the same endpoints.
@@ -529,7 +530,7 @@ export function PayStructure() {
               {elements.map((row) => <option key={row.id} value={row.id}>{row.code} · {row.name}</option>)}
             </select>
           </Field>
-          <Field label="Monthly amount (₹)"><input name="amount" type="number" min="0" step="0.01" required /></Field>
+          <Field label={moneyLabel("Monthly amount")}><input name="amount" type="number" min="0" step="0.01" required /></Field>
           <Button type="submit">Save</Button>
         </Form>
       </Panel>
@@ -577,10 +578,10 @@ export function TaxSlabs() {
               <option value="TDS">TDS</option>
             </select>
           </Field>
-          <Field label="From (₹)"><input name="minAmount" type="number" min="0" step="0.01" required /></Field>
-          <Field label="Up to (₹)"><input name="maxAmount" type="number" min="0" step="0.01" placeholder="No upper limit" /></Field>
+          <Field label={moneyLabel("From")}><input name="minAmount" type="number" min="0" step="0.01" required /></Field>
+          <Field label={moneyLabel("Up to")}><input name="maxAmount" type="number" min="0" step="0.01" placeholder="No upper limit" /></Field>
           {kind === "PT"
-            ? <Field label="PT amount (₹)"><input name="taxAmount" type="number" min="0" step="0.01" required key="pt" /></Field>
+            ? <Field label={moneyLabel("PT amount")}><input name="taxAmount" type="number" min="0" step="0.01" required key="pt" /></Field>
             : <Field label="TDS rate (%)"><input name="ratePct" type="number" min="0" max="100" step="0.01" placeholder="5" required key="tds" /></Field>}
           <Button type="submit">Add slab</Button>
         </Form>

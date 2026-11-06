@@ -8,6 +8,7 @@ import {
 import { apiGet, apiPatch } from "../../api.js";
 import { ADMISSION_FIELD_GROUPS, FIELD_REQUIREMENT_OPTIONS, createDefaultAdmissionForm, createGroupSelection } from "./admissionFormCatalog.js";
 import { downloadPrintableAdmissionFormPdf } from "./printableAdmissionFormPdf.js";
+import { formatDate } from "../../school-locale.js";
 
 const currentAcademicYear = () => academicYearNow();
 
@@ -405,7 +406,7 @@ export default function AdmissionFormsManagerPage({ userRole = "staff", onOpenAd
             <tbody>
               {filteredForms.map(form => (
                 <tr key={form.id}>
-                  <td><strong>{form.name}</strong><small>Updated {form.updatedAt ? new Date(form.updatedAt).toLocaleDateString("en-IN") : "—"}</small></td>
+                  <td><strong>{form.name}</strong><small>Updated {form.updatedAt ? formatDate(form.updatedAt) : "—"}</small></td>
                   <td>{form.academicYear || settings.academicYear}</td>
                   <td>{(form.fields || []).length} groups</td>
                   <td><span className={`admission-manager-status ${form.status === "Closed" ? "closed" : "open"}`}>{form.status || "Open"}</span></td>

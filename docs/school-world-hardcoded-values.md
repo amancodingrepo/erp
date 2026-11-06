@@ -56,9 +56,9 @@ This audit lists every value found hard-coded in `apps/school-world/src`. For ea
 
 | Value | Where | Should come from | Status |
 |---|---|---|---|
-| Rupee sign `₹` and `en-IN` number formatting | About 21 and 26 files respectively (fees, payroll, contacts, students, Campus desk screens) | `Campus.currencyCode` / `currencyFormat` / `currencyPlace`; add them to `user.school` and use one shared `money()` formatter | To do (medium; matters as soon as a non-INR school is added) |
-| Timezone `Asia/Kolkata` defaults | `DatabaseSession.jsx`, several date helpers | `Campus.timezone` (already in `user.school.timezone`) | To do: use the school's value everywhere dates are shown or "today" is worked out |
-| Date format | Various `toLocaleDateString()` calls | `Campus.dateFormat` | To do (low) |
+| Rupee sign `₹` and `en-IN` number formatting | About 21 and 26 files respectively (fees, payroll, contacts, students, Campus desk screens) | `Campus.currencyCode` / `currencyFormat` / `currencyPlace`; add them to `user.school` and use one shared `money()` formatter | **Fixed**: `school-locale.js` (`formatMoney`, `moneyLabel`, `formatNumber`, `currencyCode`) uses the campus currency code, symbol and position, and the number style of that currency. All ~70 uses now go through it. Receipts and PDFs write the currency code |
+| Timezone `Asia/Kolkata` defaults | `DatabaseSession.jsx`, several date helpers | `Campus.timezone` (already in `user.school.timezone`) | **Fixed**: sign-in and the session check now send the campus timezone (before, they sent none, so every school got India time). "Today" (attendance, dashboard, new records) is the school's today (`schoolToday`), not UTC. Asia/Kolkata stays only as the default when creating a new campus |
+| Date format | Various `toLocaleDateString()` calls | `Campus.dateFormat` | **Fixed**: plain dates follow the campus date format (DD/MM/YYYY, MM/DD/YYYY or YYYY-MM-DD) via `formatDate`. Long dates use the school's locale and timezone |
 
 ## 5. Top bar and account
 

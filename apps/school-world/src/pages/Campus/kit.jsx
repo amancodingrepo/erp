@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "../../api.js";
 import "./campus-kit.css";
+import { formatMoney } from "../../school-locale.js";
 
 export { apiDelete, apiGet, apiPatch, apiPost, apiPut };
 
@@ -13,7 +14,7 @@ export function rowsOf(result) {
 export function money(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "-";
-  return "₹" + amount.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  return formatMoney(amount, { maximumFractionDigits: 2 });
 }
 
 export function dateOnly(value) {

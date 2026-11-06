@@ -3,6 +3,7 @@ import {
   Button, Check, DataTable, Field, Form, Notice, Panel, RemoveButton, Screen,
   StudentPicker, apiCall, dateOnly, formObject, money, rowsOf, useStatus, useLoad, Row, plural
 } from "../kit.jsx";
+import { moneyLabel } from "../../../school-locale.js";
 
 // Ported from apps/erp/src/app/(staff)/staff/exams/page.tsx, components/modules/exams-ops.tsx
 // (grades, result block) and components/modules/exam-form-ops.tsx, with the same endpoints.
@@ -525,7 +526,7 @@ function FormWindows({ kind }) {
           <Field label="Exam group"><GroupSelect groups={eligible} name="examGroupId" /></Field>
           <Field label="Opens"><input name="opensAt" type="datetime-local" required /></Field>
           <Field label="Closes"><input name="closesAt" type="datetime-local" required /></Field>
-          <Field label="Fee (₹)"><input name="feeAmount" type="number" min="0" step="0.01" required /></Field>
+          <Field label={moneyLabel("Fee")}><input name="feeAmount" type="number" min="0" step="0.01" required /></Field>
           <Button type="submit">Open window</Button>
         </Form>
       </Panel>

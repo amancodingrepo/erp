@@ -1,6 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 import { receiptDateLabel, receiptMoney } from "../Templates/FeeReceipt/feeReceiptPdf.js";
+import { currencyCode } from "../../school-locale.js";
 
 export default function PaymentDetailsDialog({ context }) {
   const { viewInstallmentTarget, setViewInstallmentTarget, student, shortName, paymentDetailsLoading, t, feeRecords, feeMutationBusyId, reverseFeePayment } = context;
@@ -27,13 +28,13 @@ export default function PaymentDetailsDialog({ context }) {
                 {(viewInstallmentTarget.records || []).map(record=>{
                   const original=feeRecords.find(item=>String(item.id)===String(record.id));
                   return <tr key={record.id}>
-                    <td>{record.installment || "—"}</td><td>{record.feeName || "—"}</td><td>INR {receiptMoney(record.amountPaidThisReceipt ?? record.amountPaid)}</td>
+                    <td>{record.installment || "—"}</td><td>{record.feeName || "—"}</td><td>{currencyCode()} {receiptMoney(record.amountPaidThisReceipt ?? record.amountPaid)}</td>
                     <td>{receiptDateLabel(record.paidAt || viewInstallmentTarget.paymentDate)}</td><td>{record.paymentMethod || viewInstallmentTarget.paymentMethod || "—"}</td><td>{record.reference || viewInstallmentTarget.reference || "—"}</td>
                     <td>{original && Number(original.amountPaid||0)>0 && <button type="button" className="small-icon-button" disabled={feeMutationBusyId===String(original.id)} onClick={async()=>{await reverseFeePayment(original);setViewInstallmentTarget(null);}}>{t("Reverse Payment")}</button>}</td>
                   </tr>;
                 })}
               </tbody></table>
-              <div className="fee-receipt-total-line"><strong>{t("Total Amount Received")}</strong><strong>INR {receiptMoney(viewInstallmentTarget.totalPaid)}</strong></div>
+              <div className="fee-receipt-total-line"><strong>{t("Total Amount Received")}</strong><strong>{currencyCode()} {receiptMoney(viewInstallmentTarget.totalPaid)}</strong></div>
               <div className="fee-receipt-transaction-summary"><span>{t("Payment Method")}: {viewInstallmentTarget.paymentMethod || "—"}</span><span>{t("Reference / Deposit Number")}: {viewInstallmentTarget.reference || "—"}</span></div>
             </div>
             <div className="legacy-modal-actions"><button type="button" className="legacy-save" onClick={()=>setViewInstallmentTarget(null)}>{t("Close")}</button></div>

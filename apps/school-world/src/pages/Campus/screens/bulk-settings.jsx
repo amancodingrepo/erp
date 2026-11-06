@@ -4,6 +4,7 @@ import {
   apiCall, formObject, lineProblem, plural, rowsOf, staffName, uploadForm, useLoad, useStatus
 } from "../kit.jsx";
 import { MessageLog, SmsTemplates } from "./comms-front-office.jsx";
+import { formatMoney } from "../../../school-locale.js";
 
 /* =============================================================== helpers */
 
@@ -510,7 +511,7 @@ function BranchTable({ rows, active, onEdit, onSwitch }) {
     <DataTable rows={rows} empty="No campuses to show." columns={[
       { key: "name", label: "Campus", render: (r) => r.name + (r.id === active ? " (current)" : "") }, { key: "code", label: "Code", render: (r) => r.code || "-" },
       { key: "studentCount", label: "Students" }, { key: "staffCount", label: "Staff" },
-      { key: "feeDue", label: "Fee due", render: (r) => "₹" + Number(r.feeDue || 0).toLocaleString("en-IN") },
+      { key: "feeDue", label: "Fee due", render: (r) => formatMoney(Number(r.feeDue || 0), { maximumFractionDigits: 2 }) },
       ...(onEdit ? [{ key: "act", label: "", render: (r) => <Row><Button variant="ghost" onClick={() => onEdit(r)}>Edit</Button>{r.id !== active && <Button variant="ghost" onClick={() => onSwitch(r)}>Work in this campus</Button>}</Row> }] : []),
     ]} />
   );
@@ -525,7 +526,7 @@ export function BranchReport() {
     <Screen title="Multi branch report" hint="Students, staff and fees due in every campus.">
       <Notice status={{ error }} />
       <BranchTable rows={rows} active={data["/v1/branches"]?.activeCampusId} />
-      {loaded && rows.length > 1 && <Panel title="All campuses"><p>{plural(sum("studentCount"), "student")} · {plural(sum("staffCount"), "staff member")} · ₹{sum("feeDue").toLocaleString("en-IN")} due</p></Panel>}
+      {loaded && rows.length > 1 && <Panel title="All campuses"><p>{plural(sum("studentCount"), "student")} · {plural(sum("staffCount"), "staff member")} · {formatMoney(sum("feeDue"), {})} due</p></Panel>}
     </Screen>
   );
 }

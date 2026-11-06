@@ -1,3 +1,4 @@
+import { appLocale, currencyCode } from "../../../school-locale.js";
 export function pdfSafeText(value) {
   return String(value ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g,'-').replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/[^\x20-\x7e]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
 }
@@ -8,7 +9,7 @@ export function receiptDateLabel(value) {
   return match[3]+'-'+months[Number(match[2])-1]+'-'+match[1];
 }
 export function receiptMoney(value) {
-  return Number(value || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return Number(value || 0).toLocaleString(appLocale(),{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 export function receiptAsciiBytes(value) {
   const text=String(value);
@@ -266,8 +267,8 @@ export function buildFeeReceiptPdf(receipt, logoImage) {
     const isLastPage = pageIndex === chunks.length - 1;
     if (isLastPage) {
       const summaryItems = [];
-      if (showPaidAmount) summaryItems.push(['Total Amount Received', 'INR ' + receiptMoney(total)]);
-      if (showBalance) summaryItems.push(['Outstanding Balance', 'INR ' + receiptMoney(outstandingBalance)]);
+      if (showPaidAmount) summaryItems.push(['Total Amount Received', currencyCode() + ' ' + receiptMoney(total)]);
+      if (showBalance) summaryItems.push(['Outstanding Balance', currencyCode() + ' ' + receiptMoney(outstandingBalance)]);
       if (summaryItems.length) {
         top += 14;
         summaryItems.forEach(([label, value]) => {

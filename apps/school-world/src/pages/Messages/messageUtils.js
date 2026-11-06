@@ -1,3 +1,4 @@
+import { appLocale } from "../../school-locale.js";
 export const MAX_ATTACHMENTS = 5;
 export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
@@ -10,7 +11,7 @@ export function formatWhen(value) {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+  return date.toLocaleString(appLocale(), { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 export function timeAgo(value) {
   const date = value ? new Date(value) : null;

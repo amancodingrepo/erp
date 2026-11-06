@@ -1,5 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
+import { formatMoney } from "../../school-locale.js";
 
 export default function StudentApplyFeeTemplateDialog({ context }) {
   const { showApplyFeeTemplate, setShowApplyFeeTemplate, applyFeeTemplateBusy, student, data, t, selectedFeeTemplateId, setSelectedFeeTemplateId, availableFeeTemplates, applyFeeTemplateError, formatFeeMoney, applyFeeTemplateToStudent, availableFeeTypes, replaceExistingTemplate } = context;
@@ -29,10 +30,10 @@ export default function StudentApplyFeeTemplateDialog({ context }) {
             return <div className="fee-template-dialog-summary">
               <div><span>{t("Installments")}</span><strong>{[...new Set(lines.map(line => line.installment).filter(Boolean))].join(", ") || t("Not specified")}</strong></div>
               <div><span>{t("Fee Types")}</span><strong>{[...new Set(lines.map(line => line.name))].join(", ") || "—"}</strong></div>
-              <div><span>{t("Sub Amount")}</span><strong>₹{formatFeeMoney(subtotal)}</strong></div>
-              <div><span>{t("Discount")}</span><strong>₹{formatFeeMoney(discount)}</strong></div>
-              <div><span>{t("Applied Taxes")}</span><strong>₹{formatFeeMoney(taxes)}</strong></div>
-              <div><span>{t("Total Amount")}</span><strong>₹{formatFeeMoney(subtotal - discount + taxes)}</strong></div>
+              <div><span>{t("Sub Amount")}</span><strong>{formatMoney(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+              <div><span>{t("Discount")}</span><strong>{formatMoney(discount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+              <div><span>{t("Applied Taxes")}</span><strong>{formatMoney(taxes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+              <div><span>{t("Total Amount")}</span><strong>{formatMoney(subtotal - discount + taxes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
             </div>;
           })()}
           {applyFeeTemplateError && <div className="fee-template-error" role="alert">{applyFeeTemplateError}</div>}

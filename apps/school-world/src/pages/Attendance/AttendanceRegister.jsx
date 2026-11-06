@@ -2,6 +2,7 @@ import React from "react";
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock3, X } from "lucide-react";
 import { ATTENDANCE_STATUSES, dateKey, formatDate, moveDay, getName, getMetadataLabel } from "./attendanceUtils.js";
 import { getNavigationHref, handleNavigationClick } from "../../navigation.js";
+import { schoolToday } from "../../school-locale.js";
 
 export default function AttendanceRegister({
   viewMode, activeTab, attendanceDate, tabLabel, t, chooseDate,
@@ -20,7 +21,7 @@ export default function AttendanceRegister({
           </div>
           <div className="attendance-date-actions">
             <button type="button" className="attendance-action-button is-prev" onClick={() => chooseDate(moveDay(attendanceDate, -1))}><ChevronLeft size={14}/>{t("Previous date")}</button>
-            <button type="button" className="attendance-action-button is-today" onClick={() => chooseDate(dateKey(new Date()))}>{t("Today")}</button>
+            <button type="button" className="attendance-action-button is-today" onClick={() => chooseDate(schoolToday())}>{t("Today")}</button>
             <button type="button" className="attendance-action-button is-next" onClick={() => chooseDate(moveDay(attendanceDate, 1))}>{t("Next date")}<ChevronRight size={14}/></button>
           </div>
         </div>

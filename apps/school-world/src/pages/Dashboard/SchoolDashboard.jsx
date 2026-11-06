@@ -12,6 +12,7 @@ import DashboardUpcomingEventsCard from "./DashboardUpcomingEventsCard.jsx";
 import DashboardBirthdaysCard from "./DashboardBirthdaysCard.jsx";
 import SchoolAIAssistantCard from "./SchoolAIAssistantCard.jsx";
 import DashboardDataNote from "./DashboardDataNote.jsx";
+import { schoolToday } from "../../school-locale.js";
 
 export default function SchoolDashboard({
   students = [],
@@ -27,7 +28,7 @@ export default function SchoolDashboard({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [warnings, setWarnings] = useState([]);
-  const today = dateKey(new Date());
+  const today = schoolToday();
 
   async function loadDashboard(showSpinner = true) {
     if (showSpinner) setRefreshing(true);

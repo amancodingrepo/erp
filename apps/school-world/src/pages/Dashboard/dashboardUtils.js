@@ -1,3 +1,4 @@
+import { appLocale, formatMoney } from "../../school-locale.js";
 export function dateKey(date) {
   return String(date.getFullYear()) + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
 }
@@ -14,7 +15,7 @@ export function parseLocalDate(value) {
 
 export function formatDate(value, options = { day: "numeric", month: "short" }) {
   const date = parseLocalDate(value);
-  return date ? date.toLocaleDateString("en-IN", options) : "—";
+  return date ? date.toLocaleDateString(appLocale(), options) : "—";
 }
 
 export function daysBetween(from, to) {
@@ -31,7 +32,7 @@ export function nextBirthday(student, now) {
 }
 
 export function money(value) {
-  return "₹" + Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  return formatMoney(Number(value || 0), { maximumFractionDigits: 0 });
 }
 
 export function studentName(student) {

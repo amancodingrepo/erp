@@ -1,10 +1,13 @@
 import { academicYearNow } from "../../../school-options.js";
+import { schoolToday } from "../../../school-locale.js";
 /** The school's current year (from its sessions), else the year containing `date`. */
 export function currentAcademicYear(date = new Date()) {
   return academicYearNow(date);
 }
 
-export function localDateString(date = new Date()) {
+/** Today's date at the school (YYYY-MM-DD), or a given date's calendar day. */
+export function localDateString(date) {
+  if (!date) return schoolToday();
   return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
 }
 

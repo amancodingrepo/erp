@@ -1,6 +1,7 @@
 import React from "react";
 import { LoaderCircle, X } from "lucide-react";
 import { calculateFeeTotalWithLateCharges, getFeeInstallmentName } from "./studentEditUtils.js";
+import { formatMoney } from "../../school-locale.js";
 
 export default function FeePaymentDialog({ context }) {
   const { paymentTarget, setPaymentTarget, paymentBusy, student, shortName, t, paymentMethod, setPaymentMethod, paymentDate, setPaymentDate, paymentCashDepositNumber, setPaymentCashDepositNumber, paymentNotes, setPaymentNotes, installmentRecords, formatFeeMoney, paymentDrafts, setPaymentDrafts, updatePaymentLateFee, submitInstallmentPayment } = context;
@@ -27,7 +28,7 @@ export default function FeePaymentDialog({ context }) {
                   const lateFee=draft.lateFeeCharges===""?0:Number(draft.lateFeeCharges??record.metadata?.lateFeeCharges??0);
                   const total=calculateFeeTotalWithLateCharges(record,lateFee);
                   const paid=Number(record.amountPaid||0)>=total-0.001;
-                  return <tr key={record.id} className={paid?"fee-payment-paid-row":undefined} title={paid?t("Fully paid — locked"):undefined}><td>{record.metadata?.templateFeeItems?.[0]?.name || record.feeName}</td><td>₹{formatFeeMoney(record.amount)}</td><td><input className="fee-payment-number" type="number" min="0" step="0.01" value={draft.lateFeeCharges ?? "0"} onChange={event=>updatePaymentLateFee(record,event.target.value)} disabled={paymentBusy||paid}/></td></tr>;
+                  return <tr key={record.id} className={paid?"fee-payment-paid-row":undefined} title={paid?t("Fully paid — locked"):undefined}><td>{record.metadata?.templateFeeItems?.[0]?.name || record.feeName}</td><td>{formatMoney(record.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td><td><input className="fee-payment-number" type="number" min="0" step="0.01" value={draft.lateFeeCharges ?? "0"} onChange={event=>updatePaymentLateFee(record,event.target.value)} disabled={paymentBusy||paid}/></td></tr>;
                 })}
               </tbody></table>
             </section>
@@ -38,7 +39,7 @@ export default function FeePaymentDialog({ context }) {
                   const lateFee=draft.lateFeeCharges===""?0:Number(draft.lateFeeCharges??record.metadata?.lateFeeCharges??0);
                   const total=calculateFeeTotalWithLateCharges(record,lateFee);
                   const paid=Number(record.amountPaid||0)>=total-0.001;
-                  return <tr key={record.id} className={paid?"fee-payment-paid-row":undefined} title={paid?t("Fully paid — locked"):undefined}><td>{getFeeInstallmentName(record)}</td><td>{record.metadata?.templateFeeItems?.[0]?.name || record.feeName}</td><td>₹{formatFeeMoney(record.metadata?.subAmount ?? record.amount)}</td><td>₹{formatFeeMoney(total)}</td><td><input className="fee-payment-number" type="number" min="0" step="0.01" max={Math.max(0,total-Number(record.amountPaid||0))} value={paid?"0":draft.amountToPay ?? "0"} onChange={event=>setPaymentDrafts(previous=>({...previous,[String(record.id)]:{...(previous[String(record.id)]||{}),amountToPay:event.target.value}}))} disabled={paymentBusy||paid}/></td></tr>;
+                  return <tr key={record.id} className={paid?"fee-payment-paid-row":undefined} title={paid?t("Fully paid — locked"):undefined}><td>{getFeeInstallmentName(record)}</td><td>{record.metadata?.templateFeeItems?.[0]?.name || record.feeName}</td><td>{formatMoney(record.metadata?.subAmount ?? record.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td><td>{formatMoney(total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td><td><input className="fee-payment-number" type="number" min="0" step="0.01" max={Math.max(0,total-Number(record.amountPaid||0))} value={paid?"0":draft.amountToPay ?? "0"} onChange={event=>setPaymentDrafts(previous=>({...previous,[String(record.id)]:{...(previous[String(record.id)]||{}),amountToPay:event.target.value}}))} disabled={paymentBusy||paid}/></td></tr>;
                 })}
               </tbody></table>
             </section>

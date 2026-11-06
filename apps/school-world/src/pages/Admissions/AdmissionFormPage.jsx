@@ -10,6 +10,7 @@ import SavedAdmissionEnquiries from "./SavedAdmissionEnquiries.jsx";
 import { Field } from "../Students/StudentFormFields.jsx";
 import { ADMISSION_FIELD_GROUPS, createDefaultAdmissionForm, getFieldSetting } from "./admissionFormCatalog.js";
 import { CheckCircle2 } from "lucide-react";
+import { schoolToday } from "../../school-locale.js";
 
 const currentYear = () => academicYearNow();
 
@@ -42,7 +43,7 @@ export function AdmissionFormPage({ student, onBack, onNotify, onOpenModule, act
   const [vals, setVals] = useState(() => ({
     academicYear: formDefinition.academicYear || savedDetails?.academicYear || student.academicYear || currentYear(),
     formNumber: "",
-    enquiryDate: new Date().toISOString().slice(0, 10),
+    enquiryDate: schoolToday(),
     enquiryStatus: "Cold Enquiry",
     firstName: savedDetails?.firstName || (student.name || "").split(" ")[0] || "",
     middleName: savedDetails?.middleName || "",

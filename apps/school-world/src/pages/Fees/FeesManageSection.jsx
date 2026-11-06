@@ -1,5 +1,6 @@
 import React from "react";
 import { FEE_REPORT_TYPES, money, plainDate, groupFeeInstallments } from "./feeReportUtils.js";
+import { moneyLabel } from "../../school-locale.js";
 
 export default function FeesManageSection({ context }) {
   const { t, feeRecords, collected, totalDue, studentsWithDues, ledgerFilterMode, setLedgerFilterMode, query, setQuery, manageYear, setManageYear, academicYears, classOptions, manageClass, setManageClass, reminderBusy, loading, sendFeeRemindersToStudents, reportMenuOpen, setReportMenuOpen, openReport, exportManageXls, exportManagePdf, showAddForm, feeDraft, setFeeDraft, students, feeBusy, addFeeRecord, studentSummaryRows, expandedStudentRows, setExpandedStudentRows, openStudentFees, printFeeReceipt } = context;
@@ -67,8 +68,8 @@ export default function FeesManageSection({ context }) {
             </select>
           </label>
           <label>{t("Fee name")}<input value={feeDraft.feeName} onChange={event => setFeeDraft(previous => ({ ...previous, feeName: event.target.value }))} placeholder={t("Tuition Fee")} /></label>
-          <label>{t("Amount (₹)")}<input type="number" min="0" step="0.01" value={feeDraft.amount} onChange={event => setFeeDraft(previous => ({ ...previous, amount: event.target.value }))} /></label>
-          <label>{t("Amount paid (₹)")}<input type="number" min="0" step="0.01" value={feeDraft.amountPaid} onChange={event => setFeeDraft(previous => ({ ...previous, amountPaid: event.target.value }))} /></label>
+          <label>{moneyLabel(t("Amount"))}<input type="number" min="0" step="0.01" value={feeDraft.amount} onChange={event => setFeeDraft(previous => ({ ...previous, amount: event.target.value }))} /></label>
+          <label>{moneyLabel(t("Amount paid"))}<input type="number" min="0" step="0.01" value={feeDraft.amountPaid} onChange={event => setFeeDraft(previous => ({ ...previous, amountPaid: event.target.value }))} /></label>
           <label>{t("Due date")}<input type="date" value={feeDraft.dueDate} onChange={event => setFeeDraft(previous => ({ ...previous, dueDate: event.target.value }))} /></label>
           <label className="fees-wide-field">{t("Payment reference")}<input value={feeDraft.reference} onChange={event => setFeeDraft(previous => ({ ...previous, reference: event.target.value }))} placeholder={t("Receipt or transaction number")} /></label>
         </div>

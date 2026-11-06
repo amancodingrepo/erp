@@ -1,5 +1,6 @@
 import React from "react";
 import { money } from "./feeReportUtils.js";
+import { appLocale } from "../../school-locale.js";
 
 export default function FeesPaymentReversalsSection({ context }) {
   const { t, feeSettingsReady, feeSettingsLoaded, reverseSearch, setReverseSearch, reverseMatches, setReverseTarget, setReverseReason, reversals } = context;
@@ -14,7 +15,7 @@ export default function FeesPaymentReversalsSection({ context }) {
       </tbody></table>{!reverseMatches.length && <div className="fees-empty">{t("No paid records match this search.")}</div>}</div>
       <div className="fees-card-heading fees-reversal-history-heading"><div><h3>{t("Reversal History")}</h3><p>{t("Recorded reversals remain listed here for review.")}</p></div><span className="fees-count-pill">{reversals.length}</span></div>
       <div className="fees-table-scroll"><table className="fees-table"><thead><tr><th>{t("Reversed At")}</th><th>{t("Student")}</th><th>{t("Fee Type")}</th><th>{t("Amount Reversed")}</th><th>{t("Reference")}</th><th>{t("Reason")}</th></tr></thead><tbody>
-        {reversals.map(item => <tr key={item.id}><td>{item.reversedAt ? new Date(item.reversedAt).toLocaleString("en-IN") : "—"}</td><td><strong>{item.studentName}</strong><small>{item.studentCode}</small></td><td>{item.feeName}</td><td className="fees-money">{money(item.amountReversed)}</td><td>{item.reference || "—"}</td><td>{item.reason}</td></tr>)}
+        {reversals.map(item => <tr key={item.id}><td>{item.reversedAt ? new Date(item.reversedAt).toLocaleString(appLocale()) : "—"}</td><td><strong>{item.studentName}</strong><small>{item.studentCode}</small></td><td>{item.feeName}</td><td className="fees-money">{money(item.amountReversed)}</td><td>{item.reference || "—"}</td><td>{item.reason}</td></tr>)}
       </tbody></table>{!reversals.length && <div className="fees-empty">{t("No payment reversals have been recorded.")}</div>}</div>
       </section>
     </>
