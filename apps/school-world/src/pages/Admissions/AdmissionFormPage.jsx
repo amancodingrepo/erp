@@ -59,7 +59,7 @@ export function AdmissionFormPage({ student, onBack, onNotify, onOpenModule, act
     previousSchool: "",
     aadhar: "",
     sssmId: "",
-    nationality: savedDetails?.nationality || student.nationality || "Indian",
+    nationality: savedDetails?.nationality || student.nationality || "",
     religion: savedDetails?.religion || "",
     caste: savedDetails?.caste || "",
     bloodGroup: savedDetails?.bloodGroup || student.bloodGroup || "",

@@ -30,8 +30,8 @@ function initialStudent() {
     academicYear: currentAcademicYear(), className: "", section: "",
     enrollmentDate: localDateString(), enrollmentNumber: "", rollNumber: "", house: "",
     lunchFromSchool: "No", aadhaarNumber: "", janAadhaarNumber: "",
-    scholarNumber: "", sssmIdNumber: "", religion: "", category: "OTHER", caste: "",
-    bloodGroup: "", disability: "None selected", rteStudent: "No", nationality: "Indian",
+    scholarNumber: "", sssmIdNumber: "", religion: "", category: "", caste: "",
+    bloodGroup: "", disability: "None selected", rteStudent: "No", nationality: "",
     admittedClass: "", annualIncome: "", isOnlyChild: "No", pen: "", apaarIdNumber: "",
     grn: "", saralId: ""
   };

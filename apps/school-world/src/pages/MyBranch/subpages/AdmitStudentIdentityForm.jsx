@@ -1,10 +1,10 @@
 import React from "react";
+import { useSchoolList, withCurrent } from "../../../useSchoolList.js";
 import { Camera, CloudDownload, RefreshCw, UserRound } from "lucide-react";
 import { AdmitField, AdmitNameFields, AdmitYesNo, AdmitSectionHeading } from "./AdmitStudentFields.jsx";
 
 const GENDER_OPTIONS = ["Not Specified", "Male", "Female", "Other"];
 const RELIGION_OPTIONS = ["Hindu", "Muslim", "Christian", "Sikh", "Buddhist", "Jain", "Other"];
-const CATEGORY_OPTIONS = ["GENERAL", "OBC", "SC", "ST", "EWS", "OTHER"];
 const BLOOD_GROUP_OPTIONS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const DISABILITY_OPTIONS = ["None selected", "Visual Impairment", "Hearing Impairment", "Locomotor Disability", "Learning Disability", "Autism", "Multiple Disabilities", "Other"];
 
@@ -12,6 +12,7 @@ export default function AdmitStudentIdentityForm({
   student, setField, classes = [], academicYears = [], houses = [], photo, onPhotoChange,
   onDownloadDocs, onGenerateEnrollment
 }) {
+  const [categories] = useSchoolList("studentCategories");
   function chooseClass(value) {
     const picked = classes.find(item => String(item.class_name || item.className || item.name) === value);
     setField("className", value);
@@ -50,12 +51,12 @@ export default function AdmitStudentIdentityForm({
           <AdmitField label="Scholar Number" value={student.scholarNumber} onChange={value => setField("scholarNumber", value)} />
           <AdmitField label="SSSM ID Number" value={student.sssmIdNumber} onChange={value => setField("sssmIdNumber", value)} />
           <AdmitField label="Religion" value={student.religion} options={RELIGION_OPTIONS} onChange={value => setField("religion", value)} />
-          <AdmitField label="Category" value={student.category || "OTHER"} options={CATEGORY_OPTIONS} onChange={value => setField("category", value)} />
+          <AdmitField label="Category" value={student.category || ""} options={categories.length ? withCurrent(categories, student.category) : null} hint={categories.length ? undefined : "This school has no student categories yet; type one, or add them under Campus desk → Categories."} onChange={value => setField("category", value)} />
           <AdmitField label="Caste" value={student.caste} onChange={value => setField("caste", value)} />
           <AdmitField label="Blood Group" value={student.bloodGroup} options={BLOOD_GROUP_OPTIONS} onChange={value => setField("bloodGroup", value)} />
           <AdmitField label="Disability" value={student.disability || "None selected"} options={DISABILITY_OPTIONS} onChange={value => setField("disability", value)} />
           <AdmitYesNo label="RTE Student" value={student.rteStudent} onChange={value => setField("rteStudent", value)} />
-          <AdmitField label="Nationality" value={student.nationality || "Indian"} onChange={value => setField("nationality", value)} />
+          <AdmitField label="Nationality" value={student.nationality || ""} onChange={value => setField("nationality", value)} />
           <AdmitField label="Admitted Class" value={student.admittedClass} onChange={value => setField("admittedClass", value)} />
           <AdmitField label="Annual Income" type="number" min="0" step="1" value={student.annualIncome} onChange={value => setField("annualIncome", value)} />
           <AdmitYesNo label="Is Only Child" value={student.isOnlyChild} onChange={value => setField("isOnlyChild", value)} />

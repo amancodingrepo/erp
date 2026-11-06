@@ -1,10 +1,12 @@
 import React from "react";
+import { useSchoolList, withCurrent } from "../../useSchoolList.js";
 import { Camera, CloudDownload, ExternalLink, FileText, Save, UserCircle, Users } from "lucide-react";
 import { Field, YesNo } from "./StudentFormFields.jsx";
 import { academicYearOptions, classOptions as schoolClassOptions } from "../../school-options.js";
 
 export default function StudentDetailsTab({ context }) {
   const { t, data, update, classOptions, photo, photoSaving, handleStudentPhotoUpload, onSave, onOpenAdmission, shortName, notify, saving, save } = context;
+  const [categories] = useSchoolList("studentCategories");
   return (
     <>
 
@@ -36,7 +38,7 @@ export default function StudentDetailsTab({ context }) {
           <Field label="Scholar Number" value={data.scholarNumber} onChange={v => update("scholarNumber", v)}/>
           <Field label="SSSM Id Number" value={data.sssmId} onChange={v => update("sssmId", v)}/>
           <Field label="Religion" value={data.religion} onChange={v => update("religion", v)} options={["-- Select Religion --", "Hindu", "Muslim", "Christian", "Sikh", "Buddhist", "Jain", "Other"]}/>
-          <Field label="Category" value={data.category} onChange={v => update("category", v)} options={["OTHER", "General", "OBC", "SC", "ST", "EWS"]}/>
+          <Field label="Category" value={data.category} onChange={v => update("category", v)} options={categories.length ? withCurrent(categories, data.category) : undefined}/>
           <Field label="Caste" value={data.caste} onChange={v => update("caste", v)}/>
           <Field label="Blood Group" value={data.bloodGroup} onChange={v => update("bloodGroup", v)} options={["Blood Group", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"]}/>
           <Field label="Disability" value={data.disability} onChange={v => update("disability", v)} options={["None selected", "None", "Visual impairment", "Hearing impairment", "Locomotor disability", "Other"]}/>

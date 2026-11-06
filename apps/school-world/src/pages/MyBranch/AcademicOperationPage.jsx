@@ -60,14 +60,6 @@ const MODULE_KEYS = {
   "Manage House": "houses",
   "Manage Class Eligibility Criteria": "class-eligibility-criteria"
 };
-const LEAVE_TYPE_OPTIONS = [
-  "Medical Leave",
-  "Tournament Leave",
-  "Not Applicable",
-  "Not Present",
-  "Special Leave",
-  "dash"
-];
 
 function classLabel(item) {
   const displayName=clean(item.displayName);
@@ -232,6 +224,8 @@ export default function AcademicOperationPage({ title, description, Icon, onBack
   const [isRollEditing, setIsRollEditing] = useState(false);
   const [editingId, setEditingId] = useState("");
   const [recordForm, setRecordForm] = useState(() => newRecordFor(title));
+  // The school's own leave types (Campus desk > Leave types), not a built-in list.
+  const [leaveTypeNames, setLeaveTypeNames] = useState([]);
   const [yearForm, setYearForm] = useState(EMPTY_ACADEMIC_YEAR_FORM);
   const [editingYearId, setEditingYearId] = useState("");
   const [yearFormOpen, setYearFormOpen] = useState(false);
@@ -358,11 +352,13 @@ export default function AcademicOperationPage({ title, description, Icon, onBack
         apiGet("/module-data/leave-marks-percentage"),
         apiGet("/module-data/class-eligibility-criteria"),
         apiGet("/bootstrap"),
-        apiGet("/module-data/academic-year-settings")
+        apiGet("/module-data/academic-year-settings"),
+        apiGet("/v1/leave-types")
       ]);
       if (results[0].status === "rejected") throw results[0].reason;
       const loadedStudents = Array.isArray(results[0].value?.students) ? results[0].value.students : (Array.isArray(propStudents) ? propStudents : []);
       setStudents(loadedStudents);
+      if (results[7].status === "fulfilled") setLeaveTypeNames([...new Set((results[7].value?.data || []).map(row => clean(row?.name)).filter(Boolean))]);
       if (results[1].status === "fulfilled") setClasses(Array.isArray(results[1].value?.classes) ? results[1].value.classes : []);
       if (results[2].status === "fulfilled") setHouses(Array.isArray(results[2].value?.data?.houses) ? results[2].value.data.houses : []);
       if (results[3].status === "fulfilled") setRules(Array.isArray(results[3].value?.data?.rules) ? results[3].value.data.rules : []);
@@ -1034,9 +1030,9 @@ export default function AcademicOperationPage({ title, description, Icon, onBack
           {title==="Manage Marks Percentage for Leave Type"?<>
             <label className="aop-field"><span>Leave Type *</span><select value={recordForm.leaveType||""} onChange={event=>updateRecordForm("leaveType",event.target.value)} required>
               <option value="" disabled hidden>Select leave type</option>
-              {recordForm.leaveType && !LEAVE_TYPE_OPTIONS.includes(recordForm.leaveType) && <option value={recordForm.leaveType}>{recordForm.leaveType}</option>}
-              {LEAVE_TYPE_OPTIONS.map(option=><option key={option} value={option}>{option}</option>)}
-            </select></label>
+              {recordForm.leaveType && !leaveTypeNames.includes(recordForm.leaveType) && <option value={recordForm.leaveType}>{recordForm.leaveType}</option>}
+              {leaveTypeNames.map(option=><option key={option} value={option}>{option}</option>)}
+            </select>{!leaveTypeNames.length && <small>No leave types are set up for this school yet. <a href="?module=Campus+desk&screen=%2Fstaff%2Fleavetypes">Add leave types</a>.</small>}</label>
             <label className="aop-field"><span>Marks Percentage (0–100) *</span><input type="number" min="0" max="100" step="0.1" value={recordForm.marksPercentage??100} onChange={event=>updateRecordForm("marksPercentage",event.target.value)} required/></label>
             <label className="aop-field"><span>Notes</span><textarea value={recordForm.notes||""} onChange={event=>updateRecordForm("notes",event.target.value)} rows="3"/></label>
           </>:title==="Manage House"?<>

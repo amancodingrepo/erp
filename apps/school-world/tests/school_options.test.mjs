@@ -84,3 +84,23 @@ test("no screen carries a fixed academic year or default class", () => {
   })(src);
   assert.deepEqual(offenders, []);
 });
+
+test("school lists (categories, staff categories, leave types) come from the school's records", () => {
+  const src = (rel) => readFileSync(fileURLToPath(new URL("../src/" + rel, import.meta.url)), "utf8");
+  assert.doesNotMatch(src("pages/MyBranch/AcademicOperationPage.jsx"), /Tournament Leave|LEAVE_TYPE_OPTIONS/);
+  assert.match(src("pages/MyBranch/AcademicOperationPage.jsx"), /\/v1\/leave-types/);
+  assert.doesNotMatch(src("pages/MyBranch/subpages/AdmitStudentIdentityForm.jsx"), /"OBC"|CATEGORY_OPTIONS/);
+  assert.doesNotMatch(src("pages/Students/StudentDetailsTab.jsx"), /"OBC"/);
+  assert.doesNotMatch(src("pages/MyBranch/subpages/ManageStaffPage.jsx"), /ROLE_CATEGORIES|"Uniforms"|-- Select Bank --/);
+  for (const rel of ["student-form-utils.js", "main.jsx", "pages/Students/bulkStudentImport.js", "pages/MyBranch/subpages/AdmitNewStudentPage.jsx"]) {
+    assert.doesNotMatch(src(rel), /\|\|\s*"Indian"|\?\?\s*"Indian"|nationality: "Indian"|"OTHER"/, rel + " has no built-in nationality or category");
+  }
+});
+
+test("listNames keeps the school's order and drops blanks and repeats", async () => {
+  const { listNames, withCurrent } = await import("../src/useSchoolList.js");
+  assert.deepEqual(listNames([{ name: " General " }, { name: "" }, { name: "General" }, { name: "EWS" }, null]), ["General", "EWS"]);
+  assert.deepEqual(listNames(undefined), []);
+  assert.deepEqual(withCurrent(["General"], "Old category"), ["Old category", "General"]);
+  assert.deepEqual(withCurrent(["General"], "General"), ["General"]);
+});

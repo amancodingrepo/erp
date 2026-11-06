@@ -22,11 +22,10 @@ const EMPTY_FORM = {
   husbandWifeName: "", role: "staff", esiNumber: "", officeTimingsFrom: "",
   officeTimingsTo: "", experience: "", roleCategories: [], photoDataUrl: ""
 };
-const ROLE_CATEGORIES = ["Fees", "Transport", "Uniforms", "Library", "Academics", "Others"];
-const BANKS = [
-  "-- Select Bank --", "State Bank of India", "HDFC Bank", "ICICI Bank",
-  "Axis Bank", "Punjab National Bank", "Bank of Baroda", "Canara Bank",
-  "Union Bank of India", "Kotak Mahindra Bank", "IDFC FIRST Bank", "Other"
+// Suggestions only: staff can type any bank, so a school outside this list isn't stuck.
+const BANK_SUGGESTIONS = [
+  "State Bank of India", "HDFC Bank", "ICICI Bank", "Axis Bank", "Punjab National Bank",
+  "Bank of Baroda", "Canara Bank", "Union Bank of India", "Kotak Mahindra Bank", "IDFC FIRST Bank"
 ];
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
 const ROLE_OPTIONS = [
@@ -752,7 +751,6 @@ export default function ManageStaffPage({ onBack, notify, t }) {
     if (key === "staffCategory") options = staffCategories
       .filter(category => category.isActive || category.id === value)
       .map(category => ({ value: category.id, label: category.name + (category.isActive ? "" : " (Inactive)") }));
-    if (key === "staffBankName" || key === "schoolBankName") options = BANKS;
     return (
       <label key={key} className={"manage-staff-field" + (definition.span ? " span-" + definition.span : "")}>
         <span>{text(label)} {required && <span className="required">*</span>}</span>
@@ -778,14 +776,21 @@ export default function ManageStaffPage({ onBack, notify, t }) {
             readOnly={Boolean(definition.readOnly && !editingPerson)}
             value={value}
             placeholder={definition.placeholder || ""}
+            list={definition.suggestions ? "manage-staff-" + key + "-suggestions" : undefined}
             onChange={event => updateForm(key, event.target.value)}
           />
         )}
+        {definition.suggestions && <datalist id={"manage-staff-" + key + "-suggestions"}>{definition.suggestions.map(item => <option key={item} value={item} />)}</datalist>}
         {definition.help && <small className="manage-staff-field-help">{text(definition.help)}</small>}
       </label>
     );
   }
 
+  // Role categories are this school's own staff categories, plus any already on this person.
+  const roleCategoryOptions = [...new Set([
+    ...staffCategories.filter(category => category.isActive).map(category => category.name),
+    ...(form.roleCategories || [])
+  ].filter(Boolean))];
   const isEdit = Boolean(editingPerson);
   const shownName = selectedCard?.fullName || (selectedCard ? fullNameFromForm(staffDetailsOf(selectedCard)) : "");
 
@@ -973,8 +978,8 @@ export default function ManageStaffPage({ onBack, notify, t }) {
             <section className="manage-staff-form-section">
               <div className="manage-staff-section-heading"><div><h3>{text("Banking and Identity Details")}</h3><p>{text("Bank account, statutory, national ID, and biometric details.")}</p></div></div>
               <div className="manage-staff-form-grid">
-                {renderField({ key: "staffBankName", label: "Staff Bank Name", type: "select", options: BANKS })}
-                {renderField({ key: "schoolBankName", label: "School Bank Name", type: "select", options: BANKS })}
+                {renderField({ key: "staffBankName", label: "Staff Bank Name", suggestions: BANK_SUGGESTIONS, placeholder: "Type or pick a bank" })}
+                {renderField({ key: "schoolBankName", label: "School Bank Name", suggestions: BANK_SUGGESTIONS, placeholder: "Type or pick a bank" })}
                 {renderField({ key: "bankAccountNumber", label: "Bank Account Number" })}
                 {renderField({ key: "ifscCode", label: "IFSC Code" })}
                 {renderField({ key: "pfNumber", label: "PF Number" })}
@@ -1003,7 +1008,8 @@ export default function ManageStaffPage({ onBack, notify, t }) {
                 <fieldset className="manage-staff-role-categories span-2">
                   <legend>{text("Role Categories")}</legend>
                   <div className="manage-staff-role-category-list">
-                    {ROLE_CATEGORIES.map(category => (
+                    {roleCategoryOptions.length === 0 && <small className="manage-staff-field-help">{text("This school has no staff categories yet. Add them under My Branch → Manage Staff Category.")}</small>}
+                    {roleCategoryOptions.map(category => (
                       <label key={category}>
                         <input type="checkbox" checked={form.roleCategories.includes(category)} onChange={event => updateForm("roleCategories", event.target.checked ? [...form.roleCategories, category] : form.roleCategories.filter(item => item !== category))} />
                         <span>{text(category)}</span>

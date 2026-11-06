@@ -533,8 +533,8 @@ function SchoolDiaryApp({ user, onLogout }) {
       rollNumber: data.rollNumber ?? editingStudent.rollNumber ?? "",
       house: data.house ?? editingStudent.house ?? "",
       bloodGroup: data.bloodGroup ?? editingStudent.bloodGroup ?? "",
-      category: data.category ?? editingStudent.category ?? "OTHER",
-      nationality: data.nationality ?? editingStudent.nationality ?? "Indian"
+      category: data.category ?? editingStudent.category ?? "",
+      nationality: data.nationality ?? editingStudent.nationality ?? ""
     };
     if (scope === "all" && photoDataUrl) allChanges.photoDataUrl = photoDataUrl;
 
