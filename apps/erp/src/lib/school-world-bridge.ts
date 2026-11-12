@@ -254,11 +254,17 @@ function yearView(row: { id: string; name: string; startDate: Date | null; endDa
 }
 
 export async function listAcademicYears(campusId: string) {
-  const rows = await prisma.academicSession.findMany({
-    where: { campusId },
-    orderBy: { name: "desc" },
-  });
-  return rows.map(yearView);
+  const [rows, campus] = await Promise.all([
+    prisma.academicSession.findMany({
+      where: { campusId },
+      orderBy: { name: "desc" },
+    }),
+    prisma.campus.findUnique({ where: { id: campusId }, select: { currentSessionId: true } }),
+  ]);
+  const pinned = campus?.currentSessionId && rows.some((row) => row.id === campus.currentSessionId)
+    ? campus.currentSessionId
+    : rows.find((row) => row.isCurrent)?.id ?? null;
+  return rows.map((row) => yearView({ ...row, isCurrent: Boolean(pinned) && row.id === pinned }));
 }
 
 export async function saveAcademicYear(campusId: string, body: JsonRecord, yearId?: string) {
@@ -977,6 +983,7 @@ export async function bootstrap(principal: AuthPrincipal) {
       timezone: campus.timezone,
       config: asObject(configRow?.value),
     },
+    currentSessionId: campus.currentSessionId,
     academicYears: years,
     classes: classes
       .filter((row) => row.status !== "Inactive")

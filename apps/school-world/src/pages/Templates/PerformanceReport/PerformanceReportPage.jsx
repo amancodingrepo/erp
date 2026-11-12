@@ -10,6 +10,7 @@ import { getClassSubjectClassification, getClassSubjectOptions, summarizeSubject
 import { studentOptionalSubjectContextKey } from "./optionalSubjectSelection.js";
 import StudentOptionalSubjectsPanel from "./StudentOptionalSubjectsPanel.jsx";
 import { getNavigationHref } from "../../../navigation.js";
+import { academicYearNow, currentAcademicYear } from "../../../school-options.js";
 import "./PerformanceReportPage.css";
 
 const MODULE_KEY = "performance-report";
@@ -35,10 +36,8 @@ function todayKey() {
   const now = new Date();
   return String(now.getFullYear()) + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
 }
-function academicYearNow() {
-  const now = new Date();
-  const start = now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();
-  return String(start) + "-" + String(start + 1);
+function sessionYear() {
+  return currentAcademicYear() || academicYearNow();
 }
 function normalizeReportData(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -95,7 +94,7 @@ function formatDate(value) {
 function newExamForm(year, className, subjectName) {
   return {
     title: "",
-    academicYear: year || academicYearNow(),
+    academicYear: year || sessionYear(),
     className: className || "",
     subjectName: subjectName || "",
     term: "Term 1",
@@ -132,7 +131,7 @@ export default function PerformanceReportPage({ students = [], t }) {
   const [reportSearch, setReportSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [studentSubjectClassId, setStudentSubjectClassId] = useState("");
-  const [studentSubjectYear, setStudentSubjectYear] = useState(academicYearNow());
+  const [studentSubjectYear, setStudentSubjectYear] = useState(sessionYear);
   const [studentSubjectSelectionCache, setStudentSubjectSelectionCache] = useState({});
   const [optionalSubjectRosterLoading, setOptionalSubjectRosterLoading] = useState(false);
 
@@ -173,12 +172,12 @@ export default function PerformanceReportPage({ students = [], t }) {
       ...(students || []).map(student => clean(student.academicYear)),
       ...reportData.exams.map(item => clean(item.academicYear)),
       ...reportData.templates.map(item => clean(item.academicYear)),
-      academicYearNow()
+      sessionYear()
     ].filter(Boolean);
     return Array.from(new Set(years)).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   }, [students, reportData.exams, reportData.templates]);
 
-  const resolvedReportYear = reportYear || yearOptions[0] || academicYearNow();
+  const resolvedReportYear = reportYear || sessionYear();
   const showAllYears = reportYear === ALL_YEARS;
   const selectedTemplate = reportData.templates.find(item => item.id === examForm.templateId) || null;
   const showTemplateMarks = Boolean(assignedPerformanceSettings?.showMarks);
@@ -268,7 +267,7 @@ export default function PerformanceReportPage({ students = [], t }) {
   useEffect(() => {
     setExamForm(current => ({
       ...current,
-      academicYear: current.academicYear || yearOptions[0] || academicYearNow(),
+      academicYear: current.academicYear || sessionYear(),
       className: current.className || availableClasses[0] || "",
       subjectName: current.subjectName || activeSubjects[0]?.name || ""
     }));
@@ -877,7 +876,7 @@ export default function PerformanceReportPage({ students = [], t }) {
                     <>
                       <div className="pr-marks-summary"><span><Users size={15}/>{examRoster.length} {text("active students")}</span><span><CheckCircle2 size={15}/>{scoreCounts.entered} {text("entered")}</span><span>{scoreCounts.remaining} {text("remaining")}</span><span>{text("Pass mark")}: {selectedExam.passMarks}/{selectedExam.maxMarks}</span><span className={"pr-chip " + (selectedExamSubjectClassification?.type === "Optional" ? "pr-chip-amber" : selectedExamSubjectClassification?.type === "Primary / Compulsory" ? "pr-chip-green" : "pr-chip-muted")}>{text(selectedExamSubjectClassification?.type || "Not mapped")}</span></div>
                       <div className="pr-toolbar"><div className="pr-search"><Search size={15}/><input value={marksSearch} onChange={event => setMarksSearch(event.target.value)} placeholder={text("Search student or roll number…")} aria-label={text("Search marks roster")}/></div><span className="pr-field-help">{selectedExamSubjectClassification?.type === "Optional" ? text("Optional subject: leave marks blank for students without a result; blank fields remain unassessed.") : text("Leave marks blank for an unassessed student. Zero is a valid score.")}</span></div>
-                      {selectedExamSubjectClassification?.isOptional && <div className="pr-notice" role="note"><span>{text("Only students who have saved this optional-subject choice appear in the marks roster. ")}<button type="button" className="pr-link-button" onClick={() => { const cls = classRecords.find(row => configuredClassLabel(row) === clean(selectedExam.className)); if (cls?.id) setStudentSubjectClassId(String(cls.id)); setStudentSubjectYear(selectedExam.academicYear || academicYearNow()); setActiveTab("studentSubjects"); setLoadError(""); setMessage(""); }}>{text("Manage student choices")}</button></span></div>}
+                      {selectedExamSubjectClassification?.isOptional && <div className="pr-notice" role="note"><span>{text("Only students who have saved this optional-subject choice appear in the marks roster. ")}<button type="button" className="pr-link-button" onClick={() => { const cls = classRecords.find(row => configuredClassLabel(row) === clean(selectedExam.className)); if (cls?.id) setStudentSubjectClassId(String(cls.id)); setStudentSubjectYear(selectedExam.academicYear || sessionYear()); setActiveTab("studentSubjects"); setLoadError(""); setMessage(""); }}>{text("Manage student choices")}</button></span></div>}
                       {selectedExamSubjectClassification?.isOptional && optionalSubjectRosterLoading && <div className="pr-loading"><span className="pr-spinner"/>{text("Checking saved student subject choices…")}</div>}
                       {selectedExamSubjectClassification?.isOptional && !optionalSubjectRosterLoading && examRoster.length === 0 && <div className="pr-notice">{text("No students have selected this optional subject yet, or student choices could not be loaded. Open Student Optional Subjects and save a choice first.")}</div>}
                       <div className="pr-table-wrap"><table className="pr-table">
@@ -946,7 +945,7 @@ export default function PerformanceReportPage({ students = [], t }) {
               classRecords={classRecords}
               yearOptions={yearOptions}
               initialClassId={studentSubjectClassId}
-              initialAcademicYear={studentSubjectYear || yearOptions[0] || academicYearNow()}
+              initialAcademicYear={studentSubjectYear || sessionYear()}
               onContextChange={context => {
                 if (context?.classId) setStudentSubjectClassId(String(context.classId));
                 if (context?.academicYear) setStudentSubjectYear(String(context.academicYear));

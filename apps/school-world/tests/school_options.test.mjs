@@ -67,6 +67,49 @@ test("screens that must show a year fall back to the calendar only when the scho
   });
 });
 
+// Reproduced locally on 2026-11-02: Main Campus current session is "2025-26", the only
+// student's enrollment is "2026-27", and a calendar year from that date is "2026-2027".
+test("the current session is one year, not a student's year and not the calendar year", () => {
+  const bootstrap = {
+    currentSessionId: "current",
+    academicYears: [
+      { id: "later", label: "2026-27", isCurrent: true },
+      { id: "current", label: "2025-26", isCurrent: true },
+    ],
+  };
+  const options = optionsFromBootstrap(bootstrap);
+  assert.equal(options.currentAcademicYear, "2025-26");
+  assert.deepEqual(options.academicYears, ["2026-27", "2025-26"]);
+  withSchool(options, () => {
+    const today = new Date("2026-11-02T00:00:00");
+    assert.equal(academicYearNow(today), "2025-26");
+    assert.equal(currentAcademicYear(), "2025-26");
+    assert.equal(defaultAcademicYear(), "2025-26");
+    assert.ok(academicYearOptions("2026-27").includes("2025-26"));
+  });
+});
+
+test("current-session screens do not invent a second academic year", () => {
+  const src = fileURLToPath(new URL("../src/", import.meta.url));
+  const definers = [];
+  (function walk(dir) {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) { walk(path); continue; }
+      if (!/\.(jsx?|mjs)$/.test(name) || /school-options\.js$/.test(name)) continue;
+      readFileSync(path, "utf8").split("\n").forEach((line, index) => {
+        if (/function academicYearNow\b|academicYearNow\s*=\s*(?:function|\()/.test(line)) definers.push(`${path.slice(src.length)}:${index + 1}`);
+      });
+    }
+  })(src);
+  assert.deepEqual(definers, []);
+  const read = (rel) => readFileSync(fileURLToPath(new URL("../src/" + rel, import.meta.url)), "utf8");
+  assert.doesNotMatch(read("pages/Attendance/AttendanceModulePage.jsx"), /knownYears\[0\]/);
+  assert.doesNotMatch(read("pages/Templates/PerformanceReport/PerformanceReportPage.jsx"), /reportYear \|\| yearOptions\[0\]|yearOptions\[0\] \|\| academicYearNow/);
+  assert.doesNotMatch(read("pages/Fees/useFeesModuleState.js"), /defaultAcademicYear\(students\[0\]/);
+  assert.doesNotMatch(read("pages/MyBranch/AcademicOperationPage.jsx"), /yearsLabels\[0\]/);
+});
+
 test("no screen carries a fixed academic year or default class", () => {
   const src = fileURLToPath(new URL("../src/", import.meta.url));
   const offenders = [];

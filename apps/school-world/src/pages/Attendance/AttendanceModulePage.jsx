@@ -8,9 +8,10 @@ import AttendanceCardResults from "./AttendanceCardResults.jsx";
 import AttendanceCalendar from "./AttendanceCalendar.jsx";
 import AttendanceRegister from "./AttendanceRegister.jsx";
 import {
-  ATTENDANCE_STATUSES, academicYearNow, dateKey, parseDateKey, monthCells,
+  ATTENDANCE_STATUSES, dateKey, parseDateKey, monthCells,
   moveMonth, getName, getMetadataLabel, getStatusCounts, getSummaryCounts
 } from "./attendanceUtils.js";
+import { academicYearNow, academicYearOptions } from "../../school-options.js";
 import { schoolToday } from "../../school-locale.js";
 
 export default function AttendanceModulePage({ students = [], t = value => value, notify = () => {}, onOpenStudent = () => {} }) {
@@ -33,16 +34,17 @@ export default function AttendanceModulePage({ students = [], t = value => value
   const [loadError, setLoadError] = useState("");
   const [summaryRefresh, setSummaryRefresh] = useState(0);
 
-  const knownYears = useMemo(function () {
-    return Array.from(new Set((students || []).map(student => String(student.academicYear || "").trim()).filter(Boolean)))
-      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  const yearOptions = useMemo(function () {
+    const fromStudents = (students || []).map(student => String(student.academicYear || "").trim());
+    const options = academicYearOptions(fromStudents);
+    return options.length ? options : [academicYearNow()].filter(Boolean);
   }, [students]);
-  const yearOptions = knownYears.length ? knownYears : [academicYearNow()];
 
   useEffect(function () {
-    if (!knownYears.length) return;
-    if (!knownYears.includes(academicYear)) setAcademicYear(knownYears[0]);
-  }, [knownYears, academicYear]);
+    if (!yearOptions.length || yearOptions.includes(academicYear)) return;
+    const sessionYear = academicYearNow();
+    setAcademicYear(yearOptions.includes(sessionYear) ? sessionYear : yearOptions[0]);
+  }, [yearOptions, academicYear]);
 
   const availableClasses = useMemo(function () {
     const relevant = (students || []).filter(student => !student.academicYear || student.academicYear === academicYear);
