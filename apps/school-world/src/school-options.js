@@ -18,11 +18,11 @@ export function currentAcademicYear(source = config()) {
   return clean(source.currentAcademicYear);
 }
 
-/** The school's years, newest first, plus any extra values already on a record (so they still show). */
+/** The school's years, newest first, plus the current session and any extra values already on a record. */
 export function academicYearOptions(...extra) {
   const source = config();
   const years = Array.isArray(source.academicYears) ? source.academicYears : [];
-  return unique([...years, ...extra.flat()]).sort(byYearDesc);
+  return unique([currentAcademicYear(source), ...years, ...extra.flat()]).sort(byYearDesc);
 }
 
 /** The school's classes in its own order, plus any extra values already on a record. */
@@ -37,13 +37,16 @@ export function defaultAcademicYear(...preferred) {
   return clean(preferred.find((value) => clean(value))) || currentAcademicYear();
 }
 
-/** Shape main.jsx stores from GET /api/bootstrap. */
+/** Shape main.jsx stores from GET /api/bootstrap. Exactly one current session: the campus pointer wins. */
 export function optionsFromBootstrap(bootstrap) {
   const years = Array.isArray(bootstrap?.academicYears) ? bootstrap.academicYears : [];
   const classes = Array.isArray(bootstrap?.classes) ? bootstrap.classes : [];
+  const labelOf = (year) => clean(year?.label || year?.name);
+  const pinned = years.find((year) => year?.id && year.id === bootstrap?.currentSessionId);
+  const marked = years.find((year) => year?.isCurrent || year?.is_current);
   return {
-    academicYears: unique(years.map((year) => year?.label || year?.name)),
-    currentAcademicYear: clean(years.find((year) => year?.isCurrent || year?.is_current)?.label),
+    academicYears: unique(years.map(labelOf)),
+    currentAcademicYear: labelOf(pinned || marked),
     classes: unique(classes.map((item) => item?.class_name || item?.className || item?.name)),
   };
 }

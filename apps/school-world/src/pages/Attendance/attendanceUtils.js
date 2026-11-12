@@ -16,11 +16,6 @@ export function formatDate(key, options) {
     weekday: "long", year: "numeric", month: "long", day: "numeric"
   });
 }
-export function academicYearNow() {
-  const now = new Date();
-  const start = now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();
-  return String(start) + "-" + String(start + 1);
-}
 export function monthCells(key) {
   const focus = parseDateKey(key);
   const first = new Date(focus.getFullYear(), focus.getMonth(), 1);

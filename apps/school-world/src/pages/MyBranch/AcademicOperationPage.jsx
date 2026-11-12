@@ -5,6 +5,7 @@ import {
   AlertCircle, CheckSquare, Square
 } from "lucide-react";
 import { apiGet, apiPost, apiPatch, apiPut } from "../../api.js";
+import { currentAcademicYear } from "../../school-options.js";
 import "./AcademicOperationPage.css";
 
 const clean = value => String(value ?? "").trim().replace(/\s+/g, " ");
@@ -274,9 +275,8 @@ export default function AcademicOperationPage({ title, description, Icon, onBack
   const currentAcademicYearLabel = useMemo(() => {
     const current = years.find(item => Boolean(item.is_current ?? item.isCurrent));
     if (current?.label) return clean(current.label);
-    const sorted = [...years].sort((a,b) => dateOnly(b.start_date || b.startDate).localeCompare(dateOnly(a.start_date || a.startDate)) || clean(b.label).localeCompare(clean(a.label), undefined, {numeric:true}));
-    return clean(sorted[0]?.label || yearsLabels[0] || "");
-  }, [years, yearsLabels]);
+    return currentAcademicYear();
+  }, [years]);
   const classWorkflowGroups = useMemo(() => {
     const map = new Map();
     classChoices.forEach(item => {
