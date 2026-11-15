@@ -25,3 +25,6 @@ erp-crawl/crawl.log
 
 # graphify knowledge-graph output (local map, rebuilt with /graphify)
 graphify-out/
+
+# Playwright MCP page snapshots and console logs (local browser checks)
+.playwright-mcp/
