@@ -1518,6 +1518,7 @@ export async function importStudents(
     }
     return {
       ...row,
+      sourceRowNumber: rowNumber,
       name: clean(row.name) || [row.firstName, row.middleName, row.lastName].map(clean).filter(Boolean).join(" "),
       studentId,
       className: clean(row.className || row.Class || row.class),
