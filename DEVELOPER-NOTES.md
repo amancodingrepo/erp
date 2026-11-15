@@ -4,6 +4,37 @@ This is a field notebook for someone who has to **understand, fix, or extend** t
 
 The app you run is **`apps/erp`**. The git repo root has research crawls and School Diary specs. Those are maps. The product is the Next.js app.
 
+## Excel student bulk upload (2026-11-14)
+
+The School World Excel upload is `POST /api/students/bulk-import`. It calls `importStudents` with `{ excel: true }`. The older CSV upload stays on `POST /api/students/import` and does not use the phone rules below. Staff bulk upload was not changed.
+
+### Academic year
+
+A June–May year has two labels for the same span: `YYYY-YY` and `YYYY-YYYY` (end year is start + 1). Example already on this campus: current session `2025-26`, Excel value `2025-2026`.
+
+Before the fix, `ensureSession` matched `campusId` + exact name only. The Excel import created a second `AcademicSession` named `2025-2026` and moved the student's current enrollment onto it. `listAcademicYears` still pins the displayed current year to `campus.currentSessionId`, so lists and the new enrollment disagreed. Local reproduction on campus MAIN: current `2025-26`, sessions before `2025-26` and `2026-27`, after import the enrollment session was `2025-2026` and it was not the campus pointer. The unused extra session from that reproduction is deleted when it has no enrollments.
+
+Rule now:
+
+- Bulk enroll attaches to the existing session of that span. It does not create the other spelling.
+- If both spellings already exist and one of them is `campus.currentSessionId`, the upload uses that current session.
+- If both spellings exist and neither is current, the upload fails. It does not pick one or create a third.
+- Creating or renaming an academic year onto the other spelling of an existing year is a conflict.
+- A genuinely different year may still create a non-current session.
+- The same resolution runs for every `importStudents` caller, including the CSV bridge. Only the Excel route adds the phone checks.
+
+### Parent phone
+
+Excel Parent Phone must be exactly 10 digits after spaces and dashes are removed. A leading `+91`, `91`, or `0` is rejected on a new Excel entry. A value already stored as 10 digits, 11 digits with a leading 0, or 12 digits with a leading 91 is treated as that same 10-digit number when checking duplicates.
+
+The whole Excel batch is rejected before any student write when a phone is invalid, or when the same 10-digit Parent Phone would belong to more than 3 students. Uses already stored on this campus count, and so do new rows in the file. Updating the same Student ID does not count as another use. The rejection toast and the upload panel list every reason on its own line. That includes a missing column, a bad field, a phone used more than 3 times, and a server save failure. A save failure names the Excel row and the server message. The toast keeps that text exactly, including the phone and the earlier Excel rows.
+
+Alternate Phone and Day Care Pickup Phone are not part of this check.
+
+### Decision
+
+A Parent Phone may be shared by up to 3 students. The fourth use is rejected. This is the sibling rule for Excel bulk upload.
+
 ---
 
 ## 1. What this product is

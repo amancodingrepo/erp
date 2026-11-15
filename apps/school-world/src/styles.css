@@ -9185,6 +9185,8 @@ html body #root .student-edit-page .fee-tab-row-actions .fee-template-reversal-g
   box-shadow: none !important;
 }
 
+.toast{max-width:min(720px,calc(100vw - 32px));max-height:min(50vh,360px);overflow:auto;align-items:flex-start}
+.toast span{white-space:pre-wrap;overflow-wrap:anywhere}
 .toast-close{flex-shrink:0;display:grid;place-items:center;width:27px;height:27px;border:0;border-radius:5px;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:0}
 .toast-close:hover,.toast-close:focus-visible{background:#ffffff24;outline:2px solid #fff9;outline-offset:1px}
 

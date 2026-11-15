@@ -15,11 +15,25 @@ export async function apiRequest(path, options = {}) {
   const contentType = response.headers.get('content-type') || '';
   if (!response.ok) {
     let message = `Request failed (${response.status}).`;
+    let code = 'API_ERROR';
+    let reasons = [];
     if (contentType.includes('application/json')) {
       const body = await response.json().catch(() => ({}));
-      message = body.message || body.error || message;
+      code = body.error || code;
+      if (Array.isArray(body.errors)) {
+        reasons = body.errors.map(item => typeof item === 'string' ? item.trim() : '').filter(Boolean);
+      }
+      if (!reasons.length && body.fields && typeof body.fields === 'object') {
+        reasons = Object.entries(body.fields).map(([key, value]) => `${key}: ${value}`);
+      }
+      if (!reasons.length && body.message) {
+        reasons = String(body.message).split('\n').map(line => line.trim()).filter(Boolean);
+      }
+      message = reasons.join('\n') || body.message || body.error || message;
     }
-    throw new ApiError(message, response.status);
+    const error = new ApiError(message, response.status, code);
+    error.reasons = reasons;
+    throw error;
   }
   if (response.status === 204) return null;
   if (contentType.includes('text/csv')) return response;

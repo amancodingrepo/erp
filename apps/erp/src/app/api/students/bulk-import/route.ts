@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const user = await requireStaff(request);
     const body = await readJson<{ students?: unknown[] }>(request);
-    return ok(await importStudents(user.campusId, body.students || []));
+    return ok(await importStudents(user.campusId, body.students || [], { excel: true }));
   } catch (error) {
     return fail(error);
   }

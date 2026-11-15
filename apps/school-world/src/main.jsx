@@ -30,7 +30,7 @@ import { getNavigationHref, getModuleNavigationTarget, readUrlNavigation } from 
 import { currentAcademicYear, optionsFromBootstrap } from "./school-options.js";
 import SchoolTabIcon from "./components/topbar/SchoolTabIcon.jsx";
 import { clearLegacyStorage, readStoredNavigation, saveStoredNavigation } from "./browser-storage.js";
-import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload } from "./pages/Students/bulkStudentImport.js";
+import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload, formatExcelRejection } from "./pages/Students/bulkStudentImport.js";
 
 
 function parseCsvText(text) {
@@ -297,7 +297,7 @@ function SchoolDiaryApp({ user, onLogout }) {
       window.clearTimeout(toastTimeoutRef.current);
       toastTimeoutRef.current = null;
     }
-    setToast(t(message));
+    setToast(options?.exact ? String(message) : t(message));
     if (!options?.persistent) {
       toastTimeoutRef.current = window.setTimeout(() => {
         setToast("");
@@ -336,12 +336,27 @@ function SchoolDiaryApp({ user, onLogout }) {
     if (!file) return;
     setExcelImportErrors([]);
     setExcelImportSummary("");
+    const rejectExcel = (issues) => {
+      const lines = (issues || []).flatMap((issue) => {
+        const fields = (issue.fields || []).filter(Boolean);
+        const rowNumber = Number(issue.rowNumber) || 0;
+        if (!fields.length) return [];
+        return fields.map((field) => ({ rowNumber, fields: [field] }));
+      });
+      setExcelImportErrors(lines);
+      const reason = formatExcelRejection(lines).join("\n");
+      if (reason) notify(reason, { persistent: true, exact: true });
+    };
+    const issuesFromReasonText = (text) => String(text || "").split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
+      const match = line.match(/^(?:Excel row|Row)\s+(\d+)\s*:\s*(.*)$/);
+      return match ? { rowNumber: Number(match[1]), fields: [match[2]] } : { rowNumber: 0, fields: [line] };
+    });
     if (!/\.(xlsx|xls)$/i.test(file.name)) {
-      setExcelImportErrors([{ rowNumber: 0, fields: ["Please choose an Excel workbook (.xlsx or .xls)."] }]);
+      rejectExcel([{ rowNumber: 0, fields: ["Please choose an Excel workbook (.xlsx or .xls)."] }]);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setExcelImportErrors([{ rowNumber: 0, fields: ["The Excel file is larger than 10 MB. Split it into smaller files and try again."] }]);
+      rejectExcel([{ rowNumber: 0, fields: ["The Excel file is larger than 10 MB. Split it into smaller files and try again."] }]);
       return;
     }
 
@@ -349,17 +364,17 @@ function SchoolDiaryApp({ user, onLogout }) {
     try {
       const parsed = parseBulkStudentWorkbook(await file.arrayBuffer());
       if (parsed.fileErrors.length) {
-        setExcelImportErrors([{ rowNumber: 0, fields: parsed.fileErrors }]);
+        rejectExcel(parsed.fileErrors.map((text) => ({ rowNumber: 0, fields: [text] })));
         return;
       }
       const validationIssues = validateBulkStudentRows(parsed.rows);
       if (validationIssues.length) {
-        setExcelImportErrors(validationIssues);
+        rejectExcel(validationIssues);
         return;
       }
       const built = buildBulkStudentImportPayload(parsed.rows);
       if (built.issues.length) {
-        setExcelImportErrors(built.issues);
+        rejectExcel(built.issues);
         return;
       }
 
@@ -380,7 +395,9 @@ function SchoolDiaryApp({ user, onLogout }) {
       );
       notify("Excel bulk upload completed successfully.");
     } catch (error) {
-      setExcelImportErrors([{ rowNumber: 0, fields: [error?.message || "Excel upload failed. No students were imported. Please check the workbook and try again."] }]);
+      const fallback = "Excel upload failed. No students were imported. Please check the workbook and try again.";
+      const lines = Array.isArray(error?.reasons) && error.reasons.length ? error.reasons : [error?.message || fallback];
+      rejectExcel(issuesFromReasonText(lines.join("\n")));
     } finally {
       setExcelImportBusy(false);
     }

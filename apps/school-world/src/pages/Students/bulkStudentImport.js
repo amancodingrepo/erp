@@ -185,7 +185,8 @@ export function downloadBulkStudentExcelTemplate() {
     ["All rows are validated before any database write. If any required field is missing or invalid, the entire upload is rejected."],
     ["Required for every row: First Name, Date of Birth, Gender, Academic Year, Class, Primary Parent / Relation, Parent Phone, Parent Portal Password."],
     ["Primary Parent / Relation must be Mother, Father or Guardian. The corresponding Mother/Father/Guardian First Name must also be filled."],
-    ["Parent Phone must contain at least 7 digits. Parent Portal Password must be at least 6 characters."],
+    ["Parent Phone must be a 10 digit mobile number and cannot be used more than 3 times, including students already in the school. Parent Portal Password must be at least 6 characters."],
+    ["Academic Year uses the school's existing session when the short and long labels are the same year, for example 2025-26 and 2025-2026."],
     ["If Login Method is Email, Parent Email is required and must be valid. If blank, Login Method defaults to Phone."],
     ["Dates: use YYYY-MM-DD, for example 2018-04-21. Gender: Male, Female, Other or Not specified."],
     ["Student ID is optional and will be generated if left blank. If you enter an existing Student ID, that record will be updated."],
@@ -252,9 +253,35 @@ export function parseBulkStudentWorkbook(arrayBuffer) {
   return { rows, fileErrors: [] };
 }
 
+function tenDigitMobile(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return /^\d{10}$/.test(digits) ? digits : "";
+}
+
+const MAX_PARENT_PHONE_USES = 3;
+
+function parentPhoneOveruseMessage(mobile, earlierExcelRows) {
+  const details = [];
+  if (earlierExcelRows.length > 0) {
+    const label = earlierExcelRows.length === 1 ? "Excel row" : "Excel rows";
+    details.push(`It also appears on ${label} ${earlierExcelRows.join(", ")}.`);
+  }
+  const detail = details.length ? ` ${details.join(" ")}` : "";
+  return `Parent Phone ${mobile} cannot be used more than ${MAX_PARENT_PHONE_USES} times.${detail}`;
+}
+
+export function formatExcelRejection(issues) {
+  return (issues || []).flatMap(issue => {
+    const fields = issue.fields || [];
+    return fields.map(field => issue.rowNumber > 0 ? `Excel row ${issue.rowNumber}: ${field}` : field);
+  }).filter(Boolean);
+}
+
 export function validateBulkStudentRows(rows) {
   const issues = [];
   const seenIds = new Map();
+  const seenPhoneIds = new Map();
+  const seenPhoneRows = new Map();
   rows.forEach((row, index) => {
     const rowNumber = Number(row._excelRow) || index + 2;
     const fields = [];
@@ -269,7 +296,22 @@ export function validateBulkStudentRows(rows) {
     const relation = canonicalRelation(row.primaryParent);
     if (!relation) add("Primary Parent / Relation must be Mother, Father or Guardian");
     if (isBlank(row.parentPhone)) add("Parent Phone is required");
-    else if (String(row.parentPhone).replace(/\D/g, "").length < 7) add("Parent Phone must contain at least 7 digits");
+    else {
+      const mobile = tenDigitMobile(row.parentPhone);
+      if (!mobile) add("Parent Phone must be a 10 digit mobile number");
+      else {
+        const token = String(row.studentId || "").trim().toLowerCase() || ("new:" + rowNumber);
+        const ids = seenPhoneIds.get(mobile) || new Set();
+        const earlier = seenPhoneRows.get(mobile) || [];
+        if (!ids.has(token) && ids.size >= MAX_PARENT_PHONE_USES) {
+          add(parentPhoneOveruseMessage(mobile, earlier));
+        } else {
+          if (!ids.has(token)) ids.add(token);
+          seenPhoneIds.set(mobile, ids);
+          seenPhoneRows.set(mobile, earlier.concat(rowNumber));
+        }
+      }
+    }
     if (isBlank(row.parentPassword)) add("Parent Portal Password is required");
     else if (String(row.parentPassword).length < 6) add("Parent Portal Password must contain at least 6 characters");
     if (relation === "Mother" && isBlank(row.motherFirst)) add("Mother First Name is required when Primary Parent / Relation is Mother");

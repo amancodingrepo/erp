@@ -2,10 +2,11 @@ import { randomBytes, randomUUID } from "crypto";
 import { ActorType, Gender, Prisma, StudentStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
-import { HttpError, conflict, forbidden, notFound } from "./errors";
+import { HttpError, conflict, forbidden, notFound, prismaErrorCode, uniqueConstraintFields } from "./errors";
 import type { AuthPrincipal } from "./permissions";
 import { assertCampusStaff, schoolWorldRole, schoolWorldUser } from "./school-world-shape";
 import { SCHOOL_CONFIG_KEY, parseLogoDataUrl, schoolBranding } from "./school-branding";
+import { MAX_PARENT_PHONE_USES, parentPhoneOveruseMessage, resolveAcademicYearName, storedMobileKey, tenDigitMobile } from "./bulk-student-rules";
 
 const CLASS_KEY = "school-class-catalog";
 const SUBJECT_KEY = "school-subject-catalog";
@@ -207,11 +208,29 @@ async function ensureSession(campusId: string, label: string, start?: Date | nul
     throw new HttpError(400, "validation_error", "Academic year label is required and must be at most 30 characters.");
   }
   return prisma.$transaction(async (tx) => {
+    const sessions = await tx.academicSession.findMany({
+      where: { campusId },
+      select: { id: true, name: true },
+    });
+    const campus = await tx.campus.findUnique({
+      where: { id: campusId },
+      select: { currentSessionId: true },
+    });
+    const currentName = sessions.find((session) => session.id === campus?.currentSessionId)?.name ?? null;
+    const resolved = resolveAcademicYearName(name, sessions, currentName);
+    if (resolved.ambiguous.length) {
+      throw new HttpError(
+        400,
+        "validation_error",
+        `Academic year ${name} matches more than one session: ${resolved.ambiguous.join(", ")}.`,
+      );
+    }
+    const sessionName = resolved.name;
     if (current) {
       await tx.academicSession.updateMany({ where: { campusId }, data: { isCurrent: false } });
     }
     const existing = await tx.academicSession.findUnique({
-      where: { campusId_name: { campusId, name } },
+      where: { campusId_name: { campusId, name: sessionName } },
     });
     const row = existing
       ? await tx.academicSession.update({
@@ -226,7 +245,7 @@ async function ensureSession(campusId: string, label: string, start?: Date | nul
       : await tx.academicSession.create({
           data: {
             campusId,
-            name,
+            name: sessionName,
             startDate: start,
             endDate: end,
             isCurrent: current,
@@ -278,6 +297,16 @@ export async function saveAcademicYear(campusId: string, body: JsonRecord, yearI
     if (!existing) throw notFound("Academic year");
     const label = body.label === undefined ? existing.name : clean(body.label);
     const isCurrent = body.isCurrent === undefined ? existing.isCurrent : body.isCurrent === true;
+    if (label !== existing.name) {
+      const others = await prisma.academicSession.findMany({
+        where: { campusId, NOT: { id: existing.id } },
+        select: { name: true },
+      });
+      const resolved = resolveAcademicYearName(label, others, null);
+      if (resolved.ambiguous.length || (resolved.matchedExisting && resolved.name !== label)) {
+        throw conflict(`This academic year already exists as ${resolved.ambiguous[0] || resolved.name}.`);
+      }
+    }
     if (!label || label.length > 30) {
       throw new HttpError(400, "validation_error", "Academic year label is required and must be at most 30 characters.");
     }
@@ -310,8 +339,28 @@ export async function saveAcademicYear(campusId: string, body: JsonRecord, yearI
     }
   }
   const isCurrent = body.isCurrent === undefined ? true : body.isCurrent === true;
+  const label = clean(body.label);
+  const sessions = await prisma.academicSession.findMany({
+    where: { campusId },
+    select: { id: true, name: true },
+  });
+  const campusRow = await prisma.campus.findUnique({
+    where: { id: campusId },
+    select: { currentSessionId: true },
+  });
+  const resolved = resolveAcademicYearName(
+    label,
+    sessions,
+    sessions.find((session) => session.id === campusRow?.currentSessionId)?.name ?? null,
+  );
+  if (resolved.ambiguous.length) {
+    throw conflict(`Academic year ${label} matches more than one session: ${resolved.ambiguous.join(", ")}.`);
+  }
+  if (resolved.matchedExisting && resolved.name !== label) {
+    throw conflict(`This academic year already exists as ${resolved.name}.`);
+  }
   try {
-    const saved = await ensureSession(campusId, clean(body.label), start, end, isCurrent);
+    const saved = await ensureSession(campusId, label, start, end, isCurrent);
     return yearView(saved);
   } catch (error) {
     if (isUnique(error)) throw conflict("An academic year with this label already exists.");
@@ -1388,27 +1437,118 @@ export async function admitStudent(campusId: string, body: JsonRecord) {
   void created;
 }
 
-export async function importStudents(campusId: string, rows: unknown[]) {
+function excelRowFailure(error: unknown): string {
+  if (error instanceof HttpError) return error.message;
+  if (prismaErrorCode(error) === "P2002") {
+    const fields = uniqueConstraintFields(error);
+    return fields.length
+      ? `This row duplicates an existing value (${fields.join(", ")}).`
+      : "This row duplicates a student or login that already exists.";
+  }
+  return "This row could not be saved.";
+}
+
+export async function importStudents(
+  campusId: string,
+  rows: unknown[],
+  options?: { excel?: boolean },
+) {
   if (!Array.isArray(rows) || rows.length > 500) {
     throw new HttpError(400, "validation_error", "Send up to 500 student rows.");
   }
-  let created = 0;
-  let updated = 0;
-  for (const raw of rows) {
+  const [sessions, campusRow, existingStudents] = await Promise.all([
+    prisma.academicSession.findMany({ where: { campusId }, select: { id: true, name: true } }),
+    prisma.campus.findUnique({ where: { id: campusId }, select: { currentSessionId: true } }),
+    prisma.student.findMany({ where: { campusId }, select: { admissionNo: true, mobile: true } }),
+  ]);
+  const currentName = sessions.find((session) => session.id === campusRow?.currentSessionId)?.name ?? null;
+  const phoneOwners = new Map<string, Set<string>>();
+  const phoneExistingCount = new Map<string, number>();
+  for (const student of existingStudents) {
+    const key = storedMobileKey(student.mobile);
+    if (!key || !student.admissionNo) continue;
+    const owners = phoneOwners.get(key) ?? new Set<string>();
+    owners.add(student.admissionNo);
+    phoneOwners.set(key, owners);
+  }
+  for (const [key, owners] of phoneOwners) phoneExistingCount.set(key, owners.size);
+  const issues: string[] = [];
+  const phoneExcelRows = new Map<string, number[]>();
+  const rewriteYear = (value: unknown, year: string): unknown => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+    const record = { ...(value as JsonRecord) };
+    if (typeof record.academicYear === "string") record.academicYear = year;
+    if (record.student) record.student = rewriteYear(record.student, year);
+    if (record.admitNewStudent) record.admitNewStudent = rewriteYear(record.admitNewStudent, year);
+    return record;
+  };
+  const prepared = rows.map((raw, index) => {
     const row = asObject(raw);
-    const result = await createStudent(campusId, {
+    const rowNumber = Number(row.sourceRowNumber) || index + 2;
+    const studentId = clean(row.studentId || row.studentCode || row.StudentID);
+    const academicYear = clean(row.academicYear || row.AcademicYear);
+    let resolvedYear = academicYear;
+    if (academicYear) {
+      const resolved = resolveAcademicYearName(academicYear, sessions, currentName);
+      if (resolved.ambiguous.length) {
+        issues.push(`Row ${rowNumber}: Academic year ${academicYear} matches more than one session: ${resolved.ambiguous.join(", ")}.`);
+      } else {
+        resolvedYear = resolved.name;
+      }
+    }
+    const phoneSource = row.phone || row.ParentPhone || row.parentPhone;
+    let phone = clean(phoneSource);
+    if (options?.excel) {
+      const mobile = tenDigitMobile(phoneSource);
+      if (!mobile) {
+        issues.push(`Row ${rowNumber}: Parent Phone must be a 10 digit mobile number.`);
+      } else {
+        const owners = phoneOwners.get(mobile) ?? new Set<string>();
+        if (!phoneOwners.has(mobile)) phoneOwners.set(mobile, owners);
+        const token = studentId || `new:${rowNumber}`;
+        const earlier = phoneExcelRows.get(mobile) ?? [];
+        if (!owners.has(token) && owners.size >= MAX_PARENT_PHONE_USES) {
+          issues.push(`Row ${rowNumber}: ${parentPhoneOveruseMessage(mobile, phoneExistingCount.get(mobile) ?? 0, earlier)}`);
+        } else {
+          if (!owners.has(token)) owners.add(token);
+          phoneExcelRows.set(mobile, [...earlier, rowNumber]);
+          phone = mobile;
+        }
+      }
+    }
+    return {
       ...row,
       name: clean(row.name) || [row.firstName, row.middleName, row.lastName].map(clean).filter(Boolean).join(" "),
-      studentId: clean(row.studentId || row.studentCode || row.StudentID),
+      studentId,
       className: clean(row.className || row.Class || row.class),
       section: clean(row.section || row.Section),
-      academicYear: clean(row.academicYear || row.AcademicYear),
-      phone: clean(row.phone || row.ParentPhone || row.parentPhone),
+      academicYear: resolvedYear,
+      details: row.details ? rewriteYear(row.details, resolvedYear) : row.details,
+      phone,
       father: clean(row.father || row.FatherName),
       parent: clean(row.parent || row.ParentName),
-    });
-    if (result.created) created += 1;
-    else updated += 1;
+    };
+  });
+  if (issues.length) {
+    const error = new HttpError(400, "validation_error", issues.join("\n"));
+    error.errors = issues;
+    throw error;
+  }
+  let created = 0;
+  let updated = 0;
+  for (const body of prepared) {
+    try {
+      const result = await createStudent(campusId, body);
+      if (result.created) created += 1;
+      else updated += 1;
+    } catch (error) {
+      const detail = excelRowFailure(error);
+      const rowNumber = Number(body.sourceRowNumber) || 0;
+      const text = rowNumber ? `Row ${rowNumber}: ${detail}` : detail;
+      const wrapped = new HttpError(400, "validation_error", text);
+      wrapped.errors = [text];
+      throw wrapped;
+    }
   }
   return { ok: true, created, updated, total: rows.length };
 }
