@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
-import { academicYearSpan } from "./bulk-student-rules";
-import { importStudents } from "./school-world-bridge";
+import { academicYearSpan } from "@/lib/bulk-student-rules";
+import { importStudents } from "@/lib/school-world-bridge";
 
 const prefix = `BY${String(Date.now()).slice(-8)}`;
 const phones = {
