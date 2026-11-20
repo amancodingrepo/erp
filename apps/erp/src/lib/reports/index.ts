@@ -20,6 +20,7 @@ import { listFuelLogs } from "@/lib/services/campus-transport-ops";
 import { listStoreOrders } from "@/lib/services/engagement";
 import { admissionTestReportGrain } from "@/lib/services/campus-admission-tests";
 import { type ReportResult } from "./keys";
+import { assertReportFilters } from "./access";
 import { resolveReportKey } from "./schema";
 
 export type { ReportKey, ReportResult } from "./keys";
@@ -63,6 +64,7 @@ export async function runReport(
   campusId: string,
   filters: Filters,
 ): Promise<ReportResult> {
+  await assertReportFilters(campusId, filters);
   const resolved = resolveReportKey(key);
   switch (resolved) {
     case "students":

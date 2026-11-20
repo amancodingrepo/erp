@@ -20,7 +20,7 @@ export async function GET(
     if (file.kind === "staff" && user.actorType !== ActorType.STAFF) {
       throw forbidden("staff only");
     }
-    const abs = resolveCampusFileAbs(user.campusId, file);
+    const abs = await resolveCampusFileAbs(user.campusId, file);
     let bytes: Buffer;
     try {
       bytes = await readFile(abs);

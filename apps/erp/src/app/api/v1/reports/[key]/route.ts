@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { fail, ok } from "@/lib/http";
-import { assertStaff, principalFromRequest } from "@/lib/principal";
+import { reportFiltersFrom, requireReport } from "@/lib/reports/access";
 import {
-  parseReportFilters,
   pdfFilename,
   runReport,
   toCsv,
@@ -16,21 +15,10 @@ export async function GET(
   context: { params: Promise<{ key: string }> },
 ) {
   try {
-    const user = await principalFromRequest(request);
-    assertStaff(user);
     const { key } = await context.params;
+    const user = await requireReport(request, key);
+    const report = await runReport(key, user.campusId, reportFiltersFrom(request));
     const params = new URL(request.url).searchParams;
-    const report = await runReport(
-      key,
-      user.campusId,
-      parseReportFilters({
-        classId: params.get("classId"),
-        sectionId: params.get("sectionId"),
-        from: params.get("from"),
-        to: params.get("to"),
-        feeGroupId: params.get("feeGroupId"),
-      }),
-    );
     if (params.get("format") === "csv") {
       return new NextResponse(toCsv(report), {
         headers: {

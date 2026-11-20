@@ -16,7 +16,8 @@ export type NotificationItem = {
 const RECENT_DAYS = 30;
 const PER_KIND = 5;
 
-const isManager = (user: AuthPrincipal) => ["school_admin", "principal"].includes(schoolWorldRole(user));
+const isManager = (user: AuthPrincipal) =>
+  ["school_admin", "principal", "super_admin"].includes(schoolWorldRole(user));
 const can = (user: AuthPrincipal, module: string, feature: string, action: string) =>
   isManager(user) || hasPermission(user, permKey(module, feature, action));
 

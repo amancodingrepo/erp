@@ -9,6 +9,9 @@ import {
   verifyPassword,
 } from "./password";
 import { assertCsrf } from "./csrf";
+import { assertOrgModule, requestAsksForFeeModule } from "./org-modules";
+import { clearTenant } from "./tenant-context";
+import { bindRequestTenant } from "./tenant-request";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
   staff: ActorType.STAFF,
@@ -57,10 +60,9 @@ export async function loadPrincipal(
   ) {
     const target = await prisma.campus.findUnique({
       where: { id: activeCampusId },
+      select: { id: true },
     });
-    if (target && target.orgId === user.campus.orgId) {
-      campusId = target.id;
-    }
+    if (target) campusId = target.id;
   }
   return {
     id: user.id,
@@ -96,6 +98,16 @@ export async function findPortalUser(input: {
     where: { code: campusCode },
   });
   if (!campus) return null;
+  const archived = await prisma.setting.findUnique({
+    where: { campusId_key: { campusId: campus.id, key: "org.archived" } },
+    select: { value: true },
+  });
+  const campusArchived = Boolean(
+    archived?.value &&
+    typeof archived.value === "object" &&
+    !Array.isArray(archived.value) &&
+    (archived.value as { archived?: boolean }).archived === true,
+  );
   let user = await prisma.user.findFirst({
     where: { username: input.username, actorType, campusId: campus.id },
   });
@@ -111,6 +123,13 @@ export async function findPortalUser(input: {
     });
   }
   if (!user || !user.isActive) return null;
+  if (campusArchived) {
+    const god = await prisma.userRole.findFirst({
+      where: { userId: user.id, role: { name: "PlatformAdmin" } },
+      select: { userId: true },
+    });
+    if (!god) return null;
+  }
   return {
     id: user.id,
     username: user.username,
@@ -125,6 +144,7 @@ export async function authenticateCredentials(input: {
   portal: string;
   campusCode?: string | null;
 }): Promise<AuthPrincipal> {
+  clearTenant();
   const found = await findPortalUser(input);
   if (!found) throw unauthenticated();
   const matches = await verifyPassword(input.password, found.passwordHash);
@@ -159,7 +179,16 @@ export async function principalFromRequest(
   if (!token) throw unauthenticated();
   const parsed = await verifyAuthToken(decodeURIComponent(token));
   if (!parsed) throw unauthenticated();
-  return loadPrincipal(parsed.id, parsed.campusId);
+  if (parsed.supportUntil && Date.now() > parsed.supportUntil) throw unauthenticated();
+  clearTenant();
+  const user = await loadPrincipal(parsed.id, parsed.campusId);
+  user.issuedAt = parsed.issuedAt;
+  user.supportUntil = parsed.supportUntil ?? null;
+  const epoch = await sessionEpochSeconds(user.id);
+  if (epoch != null && parsed.issuedAt != null && parsed.issuedAt < epoch) throw unauthenticated();
+  await bindRequestTenant(user, request);
+  if (requestAsksForFeeModule(request.url)) await assertOrgModule(user, "fees");
+  return user;
 }
 
 export async function requireApiPermission(
@@ -171,7 +200,52 @@ export async function requireApiPermission(
   const user = await principalFromRequest(request);
   const { requirePermission } = await import("./permissions");
   requirePermission(user, module, feature, action);
+  await assertOrgModule(user, module);
+  await assertCampusWritable(user, action);
   return user;
+}
+
+export function sessionEpochKey(userId: string) {
+  return `auth.sessionEpoch.${userId}`;
+}
+
+export async function bumpSessionEpoch(userId: string, campusId: string) {
+  const at = new Date().toISOString();
+  await prisma.setting.upsert({
+    where: { campusId_key: { campusId, key: sessionEpochKey(userId) } },
+    update: { value: { at } },
+    create: { campusId, key: sessionEpochKey(userId), value: { at } },
+  });
+  return at;
+}
+
+export async function sessionEpochSeconds(userId: string) {
+  const row = await prisma.setting.findFirst({
+    where: { key: sessionEpochKey(userId) },
+    select: { value: true },
+  });
+  const at = row?.value && typeof row.value === "object" && !Array.isArray(row.value)
+    ? (row.value as { at?: unknown }).at
+    : null;
+  if (typeof at !== "string") return null;
+  const ms = Date.parse(at);
+  return Number.isFinite(ms) ? Math.floor(ms / 1000) : null;
+}
+
+export async function assertCampusWritable(user: AuthPrincipal, action: string) {
+  if (user.roles.includes("PlatformAdmin")) return;
+  if (action === "view" || action === "export") return;
+  const row = await prisma.setting.findUnique({
+    where: { campusId_key: { campusId: user.campusId, key: "campus.maintenance" } },
+    select: { value: true },
+  });
+  const readOnly = Boolean(
+    row?.value &&
+    typeof row.value === "object" &&
+    !Array.isArray(row.value) &&
+    (row.value as { readOnly?: boolean }).readOnly === true,
+  );
+  if (readOnly) throw forbidden("this school is in maintenance");
 }
 
 export function assertStaff(user: AuthPrincipal) {

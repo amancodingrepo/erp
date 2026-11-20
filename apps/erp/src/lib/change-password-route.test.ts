@@ -16,6 +16,7 @@ vi.mock("@/lib/db", () => ({
   prisma: {
     // The response includes the school's branding (logo URL); no logo is set here.
     setting: { findUnique: async () => null },
+    campus: { findUnique: async () => null },
     user: {
       findUnique: async () => mocks.account,
       update: async (args: { data: { passwordHash: string } }) => {

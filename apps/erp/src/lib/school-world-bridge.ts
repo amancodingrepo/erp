@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 import { HttpError, conflict, forbidden, notFound } from "./errors";
 import type { AuthPrincipal } from "./permissions";
+import { schoolModulesForCampus } from "./org-modules";
 import { assertCampusStaff, schoolWorldRole, schoolWorldUser } from "./school-world-shape";
 import { SCHOOL_CONFIG_KEY, parseLogoDataUrl, schoolBranding } from "./school-branding";
 
@@ -66,7 +67,7 @@ export async function requireCampusUser(request: Request) {
 export async function requireSchoolAdmin(request: Request) {
   const user = await requireStaff(request);
   const role = schoolWorldRole(user);
-  if (role !== "school_admin" && role !== "principal") {
+  if (role !== "school_admin" && role !== "principal" && role !== "super_admin") {
     throw forbidden("This action is for a school administrator.");
   }
   return user;
@@ -994,7 +995,7 @@ export async function bootstrap(principal: AuthPrincipal) {
         grade_order: row.displayOrder,
         is_active: true,
       })),
-    user: schoolWorldUser(principal, account, campus, await schoolBranding(principal.campusId)),
+    user: schoolWorldUser(principal, account, campus, await schoolBranding(principal.campusId), await schoolModulesForCampus(principal.campusId)),
   };
 }
 

@@ -1,24 +1,16 @@
 import { NextResponse } from "next/server";
 import { fail } from "@/lib/http";
-import { assertStaff, principalFromRequest } from "@/lib/principal";
-import { parseReportFilters, pdfFilename, runReport, toPdf } from "@/lib/reports";
+import { pdfFilename, runReport, toPdf } from "@/lib/reports";
+import { reportFiltersFrom, requireReport } from "@/lib/reports/access";
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ key: string }> },
 ) {
   try {
-    const user = await principalFromRequest(request);
-    assertStaff(user);
     const { key } = await context.params;
-    const params = new URL(request.url).searchParams;
-    const report = await runReport(key, user.campusId, parseReportFilters({
-      classId: params.get("classId"),
-      sectionId: params.get("sectionId"),
-      from: params.get("from"),
-      to: params.get("to"),
-      feeGroupId: params.get("feeGroupId"),
-    }));
+    const user = await requireReport(request, key);
+    const report = await runReport(key, user.campusId, reportFiltersFrom(request));
     const body = toPdf(report);
     return new NextResponse(Buffer.from(body), {
       headers: {

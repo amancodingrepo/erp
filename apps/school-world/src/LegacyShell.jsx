@@ -5,6 +5,7 @@ import { useDatabaseSession } from "./DatabaseSession.jsx";
 import TopbarActions from "./components/topbar/TopbarActions.jsx";
 import SchoolLogo from "./components/topbar/SchoolLogo.jsx";
 import { getNavigationHref, getModuleNavigationTarget, handleNavigationClick } from "./navigation.js";
+import { navLabelVisible } from "./org-modules.js";
 import {
   ArrowLeft, BookOpen, Bell, UserCircle, ChevronDown, Home, MessageCircle, CalendarDays,
   Building2, Users, Wallet, Star, ChartNoAxesColumn, Camera, CloudDownload, ExternalLink,
@@ -32,9 +33,9 @@ export function LegacyHeader({ onBack, isAdmission = false, onNotify }) {
   </header>;
 }
 export function LegacySidebar({ onBack, onNotify, admission = false, onModuleSelect, onOpenAdmission, activeModule = "", backLabel }) {
-  const links = sideLinks;
   const schoolName = useSchoolName();
   const session = useDatabaseSession();
+  const links = sideLinks.filter(([, label]) => navLabelVisible(label, session.user?.school?.modules, session.user?.role));
   const handleLinkClick = (label) => {
     if (label === "Admission/Enquiry Form" && onModuleSelect) {
       onModuleSelect(label);

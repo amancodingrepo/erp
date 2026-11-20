@@ -7,6 +7,7 @@ import { hashPassword } from "@/lib/password";
 import { issuePasswordReset, randomPasswordHash } from "@/lib/password-reset";
 import { parseStaffCreatePassword } from "@/lib/services/campus-staff-login";
 import { requireApiPermission } from "@/lib/principal";
+import { assertSchoolCannotGrantPlatform } from "@/lib/superadmin-guard";
 
 const PORTAL_ACTOR: Record<string, ActorType> = {
   Staff: ActorType.STAFF,
@@ -135,6 +136,18 @@ export async function POST(request: Request) {
       });
       if (!guardian) throw notFound("guardian");
       guardianId = guardian.id;
+    }
+    if (body.roleIds?.length) {
+      const requested = await prisma.role.findMany({
+        where: {
+          id: { in: body.roleIds },
+          OR: [{ campusId: user.campusId }, { campusId: null }],
+        },
+      });
+      assertSchoolCannotGrantPlatform(
+        user.roles,
+        requested.map((role) => role.name),
+      );
     }
     const parsedPassword = parseStaffCreatePassword(body.password);
     const passwordHash = parsedPassword.set

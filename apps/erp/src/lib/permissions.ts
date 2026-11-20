@@ -9,6 +9,8 @@ export type AuthPrincipal = {
   studentId?: string | null;
   guardianId?: string | null;
   childIds?: string[];
+  issuedAt?: number;
+  supportUntil?: number | null;
 };
 
 export function permKey(module: string, feature: string, action: string) {

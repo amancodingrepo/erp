@@ -5,6 +5,7 @@ import { fail, ok, readJson } from "@/lib/http";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { principalFromRequest } from "@/lib/principal";
 import { schoolWorldUser } from "@/lib/school-world-shape";
+import { schoolModulesForCampus } from "@/lib/org-modules";
 import { schoolBranding } from "@/lib/school-branding";
 
 export async function POST(request: Request) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
       data: { passwordHash, mustChangePassword: false },
     });
     const campus = await campusSummary(principal.campusId);
-    return ok({ user: schoolWorldUser(principal, updated, campus, await schoolBranding(principal.campusId)) });
+    return ok({ user: schoolWorldUser(principal, updated, campus, await schoolBranding(principal.campusId), await schoolModulesForCampus(principal.campusId)) });
   } catch (error) {
     return fail(error);
   }

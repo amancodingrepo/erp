@@ -4,6 +4,8 @@ import {
   apiCall, formObject, plural, rowsOf, useLoad, useStatus
 } from "../kit.jsx";
 import { currencySymbol } from "../../../school-locale.js";
+import { useDatabaseSession } from "../../../DatabaseSession.jsx";
+import { moduleAllowed } from "../../../org-modules.js";
 
 // Ported from apps/erp/src/components/modules/campus-ops.tsx (settings, SMTP, letterhead, modules,
 // custom fields), payment-ops.tsx, and app/(staff)/staff/roles + users pages, with the same endpoints.
@@ -410,9 +412,12 @@ export function CustomFields() {
 /* --------------------------------------------------------- Roles and users */
 
 export function RolesPermissions() {
+  const { user } = useDatabaseSession();
   const { data, error, reload, loaded } = useLoad(["/v1/roles"]);
   const roles = rowsOf(data["/v1/roles"]);
   const permissions = data["/v1/roles"]?.permissions || [];
+  const modules = data["/v1/roles"]?.modules || user?.school?.modules;
+  const visiblePermissions = permissions.filter((perm) => moduleAllowed(perm.module, modules, user?.role));
   const [selected, setSelected] = useState("");
   const [checked, setChecked] = useState(new Set());
   const [dirty, setDirty] = useState(false);
@@ -424,13 +429,13 @@ export function RolesPermissions() {
 
   const grouped = useMemo(() => {
     const map = new Map();
-    for (const perm of permissions) {
+    for (const perm of visiblePermissions) {
       const list = map.get(perm.module) || [];
       list.push(perm);
       map.set(perm.module, list);
     }
     return [...map.entries()];
-  }, [permissions]);
+  }, [visiblePermissions]);
 
   function pick(id) {
     if (dirty && !window.confirm("You have unsaved changes on " + role.name + ". Discard them?")) return;
@@ -486,6 +491,7 @@ export function RolesPermissions() {
       {role && (
         <Panel title={role.name + " · " + plural(checked.size, "permission")} actions={!locked && <Button onClick={save} disabled={!dirty}>Save permissions</Button>}>
           {locked && <p className="ck-notice ck-notice-ok">SuperAdmin always has every permission. This cannot be changed.</p>}
+          {user?.role !== "super_admin" && visiblePermissions.length < permissions.length && <p>Permissions for a module that is off for this organisation stay hidden.</p>}
           {grouped.map(([module, perms]) => {
             const on = perms.filter((p) => checked.has(p.id)).length;
             return (
@@ -510,6 +516,7 @@ export function RolesPermissions() {
 const TABS = ["Staff", "Student", "Parent"];
 
 export function UsersSetting() {
+  const { user: sessionUser } = useDatabaseSession();
   const [tab, setTab] = useState("Staff");
   const [q, setQ] = useState("");
   const [query, setQuery] = useState("");
@@ -517,6 +524,7 @@ export function UsersSetting() {
   const { data, error, reload, loaded } = useLoad([usersPath, "/v1/roles", "/v1/auth/me"]);
   const users = rowsOf(data[usersPath]);
   const roles = rowsOf(data["/v1/roles"]);
+  const assignableRoles = roles.filter((row) => sessionUser?.role === "super_admin" || row.name !== "PlatformAdmin");
   const meId = data["/v1/auth/me"]?.user?.id;
   const [editing, setEditing] = useState(null);
   const [picked, setPicked] = useState(new Set());
@@ -580,7 +588,7 @@ export function UsersSetting() {
           <Field label="Role">
             <select name="roleId" required defaultValue="">
               <option value="" disabled>Select role</option>
-              {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              {assignableRoles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </Field>
           <Button type="submit">Create login</Button>
@@ -599,7 +607,7 @@ export function UsersSetting() {
       {editing && (
         <Panel title={"Roles for " + name(editing)} actions={<Row><Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={saveRoles}>Save roles</Button></Row>}>
           <div className="ck-checklist">
-            {roles.map((r) => <Check key={r.id} label={r.name} checked={picked.has(r.id)} onChange={(event) => setPicked((s) => { const next = new Set(s); if (event.target.checked) next.add(r.id); else next.delete(r.id); return next; })} />)}
+            {assignableRoles.map((r) => <Check key={r.id} label={r.name} checked={picked.has(r.id)} onChange={(event) => setPicked((s) => { const next = new Set(s); if (event.target.checked) next.add(r.id); else next.delete(r.id); return next; })} />)}
           </div>
         </Panel>
       )}

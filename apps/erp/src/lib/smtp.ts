@@ -49,15 +49,8 @@ export async function loadSmtpConfig(campusId?: string | null) {
         Number(process.env.SMTP_PORT ?? "587") === 465,
     } satisfies SmtpConfig;
   }
-  if (campusId) {
-    const cfg = await fromCampus(campusId);
-    if (cfg) return cfg;
-  }
-  const any = await prisma.setting.findFirst({
-    where: { key: "smtp.host" },
-  });
-  if (any) return fromCampus(any.campusId);
-  return null;
+  if (!campusId) return null;
+  return fromCampus(campusId);
 }
 
 export async function saveSmtpConfig(

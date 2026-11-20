@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { forbidden } from "@/lib/errors";
 import { created, fail, ok, readJson } from "@/lib/http";
+import { assertNewGrantsAllowed, schoolModulesForCampus } from "@/lib/org-modules";
 import { requireApiPermission } from "@/lib/principal";
 
 const createSchema = z.object({
@@ -43,6 +45,7 @@ export async function GET(request: Request) {
         feature: p.feature,
         action: p.action,
       })),
+      modules: await schoolModulesForCampus(user.campusId),
     });
   } catch (error) {
     return fail(error);
@@ -53,13 +56,10 @@ export async function POST(request: Request) {
   try {
     const user = await requireApiPermission(request, "settings", "roles", "edit");
     const body = createSchema.parse(await readJson(request));
-    const role = await prisma.role.create({
-      data: {
-        campusId: user.campusId,
-        name: body.name,
-        isSystem: false,
-      },
-    });
+    if (body.name.trim().toLowerCase() === "platformadmin" && !user.roles.includes("PlatformAdmin")) {
+      throw forbidden("only a platform admin can grant platform access");
+    }
+    let cloneIds: string[] = [];
     if (body.cloneFromId) {
       const source = await prisma.role.findFirst({
         where: {
@@ -68,14 +68,23 @@ export async function POST(request: Request) {
         },
         include: { grants: true },
       });
-      if (source?.grants.length) {
-        await prisma.rolePermission.createMany({
-          data: source.grants.map((g) => ({
-            roleId: role.id,
-            permissionId: g.permissionId,
-          })),
-        });
-      }
+      cloneIds = source?.grants.map((grant) => grant.permissionId) ?? [];
+      await assertNewGrantsAllowed(user, [], cloneIds);
+    }
+    const role = await prisma.role.create({
+      data: {
+        campusId: user.campusId,
+        name: body.name,
+        isSystem: false,
+      },
+    });
+    if (cloneIds.length) {
+      await prisma.rolePermission.createMany({
+        data: cloneIds.map((permissionId) => ({
+          roleId: role.id,
+          permissionId,
+        })),
+      });
     }
     return created(role);
   } catch (error) {

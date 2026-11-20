@@ -16,6 +16,7 @@ export async function signAuthToken(principal: AuthPrincipal) {
     studentId: principal.studentId ?? null,
     guardianId: principal.guardianId ?? null,
     childIds: principal.childIds ?? [],
+    ...(principal.supportUntil ? { supportUntil: principal.supportUntil } : {}),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(principal.id)
@@ -43,6 +44,8 @@ export async function verifyAuthToken(
       childIds: Array.isArray(payload.childIds)
         ? payload.childIds.map(String)
         : [],
+      issuedAt: typeof payload.iat === "number" ? payload.iat : undefined,
+      supportUntil: typeof payload.supportUntil === "number" ? payload.supportUntil : null,
     };
   } catch {
     return null;

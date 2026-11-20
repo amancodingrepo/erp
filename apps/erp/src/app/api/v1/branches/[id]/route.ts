@@ -1,4 +1,6 @@
 import { requestIp, writeAudit } from "@/lib/audit";
+import { prisma } from "@/lib/db";
+import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
 import {
@@ -8,10 +10,18 @@ import {
 import {
   assertPlatformAdmin,
   getBranch,
-  homeCampusForUser,
   parseBranchPatch,
   patchCampusFields,
 } from "@/lib/services/tenants";
+
+async function campusOrgId(campusId: string) {
+  const campus = await prisma.campus.findUnique({
+    where: { id: campusId },
+    select: { orgId: true },
+  });
+  if (!campus) throw notFound("campus");
+  return campus.orgId;
+}
 
 export async function GET(
   request: Request,
@@ -20,9 +30,8 @@ export async function GET(
   try {
     const user = await requireApiPermission(request, "tenants", "campus", "view");
     assertPlatformAdmin(user);
-    const home = await homeCampusForUser(user.id);
     const { id } = await context.params;
-    return ok(await getBranch(home.orgId, id));
+    return ok(await getBranch(await campusOrgId(id), id));
   } catch (error) {
     return fail(error);
   }
@@ -35,20 +44,20 @@ export async function PATCH(
   try {
     const user = await requireApiPermission(request, "tenants", "campus", "edit");
     assertPlatformAdmin(user);
-    const home = await homeCampusForUser(user.id);
     const { id } = await context.params;
+    const orgId = await campusOrgId(id);
     const patch = parseBranchPatch(await readJson(request));
-    await patchCampusFields(home.orgId, id, patch.campus);
+    await patchCampusFields(orgId, id, patch.campus);
     if (patch.logoUrl !== undefined) {
       await saveWebsite(id, { logoUrl: patch.logoUrl });
     }
     if (patch.principals) {
       await replacePrincipals(id, patch.principals);
     }
-    const branch = await getBranch(home.orgId, id);
+    const branch = await getBranch(orgId, id);
     await writeAudit({
       userId: user.id,
-      campusId: home.id,
+      campusId: user.campusId,
       action: "update",
       entity: "campus",
       entityId: branch.id,

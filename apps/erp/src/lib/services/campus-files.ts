@@ -182,11 +182,16 @@ export async function getCampusFile(campusId: string, id: string) {
   return row;
 }
 
-export function resolveCampusFileAbs(campusId: string, file: CampusFile) {
-  const root = path.resolve(uploadsRoot(), campusId);
+export async function resolveCampusFileAbs(campusId: string, file: CampusFile) {
+  const campus = await prisma.campus.findUnique({
+    where: { id: campusId },
+    select: { orgId: true },
+  });
   const abs = path.resolve(uploadsRoot(), file.relPath);
-  if (abs !== root && !abs.startsWith(root + path.sep)) {
-    throw notFound("file");
-  }
+  const roots = [campusId, campus?.orgId]
+    .filter((id): id is string => Boolean(id))
+    .map((id) => path.resolve(uploadsRoot(), id));
+  const allowed = roots.some((root) => abs === root || abs.startsWith(root + path.sep));
+  if (!allowed) throw notFound("file");
   return abs;
 }

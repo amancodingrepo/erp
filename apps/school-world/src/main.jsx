@@ -19,9 +19,10 @@ import { LanguageProvider, LanguageToggle, t, useLanguage } from "./i18n.jsx";
 import { apiGet, apiPost, apiPatch, apiPut } from "./api.js";
 import { useDatabaseSession, DatabaseSessionProvider } from "./DatabaseSession.jsx";
 import LoginPage from "./pages/Auth/LoginPage.jsx";
-import SuperAdminPage from "./pages/SuperAdmin/SuperAdminPage.jsx";
+
 import ChangePasswordPage from "./pages/Auth/ChangePasswordPage.jsx";
 import NoticeRecipientPortal from "./pages/NoticeBoard/NoticeRecipientPortal.jsx";
+import OperatorDesk from "./pages/SuperAdmin/OperatorDesk.jsx";
 import AppThemeControl from "./AppThemeControl.jsx";
 import { DialogProvider } from "./components/dialogs/DialogProvider.jsx";
 
@@ -31,6 +32,7 @@ import { currentAcademicYear, optionsFromBootstrap } from "./school-options.js";
 import SchoolTabIcon from "./components/topbar/SchoolTabIcon.jsx";
 import { clearLegacyStorage, readStoredNavigation, saveStoredNavigation } from "./browser-storage.js";
 import { downloadBulkStudentExcelTemplate, parseBulkStudentWorkbook, validateBulkStudentRows, buildBulkStudentImportPayload } from "./pages/Students/bulkStudentImport.js";
+import { navLabelVisible } from "./org-modules.js";
 
 
 function parseCsvText(text) {
@@ -491,7 +493,7 @@ function SchoolDiaryApp({ user, onLogout }) {
     [ChartNoAxesColumn, "Performance Report"], [FileText, "Reports"], [BookOpen, "Admission/Enquiry Form"],
     [Truck, "Transport"], [ClipboardList, "Questionnaires"], [Package, "Manage Store"], [Store, "Store Vendor"],
     [LayoutGrid, "Campus desk"]
-  ];
+  ].filter(([, label]) => navLabelVisible(label, user?.school?.modules, user?.role));
 
   async function saveEditedStudent(data, scope, photoDataUrl) {
     if (!editingStudent) return false;
@@ -739,14 +741,23 @@ function SchoolDiaryApp({ user, onLogout }) {
 }
 
 function ApplicationRoot() {
-  const { user, loading, logout } = useDatabaseSession();
+  const { user, loading, logout, refresh } = useDatabaseSession();
+  const [openedSchool, setOpenedSchool] = useState(false);
+  useEffect(() => {
+    if (!user) setOpenedSchool(false);
+  }, [user]);
   if (loading) return <SchoolWorldLoadingSkeleton mode="session" label="Checking your session" />;
   if (!user) return <LoginPage />;
   if (user.mustChangePassword) return <ChangePasswordPage />;
-  if (user.role === "super_admin") return <SuperAdminPage user={user} onLogout={logout} />;
   if (["teacher", "parent", "student", "transport_admin"].includes(user.role)) return <NoticeRecipientPortal />;
-  if (!["school_admin", "principal", "staff"].includes(user.role)) return <div className="db-loading-screen"><div className="db-loading-card"><AlertTriangle size={28}/><h2>Workspace access not configured</h2><p>Contact your School World administrator to configure access for this account role.</p><button className="primary-button" onClick={logout}>Sign out</button></div></div>;
-  return <SchoolDiaryApp user={user} onLogout={logout} />;
+  if (!["school_admin", "principal", "staff", "super_admin"].includes(user.role)) return <div className="db-loading-screen"><div className="db-loading-card"><AlertTriangle size={28}/><h2>Workspace access not configured</h2><p>Contact your School World administrator to configure access for this account role.</p><button className="primary-button" onClick={logout}>Sign out</button></div></div>;
+  if (user.role === "super_admin" && !openedSchool) {
+    return <OperatorDesk user={user} onLogout={logout} refresh={refresh} onOpened={() => setOpenedSchool(true)} />;
+  }
+  return <>
+    {user.role === "super_admin" && <button type="button" className="db-org-back" onClick={() => setOpenedSchool(false)}>All organisations</button>}
+    <SchoolDiaryApp key={user.school?.id || "school"} user={user} onLogout={logout} />
+  </>;
 }
 
 createRoot(document.getElementById("root")).render(<LanguageProvider><DatabaseSessionProvider><SchoolTabIcon /><DialogProvider><ApplicationRoot /></DialogProvider></DatabaseSessionProvider></LanguageProvider>);

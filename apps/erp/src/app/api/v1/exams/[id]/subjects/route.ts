@@ -44,6 +44,11 @@ export async function POST(
     });
     if (!exam) throw notFound("exam");
     const body = bodySchema.parse(await readJson(request));
+    const subject = await prisma.subject.findFirst({
+      where: { id: body.subjectId, campusId: user.campusId },
+      select: { id: true },
+    });
+    if (!subject) throw notFound("subject");
     const row = await prisma.examSubject.create({
       data: {
         examId: id,

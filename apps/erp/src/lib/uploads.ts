@@ -200,9 +200,14 @@ export async function writeCampusBytes(input: {
   const ext = sniffUploadExt(input.bytes, input.filename, input.mime, allowed);
   const id = randomUUID();
   const folder = input.kind === "student" ? "students" : input.kind;
+  const campus = await prisma.campus.findUnique({
+    where: { id: input.campusId },
+    select: { orgId: true },
+  });
+  const scopeId = campus?.orgId || input.campusId;
   const parts = input.ownerId
-    ? [input.campusId, folder, input.ownerId]
-    : [input.campusId, folder];
+    ? [scopeId, folder, input.ownerId]
+    : [scopeId, folder];
   const dir = path.join(uploadsRoot(), ...parts);
   await mkdir(dir, { recursive: true });
   const stored = `${id}.${ext}`;

@@ -1,6 +1,8 @@
 import React, { Suspense, useMemo, useState } from "react";
 import { CAMPUS_DESK, CAMPUS_DESK_COUNT } from "./campusDeskLinks.js";
 import { EXTRA_DESK_ITEMS, NATIVE_COUNT, isNative, nativeComponent } from "../Campus/registry.js";
+import { useDatabaseSession } from "../../DatabaseSession.jsx";
+import { deskGroupVisible } from "../../org-modules.js";
 import "./campus-desk.css";
 
 // Most-used groups first; anything not listed keeps its original order after these.
@@ -49,12 +51,18 @@ function writeScreenToUrl(href) {
 }
 
 export default function CampusDeskPage() {
+  const { user } = useDatabaseSession();
   const [query, setQuery] = useState("");
   const [nativeOnly, setNativeOnly] = useState(false);
   const [openHref, setOpenHref] = useState(readScreenFromUrl);
   const needle = query.trim().toLowerCase();
+  const modules = user?.school?.modules;
+  const role = user?.role;
 
-  const ordered = useMemo(() => prioritised(DESK), []);
+  const ordered = useMemo(
+    () => prioritised(DESK).filter((group) => deskGroupVisible(group.label, modules, role)),
+    [modules, role],
+  );
   const openLabel = useMemo(() => {
     for (const group of DESK) {
       const item = group.items.find((entry) => entry.href === openHref);

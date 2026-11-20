@@ -11,6 +11,7 @@ export function schoolWorldRole(principal: AuthPrincipal) {
   const names = principal.roles.map((role) => role.toLowerCase());
   if (principal.actorType === "STUDENT") return "student";
   if (principal.actorType === "GUARDIAN") return "parent";
+  if (names.includes("platformadmin")) return "super_admin";
   if (names.some((name) => name.includes("principal"))) return "principal";
   if (names.some((name) => name.includes("admin"))) return "school_admin";
   if (names.some((name) => name.includes("teacher"))) return "teacher";
@@ -25,6 +26,7 @@ export function schoolWorldUser(
     dateFormat?: string | null; startMonth?: number | null; currencyCode?: string | null; currencyFormat?: string | null; currencyPlace?: string | null;
   },
   branding: { logoUrl?: string } = {},
+  modules?: Record<string, boolean>,
 ) {
   const role = schoolWorldRole(principal);
   return {
@@ -36,7 +38,7 @@ export function schoolWorldUser(
     role,
     personType: role,
     mustChangePassword: account.mustChangePassword,
-    // Platform admins can work in other campuses of the organisation (profile menu > Switch campus).
+    // Platform admins can open any organisation. The session campus is the one they opened.
     canSwitchCampus: principal.roles.includes("PlatformAdmin"),
     school: {
       id: campus.id,
@@ -55,6 +57,7 @@ export function schoolWorldUser(
         startMonth: campus.startMonth ?? null,
       },
       logoUrl: branding.logoUrl ?? "",
+      ...(modules ? { modules } : {}),
     },
   };
 }

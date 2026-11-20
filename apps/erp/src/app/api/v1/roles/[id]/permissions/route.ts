@@ -3,6 +3,7 @@ import { requestIp, writeAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { forbidden, notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
+import { assertNewGrantsAllowed } from "@/lib/org-modules";
 import { requireApiPermission } from "@/lib/principal";
 
 const bodySchema = z.object({
@@ -41,6 +42,7 @@ export async function PUT(
     }
     const uniqueIds = [...new Set(permissionIds)];
     const before = role.grants.map((g) => g.permissionId);
+    await assertNewGrantsAllowed(user, before, uniqueIds);
     await prisma.$transaction([
       prisma.rolePermission.deleteMany({ where: { roleId: role.id } }),
       ...(uniqueIds.length

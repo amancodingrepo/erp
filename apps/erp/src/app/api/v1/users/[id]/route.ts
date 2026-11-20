@@ -4,7 +4,11 @@ import { prisma } from "@/lib/db";
 import { notFound } from "@/lib/errors";
 import { fail, ok, readJson } from "@/lib/http";
 import { requireApiPermission } from "@/lib/principal";
-import { assertCanChangeSuperAdmin } from "@/lib/superadmin-guard";
+import {
+  assertCanChangePlatformAdmin,
+  assertCanChangeSuperAdmin,
+  assertSchoolCannotGrantPlatform,
+} from "@/lib/superadmin-guard";
 
 const patchSchema = z.object({
   isActive: z.boolean().optional(),
@@ -37,11 +41,21 @@ export async function PATCH(
       });
       nextRoleNames = nextRoles.map((role) => role.name);
     }
+    if (nextRoleNames) {
+      assertSchoolCannotGrantPlatform(user.roles, nextRoleNames);
+    }
     await assertCanChangeSuperAdmin({
       campusId: user.campusId,
       userId: existing.id,
       currentlyActive: existing.isActive,
       currentlySuperAdmin: currentNames.includes("SuperAdmin"),
+      nextIsActive: body.isActive,
+      nextRoleNames,
+    });
+    await assertCanChangePlatformAdmin({
+      userId: existing.id,
+      currentlyActive: existing.isActive,
+      currentlyPlatformAdmin: currentNames.includes("PlatformAdmin"),
       nextIsActive: body.isActive,
       nextRoleNames,
     });

@@ -81,8 +81,10 @@ export default function BackupOps() {
       <p className="text-sm text-[var(--muted)]">
         Campus snapshot is counts and recent audit. Database dumps are
         <code> pg_dump </code>
-        files on the uploads volume (last 7 kept). Restore replaces the live
-        database for every campus. Type RESTORE ALL CAMPUSES to enable Restore.
+        files on the uploads volume (last 7 kept). Full restore replaces every
+        campus and is limited to the platform god. Type RESTORE ALL CAMPUSES
+        to enable it. One organisation is backed up and restored from its own
+        fixture, and that restore leaves every other organisation in place.
       </p>
       {message ? <p className="text-sm">{message}</p> : null}
       <div className="flex gap-3">

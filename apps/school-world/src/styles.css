@@ -9211,3 +9211,30 @@ html[data-sd-theme] .db-auth-steps li::before{background:var(--sd-primary)!impor
 html[data-sd-theme] .db-auth-steps strong{color:var(--sd-text)!important}
 html[data-sd-theme] .db-auth-steps span{color:var(--sd-muted)!important}
 html[data-sd-theme] .db-auth-secondary{background:var(--sd-surface)!important;color:var(--sd-text)!important;border-color:var(--sd-border)!important}
+
+.db-org-desk main { display: grid; gap: 18px; }
+.db-org-create { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.db-org-create label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; }
+.db-org-create input { border: 1px solid #d4dfeb; border-radius: 8px; padding: 9px 10px; }
+.db-org-list { display: grid; gap: 12px; }
+.db-org-list article { background: #fff; border: 1px solid #d7e1ec; border-radius: 12px; padding: 14px 16px; }
+.db-org-list header, .db-org-list li { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.db-org-list header span, .db-org-list header em { margin-left: 8px; color: #5d7190; font-style: normal; font-size: 12px; }
+.db-org-list ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.db-org-modules { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: 12px; }
+.db-org-modules label { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.db-org-list button, .db-org-back { border: 1px solid #c5d4e6; background: #fff; border-radius: 8px; padding: 7px 10px; font-weight: 700; }
+.db-org-back { position: fixed; top: 76px; left: 232px; z-index: 40; margin: 0; box-shadow: 0 2px 8px #0002; }
+@media(max-width:760px){.db-org-back { top: 64px; left: 8px; }}
+.db-org-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.db-org-tabs button { border: 1px solid #c5d4e6; background: #fff; border-radius: 999px; padding: 8px 12px; font-weight: 700; }
+.db-org-tabs button.is-selected { background: #173b68; color: #fff; border-color: #173b68; }
+.db-org-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.db-org-stats article { background: #fff; border: 1px solid #d7e1ec; border-radius: 12px; padding: 12px; display: grid; gap: 6px; }
+.db-org-stats span { color: #5d7190; font-size: 12px; font-weight: 700; }
+.db-org-stats strong { font-size: 22px; }
+.db-org-grants { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 12px; max-height: 420px; overflow: auto; margin-top: 12px; font-size: 12px; }
+.db-org-grants label, .db-org-profile label { display: flex; align-items: center; gap: 6px; }
+.db-org-profile { display: grid; gap: 10px; background: #fff; border: 1px solid #d7e1ec; border-radius: 12px; padding: 16px; }
+.db-org-profile input, .db-org-create select { border: 1px solid #d4dfeb; border-radius: 8px; padding: 9px 10px; background: #fff; }
+.db-org-list li span + span { display: flex; gap: 8px; }
